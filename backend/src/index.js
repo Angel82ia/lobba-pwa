@@ -2,6 +2,10 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
+import morgan from 'morgan'
+import cookieParser from 'cookie-parser'
+import authRoutes from './routes/auth.js'
+import passport from './config/passport.js'
 
 dotenv.config()
 
@@ -10,12 +14,23 @@ const PORT = process.env.PORT || 3000
 
 app.use(helmet())
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173'
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true,
 }))
 app.use(express.json())
+app.use(cookieParser())
+app.use(morgan('combined'))
+app.use(passport.initialize())
+
+app.use('/api/auth', authRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+app.use((err, req, res, _next) => {
+  console.error(err.stack)
+  res.status(500).json({ error: 'Something went wrong!' })
 })
 
 app.listen(PORT, () => {

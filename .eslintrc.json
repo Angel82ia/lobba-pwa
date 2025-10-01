@@ -24,7 +24,7 @@
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "warn",
     "react-refresh/only-export-components": "warn",
-    "no-unused-vars": "warn",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "no-console": "warn"
   },
   "settings": {
