@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 
 export const hashPassword = async (password) => {
   return await bcrypt.hash(password, 10)
@@ -25,7 +26,10 @@ export const generateAccessToken = (user) => {
 
 export const generateRefreshToken = (user) => {
   return jwt.sign(
-    { userId: user.id },
+    { 
+      userId: user.id,
+      jti: crypto.randomBytes(16).toString('hex')
+    },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   )

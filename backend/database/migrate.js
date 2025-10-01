@@ -10,7 +10,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const { Pool } = pg
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 })
 
 const runMigration = async (filename) => {

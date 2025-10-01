@@ -9,11 +9,13 @@ import { createRefreshToken } from '../models/RefreshToken.js'
 
 const router = express.Router()
 
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: 'Too many login attempts, please try again later',
-})
+const loginLimiter = process.env.NODE_ENV === 'test'
+  ? (req, res, next) => next()
+  : rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 5,
+      message: 'Too many login attempts, please try again later',
+    })
 
 router.post(
   '/register',
