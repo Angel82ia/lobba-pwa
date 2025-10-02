@@ -1,0 +1,296 @@
+import { validationResult } from 'express-validator'
+import * as SalonProfile from '../models/SalonProfile.js'
+import * as SalonService from '../models/SalonService.js'
+import * as SalonCategory from '../models/SalonCategory.js'
+
+export const getSalonProfile = async (req, res) => {
+  try {
+    const { id } = req.params
+    const profile = await SalonProfile.findSalonProfileById(id)
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Salon profile not found' })
+    }
+
+    res.json({
+      id: profile.id,
+      userId: profile.user_id,
+      businessName: profile.business_name,
+      description: profile.description,
+      address: profile.address,
+      city: profile.city,
+      postalCode: profile.postal_code,
+      country: profile.country,
+      phone: profile.phone,
+      website: profile.website,
+      location: profile.latitude && profile.longitude
+        ? { latitude: profile.latitude, longitude: profile.longitude }
+        : null,
+      businessHours: profile.business_hours,
+      isClickCollect: profile.is_click_collect,
+      acceptsReservations: profile.accepts_reservations,
+      rating: profile.rating,
+      totalReviews: profile.total_reviews,
+      isActive: profile.is_active,
+      verified: profile.verified,
+    })
+  } catch (error) {
+    console.error('Get salon profile error:', error)
+    res.status(500).json({ error: 'Failed to fetch salon profile' })
+  }
+}
+
+export const createSalonProfile = async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const existingProfile = await SalonProfile.findSalonProfileByUserId(req.user.id)
+    if (existingProfile) {
+      return res.status(409).json({ error: 'Salon profile already exists' })
+    }
+
+    const {
+      businessName,
+      description,
+      address,
+      city,
+      postalCode,
+      phone,
+      website,
+      location,
+      businessHours,
+      isClickCollect,
+      acceptsReservations,
+    } = req.body
+
+    const profile = await SalonProfile.createSalonProfile({
+      userId: req.user.id,
+      businessName,
+      description,
+      address,
+      city,
+      postalCode,
+      phone,
+      website,
+      location,
+      businessHours,
+      isClickCollect,
+      acceptsReservations,
+    })
+
+    res.status(201).json({
+      id: profile.id,
+      userId: profile.user_id,
+      businessName: profile.business_name,
+      description: profile.description,
+      address: profile.address,
+      city: profile.city,
+      postalCode: profile.postal_code,
+      phone: profile.phone,
+      website: profile.website,
+      createdAt: profile.created_at,
+    })
+  } catch (error) {
+    console.error('Create salon profile error:', error)
+    res.status(500).json({ error: 'Failed to create salon profile' })
+  }
+}
+
+export const updateSalonProfile = async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { id } = req.params
+    const profile = await SalonProfile.findSalonProfileById(id)
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Salon profile not found' })
+    }
+
+    if (profile.user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    const {
+      businessName,
+      description,
+      address,
+      city,
+      postalCode,
+      phone,
+      website,
+      location,
+      businessHours,
+      isClickCollect,
+      acceptsReservations,
+    } = req.body
+
+    const updates = {}
+    if (businessName !== undefined) updates.businessName = businessName
+    if (description !== undefined) updates.description = description
+    if (address !== undefined) updates.address = address
+    if (city !== undefined) updates.city = city
+    if (postalCode !== undefined) updates.postalCode = postalCode
+    if (phone !== undefined) updates.phone = phone
+    if (website !== undefined) updates.website = website
+    if (location !== undefined) updates.location = location
+    if (businessHours !== undefined) updates.businessHours = businessHours
+    if (isClickCollect !== undefined) updates.isClickCollect = isClickCollect
+    if (acceptsReservations !== undefined) updates.acceptsReservations = acceptsReservations
+
+    const updatedProfile = await SalonProfile.updateSalonProfile(id, updates)
+
+    res.json({
+      id: updatedProfile.id,
+      userId: updatedProfile.user_id,
+      businessName: updatedProfile.business_name,
+      description: updatedProfile.description,
+      address: updatedProfile.address,
+      city: updatedProfile.city,
+    })
+  } catch (error) {
+    console.error('Update salon profile error:', error)
+    res.status(500).json({ error: 'Failed to update salon profile' })
+  }
+}
+
+export const deleteSalonProfile = async (req, res) => {
+  try {
+    const { id } = req.params
+    const profile = await SalonProfile.findSalonProfileById(id)
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Salon profile not found' })
+    }
+
+    if (profile.user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    await SalonProfile.updateSalonProfile(id, { isActive: false })
+
+    res.json({ message: 'Salon profile deleted successfully' })
+  } catch (error) {
+    console.error('Delete salon profile error:', error)
+    res.status(500).json({ error: 'Failed to delete salon profile' })
+  }
+}
+
+export const getSalonServices = async (req, res) => {
+  try {
+    const { id } = req.params
+    const services = await SalonService.findServicesBySalonId(id)
+
+    const formattedServices = services.map(service => ({
+      id: service.id,
+      salonProfileId: service.salon_profile_id,
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      durationMinutes: service.duration_minutes,
+      discountPercentage: service.discount_percentage,
+      isActive: service.is_active,
+    }))
+
+    res.json(formattedServices)
+  } catch (error) {
+    console.error('Get salon services error:', error)
+    res.status(500).json({ error: 'Failed to fetch salon services' })
+  }
+}
+
+export const createSalonService = async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { id } = req.params
+    const profile = await SalonProfile.findSalonProfileById(id)
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Salon profile not found' })
+    }
+
+    if (profile.user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    const { name, description, price, durationMinutes, discountPercentage } = req.body
+
+    const service = await SalonService.createSalonService({
+      salonProfileId: id,
+      name,
+      description,
+      price,
+      durationMinutes,
+      discountPercentage,
+    })
+
+    res.status(201).json({
+      id: service.id,
+      salonProfileId: service.salon_profile_id,
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      durationMinutes: service.duration_minutes,
+      discountPercentage: service.discount_percentage,
+    })
+  } catch (error) {
+    console.error('Create salon service error:', error)
+    res.status(500).json({ error: 'Failed to create salon service' })
+  }
+}
+
+export const getAllCategories = async (req, res) => {
+  try {
+    const categories = await SalonCategory.findAllCategories()
+
+    const formattedCategories = categories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      icon: cat.icon,
+      parentCategoryId: cat.parent_category_id,
+      isActive: cat.is_active,
+      sortOrder: cat.sort_order,
+    }))
+
+    res.json(formattedCategories)
+  } catch (error) {
+    console.error('Get categories error:', error)
+    res.status(500).json({ error: 'Failed to fetch categories' })
+  }
+}
+
+export const assignCategory = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { categoryId } = req.body
+
+    const profile = await SalonProfile.findSalonProfileById(id)
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Salon profile not found' })
+    }
+
+    if (profile.user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    await SalonCategory.assignCategoryToSalon(id, categoryId)
+
+    res.status(201).json({ message: 'Category assigned successfully' })
+  } catch (error) {
+    console.error('Assign category error:', error)
+    res.status(500).json({ error: 'Failed to assign category' })
+  }
+}
