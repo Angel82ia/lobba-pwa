@@ -11,6 +11,9 @@ import SalonProfile from './modules/salon/SalonProfile'
 import EditSalonProfile from './modules/salon/EditSalonProfile'
 import AdminDashboard from './modules/admin/AdminDashboard'
 import DeviceRegistration from './modules/devices/DeviceRegistration'
+import ReservationList from './modules/reservations/ReservationList'
+import ReservationCalendar from './modules/reservations/ReservationCalendar'
+import ChatWindow from './modules/messaging/ChatWindow'
 import './App.css'
 
 function App() {
@@ -66,6 +69,42 @@ function App() {
             element={
               <ProtectedRoute requiredRole="device">
                 <DeviceRegistration />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="reservations"
+            element={
+              <ProtectedRoute>
+                <ReservationList />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="reservations/new/:salonId"
+            element={
+              <ProtectedRoute>
+                <ReservationCalendar />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="messages"
+            element={
+              <ProtectedRoute>
+                <ChatWindow />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="messages/:conversationId"
+            element={
+              <ProtectedRoute>
+                <ChatWindow />
               </ProtectedRoute>
             }
           />

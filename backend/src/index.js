@@ -1,4 +1,5 @@
 import express from 'express'
+import { createServer } from 'http'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
@@ -8,12 +9,19 @@ import authRoutes from './routes/auth.js'
 import profileRoutes from './routes/profile.js'
 import salonRoutes from './routes/salon.js'
 import deviceRoutes from './routes/device.js'
+import reservationRoutes from './routes/reservation.js'
+import messageRoutes from './routes/message.js'
 import passport from './config/passport.js'
+import { initializeWebSocket } from './websocket/index.js'
 
 dotenv.config()
 
 const app = express()
+const httpServer = createServer(app)
 const PORT = process.env.PORT || 3000
+
+const io = initializeWebSocket(httpServer)
+app.set('io', io)
 
 app.use(helmet())
 app.use(cors({
@@ -29,6 +37,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/salon', salonRoutes)
 app.use('/api/device', deviceRoutes)
+app.use('/api/reservations', reservationRoutes)
+app.use('/api/messages', messageRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
@@ -39,8 +49,8 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong!' })
 })
 
-app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`)
+httpServer.listen(PORT, () => {
+  console.log(`Backend with WebSocket running on port ${PORT}`)
 })
 
 export default app

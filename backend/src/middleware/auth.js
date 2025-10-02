@@ -51,3 +51,5 @@ export const requireMembership = (req, res, next) => {
 
   next()
 }
+
+export const authenticate = requireAuth

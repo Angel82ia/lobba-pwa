@@ -1,0 +1,72 @@
+.reservation-calendar {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.service-option {
+  padding: 1rem;
+  border: 2px solid var(--color-gray-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.service-option:hover {
+  border-color: var(--color-primary);
+}
+
+.service-option.selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.service-option h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-black);
+}
+
+.service-option p {
+  margin: 0;
+  color: var(--color-gray);
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.slot-button {
+  padding: 0.75rem;
+  border: 2px solid var(--color-gray-light);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.slot-button:hover {
+  border-color: var(--color-primary);
+}
+
+.slot-button.selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
