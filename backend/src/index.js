@@ -5,6 +5,9 @@ import dotenv from 'dotenv'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 import authRoutes from './routes/auth.js'
+import profileRoutes from './routes/profile.js'
+import salonRoutes from './routes/salon.js'
+import deviceRoutes from './routes/device.js'
 import passport from './config/passport.js'
 
 dotenv.config()
@@ -23,6 +26,9 @@ app.use(morgan('combined'))
 app.use(passport.initialize())
 
 app.use('/api/auth', authRoutes)
+app.use('/api/profile', profileRoutes)
+app.use('/api/salon', salonRoutes)
+app.use('/api/device', deviceRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
