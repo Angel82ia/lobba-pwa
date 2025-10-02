@@ -17,6 +17,7 @@ import ChatWindow from './modules/messaging/ChatWindow'
 import ProductGrid from './modules/ecommerce/ProductGrid'
 import ProductDetail from './modules/ecommerce/ProductDetail'
 import Cart from './modules/ecommerce/Cart'
+import CheckoutForm from './modules/ecommerce/CheckoutForm'
 import './App.css'
 
 function App() {
@@ -116,6 +117,15 @@ function App() {
           <Route path="tienda/:category" element={<ProductGrid />} />
           <Route path="producto/:slug" element={<ProductDetail />} />
           <Route path="carrito" element={<Cart />} />
+          
+          <Route
+            path="checkout"
+            element={
+              <ProtectedRoute>
+                <CheckoutForm />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>
