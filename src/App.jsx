@@ -18,6 +18,7 @@ import ProductGrid from './modules/ecommerce/ProductGrid'
 import ProductDetail from './modules/ecommerce/ProductDetail'
 import Cart from './modules/ecommerce/Cart'
 import CheckoutForm from './modules/ecommerce/CheckoutForm'
+import Wishlist from './modules/ecommerce/Wishlist'
 import './App.css'
 
 function App() {
@@ -117,6 +118,15 @@ function App() {
           <Route path="tienda/:category" element={<ProductGrid />} />
           <Route path="producto/:slug" element={<ProductDetail />} />
           <Route path="carrito" element={<Cart />} />
+          
+          <Route
+            path="wishlist"
+            element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            }
+          />
           
           <Route
             path="checkout"
