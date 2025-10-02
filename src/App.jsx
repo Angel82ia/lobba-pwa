@@ -14,6 +14,9 @@ import DeviceRegistration from './modules/devices/DeviceRegistration'
 import ReservationList from './modules/reservations/ReservationList'
 import ReservationCalendar from './modules/reservations/ReservationCalendar'
 import ChatWindow from './modules/messaging/ChatWindow'
+import ProductGrid from './modules/ecommerce/ProductGrid'
+import ProductDetail from './modules/ecommerce/ProductDetail'
+import Cart from './modules/ecommerce/Cart'
 import './App.css'
 
 function App() {
@@ -108,6 +111,11 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          <Route path="tienda" element={<ProductGrid />} />
+          <Route path="tienda/:category" element={<ProductGrid />} />
+          <Route path="producto/:slug" element={<ProductDetail />} />
+          <Route path="carrito" element={<Cart />} />
         </Route>
       </Routes>
     </BrowserRouter>
