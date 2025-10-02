@@ -5,6 +5,12 @@ import Login from './pages/Login'
 import LoginForm from './modules/auth/LoginForm'
 import RegisterForm from './modules/auth/RegisterForm'
 import ProtectedRoute from './components/routes/ProtectedRoute'
+import ClientProfile from './modules/profile/ClientProfile'
+import EditProfile from './modules/profile/EditProfile'
+import SalonProfile from './modules/salon/SalonProfile'
+import EditSalonProfile from './modules/salon/EditSalonProfile'
+import AdminDashboard from './modules/admin/AdminDashboard'
+import DeviceRegistration from './modules/devices/DeviceRegistration'
 import './App.css'
 
 function App() {
@@ -18,10 +24,30 @@ function App() {
           <Route path="auth/register" element={<RegisterForm />} />
           
           <Route
-            path="profile"
+            path="profile/:id?"
             element={
               <ProtectedRoute>
-                <div>Profile Page</div>
+                <ClientProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="profile/edit"
+            element={
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route path="salon/:id" element={<SalonProfile />} />
+          
+          <Route
+            path="salon/:id/edit"
+            element={
+              <ProtectedRoute requiredRole="salon">
+                <EditSalonProfile />
               </ProtectedRoute>
             }
           />
@@ -30,7 +56,16 @@ function App() {
             path="admin"
             element={
               <ProtectedRoute requiredRole="admin">
-                <div>Admin Dashboard</div>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="device/register"
+            element={
+              <ProtectedRoute requiredRole="device">
+                <DeviceRegistration />
               </ProtectedRoute>
             }
           />
