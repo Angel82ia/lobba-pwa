@@ -128,3 +128,44 @@ export const deleteSalonProfile = async (id) => {
   )
   return result.rows[0]
 }
+
+export const findSalonsInRadius = async (centerLocation, radiusKm) => {
+  if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
+    return []
+  }
+
+  const result = await pool.query(
+    `SELECT sp.*,
+            ST_Y(sp.location::geometry) as latitude,
+            ST_X(sp.location::geometry) as longitude,
+            ST_Distance(
+              sp.location,
+              ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+            ) / 1000 as distance_km
+     FROM salon_profiles sp 
+     WHERE sp.is_active = true
+       AND sp.location IS NOT NULL
+       AND ST_DWithin(
+         sp.location,
+         ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+         $3 * 1000
+       )
+     ORDER BY distance_km ASC`,
+    [centerLocation.longitude, centerLocation.latitude, radiusKm]
+  )
+  return result.rows
+}
+
+export const getUsersInRadius = async (centerLocation, radiusKm, notificationType) => {
+  const result = await pool.query(
+    `SELECT DISTINCT u.id, u.email, u.first_name, u.last_name
+     FROM users u
+     LEFT JOIN user_notification_preferences unp ON u.id = unp.user_id
+     WHERE u.role = 'user'
+       AND (unp.notifications_enabled IS NULL OR unp.notifications_enabled = true)
+       AND (unp.max_radius_km IS NULL OR unp.max_radius_km >= $1)
+       AND (unp.types_enabled IS NULL OR $2 = ANY(unp.types_enabled))`,
+    [radiusKm, notificationType]
+  )
+  return result.rows
+}
