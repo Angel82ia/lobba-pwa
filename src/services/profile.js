@@ -44,3 +44,12 @@ export const getSalonCategories = async () => {
   const response = await apiClient.get('/salon/categories')
   return response.data
 }
+
+export const getAllSalons = async (filters = {}) => {
+  const params = new URLSearchParams()
+  if (filters.city) params.append('city', filters.city)
+  if (filters.category) params.append('category', filters.category)
+  
+  const response = await apiClient.get(`/api/salon?${params.toString()}`)
+  return response.data
+}
