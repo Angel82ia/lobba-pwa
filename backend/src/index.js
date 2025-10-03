@@ -30,8 +30,11 @@ import itemRoutes from './routes/item.js'
 import equipmentRoutes from './routes/equipment.js'
 import permissionRoutes from './routes/permission.js'
 import deviceEventRoutes from './routes/deviceEvent.js'
+import auditLogRoutes from './routes/auditLog.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
+import logger from './utils/logger.js'
+import { generalLimiter } from './middleware/rateLimits.js'
 
 dotenv.config()
 
@@ -42,7 +45,26 @@ const PORT = process.env.PORT || 3000
 const io = initializeWebSocket(httpServer)
 app.set('io', io)
 
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https://api.stripe.com", "https://openrouter.ai", "https://yce.perfectcorp.com"],
+      frameSrc: ["'self'", "https://js.stripe.com"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: []
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}))
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
@@ -54,6 +76,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('combined'))
 app.use(passport.initialize())
+app.use(generalLimiter)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
@@ -79,13 +102,14 @@ app.use('/api/items', itemRoutes)
 app.use('/api/equipment', equipmentRoutes)
 app.use('/api/permissions', permissionRoutes)
 app.use('/api/device-events', deviceEventRoutes)
+app.use('/api/audit-logs', auditLogRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
 app.use((err, req, res, _next) => {
-  console.error(err.stack)
+  logger.error('Unhandled error:', err)
   res.status(500).json({ error: 'Something went wrong!' })
 })
 
