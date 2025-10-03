@@ -31,6 +31,12 @@ import UserProfile from './modules/community/UserProfile'
 import CatalogGrid from './modules/catalog/CatalogGrid'
 import DesignDetail from './modules/catalog/DesignDetail'
 import BannerManagement from './modules/banners/BannerManagement'
+import ItemRequestForm from './modules/remote-equipment/ItemRequestForm'
+import EquipmentRequestForm from './modules/remote-equipment/EquipmentRequestForm'
+import UserPermissionHistory from './modules/remote-equipment/UserPermissionHistory'
+import DeviceManagement from './modules/admin/DeviceManagement'
+import InventoryManagement from './modules/admin/InventoryManagement'
+import KioskMode from './modules/kiosk/KioskMode'
 import './App.css'
 
 function App() {
@@ -241,6 +247,53 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="equipos/solicitar-articulo"
+            element={
+              <ProtectedRoute>
+                <ItemRequestForm />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="equipos/solicitar-equipo"
+            element={
+              <ProtectedRoute>
+                <EquipmentRequestForm />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="equipos/mis-permisos"
+            element={
+              <ProtectedRoute>
+                <UserPermissionHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/dispositivos"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <DeviceManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/inventario"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <InventoryManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="kiosk" element={<KioskMode />} />
         </Route>
       </Routes>
     </BrowserRouter>
