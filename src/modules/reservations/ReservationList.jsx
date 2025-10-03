@@ -56,7 +56,7 @@ const ReservationList = () => {
     <div className="reservation-list">
       <div className="list-header">
         <h1>Mis Reservas</h1>
-        <Link to="/salons">
+        <Link to="/salones">
           <Button>Nueva Reserva</Button>
         </Link>
       </div>

@@ -8,6 +8,7 @@ import ProtectedRoute from './components/routes/ProtectedRoute'
 import ClientProfile from './modules/profile/ClientProfile'
 import EditProfile from './modules/profile/EditProfile'
 import SalonProfile from './modules/salon/SalonProfile'
+import SalonList from './modules/salon/SalonList'
 import EditSalonProfile from './modules/salon/EditSalonProfile'
 import AdminDashboard from './modules/admin/AdminDashboard'
 import DeviceRegistration from './modules/devices/DeviceRegistration'
@@ -69,6 +70,7 @@ function App() {
           />
           
           <Route path="salon/:id" element={<SalonProfile />} />
+          <Route path="salones" element={<SalonList />} />
           
           <Route
             path="salon/:id/edit"

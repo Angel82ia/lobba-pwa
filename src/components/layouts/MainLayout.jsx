@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import useStore from '../../store'
 import BannerDisplay from '../../modules/banners/BannerDisplay'
 import ChatbotWidget from '../../modules/chatbot/ChatbotWidget'
@@ -14,14 +14,14 @@ const MainLayout = () => {
         <div className="header-content">
           <div className="logo">LOBBA</div>
           <nav className="main-nav">
-            <a href="/">Inicio</a>
-            <a href="/salons">Salones</a>
-            <a href="/shop">Tienda</a>
-            <a href="/community">Comunidad</a>
+            <Link to="/">Inicio</Link>
+            <Link to="/salones">Salones</Link>
+            <Link to="/tienda">Tienda</Link>
+            <Link to="/comunidad">Comunidad</Link>
           </nav>
           <div className="header-actions">
             <ThemeToggle />
-            <a href="/login">Iniciar Sesión</a>
+            <Link to="/login">Iniciar Sesión</Link>
           </div>
         </div>
       </header>
