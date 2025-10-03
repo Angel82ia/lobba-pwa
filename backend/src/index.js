@@ -19,6 +19,7 @@ import checkoutRoutes from './routes/checkout.js'
 import wishlistRoutes from './routes/wishlist.js'
 import webhookRoutes from './routes/webhook.js'
 import notificationRoutes from './routes/notification.js'
+import aiRoutes from './routes/ai.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 
@@ -57,6 +58,7 @@ app.use('/api/orders', orderRoutes)
 app.use('/api/checkout', checkoutRoutes)
 app.use('/api/wishlist', wishlistRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/ai', aiRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
