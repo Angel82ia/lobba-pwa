@@ -1,26 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as webhookController from '../../src/controllers/webhookController.js'
 import * as Order from '../../src/models/Order.js'
 import * as Product from '../../src/models/Product.js'
 import * as Cart from '../../src/models/Cart.js'
-import Stripe from 'stripe'
 
 vi.mock('../../src/models/Order.js')
 vi.mock('../../src/models/Product.js')
 vi.mock('../../src/models/Cart.js')
-vi.mock('stripe')
+
+const { mockConstructEvent } = vi.hoisted(() => {
+  const mockConstructEvent = vi.fn()
+  return { mockConstructEvent }
+})
+
+vi.mock('stripe', () => {
+  const Stripe = vi.fn(() => ({
+    webhooks: {
+      constructEvent: mockConstructEvent,
+    },
+  }))
+  return { default: Stripe }
+})
+
+import * as webhookController from '../../src/controllers/webhookController.js'
 
 describe('Webhook Controller', () => {
   let req, res
-  const mockStripe = {
-    webhooks: {
-      constructEvent: vi.fn(),
-    },
-  }
 
   beforeEach(() => {
     vi.clearAllMocks()
-    Stripe.mockReturnValue(mockStripe)
 
     req = {
       body: Buffer.from('test-body'),
@@ -52,7 +59,7 @@ describe('Webhook Controller', () => {
         },
       }
 
-      mockStripe.webhooks.constructEvent.mockReturnValue(mockEvent)
+      mockConstructEvent.mockReturnValue(mockEvent)
       Order.updateStripePaymentIntent.mockResolvedValue({})
       Order.updateOrderStatus.mockResolvedValue({})
       Order.findOrderById.mockResolvedValue({
@@ -65,7 +72,7 @@ describe('Webhook Controller', () => {
 
       await webhookController.handleStripeWebhook(req, res)
 
-      expect(mockStripe.webhooks.constructEvent).toHaveBeenCalledWith(
+      expect(mockConstructEvent).toHaveBeenCalledWith(
         req.body,
         'test-signature',
         process.env.STRIPE_WEBHOOK_SECRET
@@ -88,7 +95,7 @@ describe('Webhook Controller', () => {
         },
       }
 
-      mockStripe.webhooks.constructEvent.mockReturnValue(mockEvent)
+      mockConstructEvent.mockReturnValue(mockEvent)
       Order.updateStripePaymentIntent.mockResolvedValue({})
       Order.updateOrderStatus.mockResolvedValue({})
 
@@ -109,7 +116,7 @@ describe('Webhook Controller', () => {
         },
       }
 
-      mockStripe.webhooks.constructEvent.mockReturnValue(mockEvent)
+      mockConstructEvent.mockReturnValue(mockEvent)
       Order.findOrderByPaymentIntent.mockResolvedValue({
         id: 'order-1',
         items: [{ product_id: 'prod-1', quantity: 2 }],
@@ -127,7 +134,7 @@ describe('Webhook Controller', () => {
     })
 
     it('should return 400 for invalid signature', async () => {
-      mockStripe.webhooks.constructEvent.mockImplementation(() => {
+      mockConstructEvent.mockImplementation(() => {
         throw new Error('Invalid signature')
       })
 
@@ -143,7 +150,7 @@ describe('Webhook Controller', () => {
         data: { object: {} },
       }
 
-      mockStripe.webhooks.constructEvent.mockReturnValue(mockEvent)
+      mockConstructEvent.mockReturnValue(mockEvent)
 
       await webhookController.handleStripeWebhook(req, res)
 
@@ -161,7 +168,7 @@ describe('Webhook Controller', () => {
         },
       }
 
-      mockStripe.webhooks.constructEvent.mockReturnValue(mockEvent)
+      mockConstructEvent.mockReturnValue(mockEvent)
       Order.updateStripePaymentIntent.mockRejectedValue(new Error('DB error'))
 
       await webhookController.handleStripeWebhook(req, res)
