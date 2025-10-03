@@ -30,6 +30,7 @@ import CommunityFeed from './modules/community/CommunityFeed'
 import UserProfile from './modules/community/UserProfile'
 import CatalogGrid from './modules/catalog/CatalogGrid'
 import DesignDetail from './modules/catalog/DesignDetail'
+import BannerManagement from './modules/banners/BannerManagement'
 import './App.css'
 
 function App() {
@@ -231,6 +232,15 @@ function App() {
 
           <Route path="catalogo" element={<CatalogGrid />} />
           <Route path="catalogo/:id" element={<DesignDetail />} />
+          
+          <Route
+            path="admin/banners"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <BannerManagement />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>
