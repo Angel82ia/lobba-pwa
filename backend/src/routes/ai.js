@@ -1,11 +1,12 @@
 import express from 'express'
 import * as aiController from '../controllers/aiController.js'
 import { requireAuth } from '../middleware/auth.js'
+import { aiGenerationLimiter } from '../middleware/rateLimits.js'
 
 const router = express.Router()
 
-router.post('/generate-nails', requireAuth, aiController.generateNails)
-router.post('/generate-hairstyle', requireAuth, aiController.generateHairstyle)
+router.post('/generate-nails', requireAuth, aiGenerationLimiter, aiController.generateNails)
+router.post('/generate-hairstyle', requireAuth, aiGenerationLimiter, aiController.generateHairstyle)
 
 router.get('/catalog', aiController.getCatalog)
 router.get('/my-designs', requireAuth, aiController.getMyDesigns)

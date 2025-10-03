@@ -1,6 +1,7 @@
 import * as ChatbotConversation from '../models/ChatbotConversation.js'
 import * as ChatbotMessage from '../models/ChatbotMessage.js'
 import { generateChatbotResponse } from '../utils/aiService.js'
+import logger from '../utils/logger.js'
 
 export const sendMessage = async (req, res) => {
   try {
@@ -37,7 +38,7 @@ export const sendMessage = async (req, res) => {
       conversationId: conversation.id
     })
   } catch (error) {
-    console.error('Chatbot send message error:', error)
+    logger.error('Chatbot send message error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -58,7 +59,7 @@ export const getConversation = async (req, res) => {
       messages
     })
   } catch (error) {
-    console.error('Get chatbot conversation error:', error)
+    logger.error('Get chatbot conversation error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -72,7 +73,7 @@ export const clearConversation = async (req, res) => {
 
     res.json({ message: 'Conversación limpiada correctamente' })
   } catch (error) {
-    console.error('Clear chatbot conversation error:', error)
+    logger.error('Clear chatbot conversation error:', error)
     res.status(500).json({ message: error.message })
   }
 }

@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import * as Order from '../models/Order.js'
 import * as Product from '../models/Product.js'
 import * as Cart from '../models/Cart.js'
+import logger from '../utils/logger.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -13,7 +14,7 @@ export const handleStripeWebhook = async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message)
+    logger.error('Webhook signature verification failed:', err.message)
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
@@ -29,12 +30,12 @@ export const handleStripeWebhook = async (req, res) => {
         await handleChargeRefunded(event.data.object)
         break
       default:
-        console.log(`Unhandled event type ${event.type}`)
+        logger.info(`Unhandled event type ${event.type}`)
     }
 
     res.json({ received: true })
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    logger.error('Error processing webhook:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -61,7 +62,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       await Cart.clearCart(cartId)
     }
 
-    console.log(`Payment succeeded for order ${orderId}`)
+    logger.info(`Payment succeeded for order ${orderId}`)
   }
 }
 
@@ -72,7 +73,7 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
   if (orderId) {
     await Order.updateStripePaymentIntent(orderId, paymentIntentId, 'failed')
     await Order.updateOrderStatus(orderId, 'payment_failed')
-    console.log(`Payment failed for order ${orderId}`)
+    logger.info(`Payment failed for order ${orderId}`)
   }
 }
 
@@ -91,6 +92,6 @@ const handleChargeRefunded = async (charge) => {
       )
     }
     
-    console.log(`Refund processed for order ${order.id}`)
+    logger.info(`Refund processed for order ${order.id}`)
   }
 }

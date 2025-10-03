@@ -37,6 +37,7 @@ import UserPermissionHistory from './modules/remote-equipment/UserPermissionHist
 import DeviceManagement from './modules/admin/DeviceManagement'
 import InventoryManagement from './modules/admin/InventoryManagement'
 import KioskMode from './modules/kiosk/KioskMode'
+import AuditLogDashboard from './modules/admin/AuditLogDashboard'
 import './App.css'
 
 function App() {
@@ -289,6 +290,15 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <InventoryManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/audit-logs"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AuditLogDashboard />
               </ProtectedRoute>
             }
           />

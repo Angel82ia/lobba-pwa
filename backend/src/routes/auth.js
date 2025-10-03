@@ -1,24 +1,18 @@
 import express from 'express'
 import { body } from 'express-validator'
-import rateLimit from 'express-rate-limit'
 import * as authController from '../controllers/authController.js'
 import { requireAuth } from '../middleware/auth.js'
 import passport from '../config/passport.js'
 import { generateAccessToken, generateRefreshToken } from '../utils/auth.js'
 import { createRefreshToken } from '../models/RefreshToken.js'
+import { authLimiter } from '../middleware/rateLimits.js'
+import { auditAuthAction } from '../middleware/audit.js'
 
 const router = express.Router()
 
-const loginLimiter = process.env.NODE_ENV === 'test'
-  ? (req, res, next) => next()
-  : rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 5,
-      message: 'Too many login attempts, please try again later',
-    })
-
 router.post(
   '/register',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 8 }),
@@ -26,22 +20,24 @@ router.post(
     body('lastName').trim().isLength({ min: 1 }),
     body('role').optional().isIn(['user', 'salon', 'admin', 'device']),
   ],
+  auditAuthAction,
   authController.register
 )
 
 router.post(
   '/login',
-  loginLimiter,
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').exists(),
   ],
+  auditAuthAction,
   authController.login
 )
 
-router.post('/refresh', authController.refresh)
+router.post('/refresh', auditAuthAction, authController.refresh)
 
-router.post('/logout', requireAuth, authController.logout)
+router.post('/logout', requireAuth, auditAuthAction, authController.logout)
 
 router.get('/me', requireAuth, authController.me)
 

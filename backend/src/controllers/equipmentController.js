@@ -1,4 +1,5 @@
 import * as Equipment from '../models/Equipment.js'
+import logger from '../utils/logger.js'
 
 export const getAllEquipment = async (req, res) => {
   try {
@@ -14,7 +15,7 @@ export const getAllEquipment = async (req, res) => {
     
     res.json(equipment)
   } catch (error) {
-    console.error('Get all equipment error:', error)
+    logger.error('Get all equipment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -30,7 +31,7 @@ export const getEquipmentById = async (req, res) => {
     
     res.json(equipment)
   } catch (error) {
-    console.error('Get equipment error:', error)
+    logger.error('Get equipment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -42,7 +43,7 @@ export const getAvailableEquipment = async (req, res) => {
     
     res.json(equipment)
   } catch (error) {
-    console.error('Get available equipment error:', error)
+    logger.error('Get available equipment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -71,7 +72,7 @@ export const createEquipment = async (req, res) => {
     
     res.status(201).json(equipment)
   } catch (error) {
-    console.error('Create equipment error:', error)
+    logger.error('Create equipment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -91,7 +92,7 @@ export const updateEquipment = async (req, res) => {
     
     res.json(equipment)
   } catch (error) {
-    console.error('Update equipment error:', error)
+    logger.error('Update equipment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -111,7 +112,7 @@ export const deleteEquipment = async (req, res) => {
     
     res.json({ message: 'Equipo eliminado correctamente' })
   } catch (error) {
-    console.error('Delete equipment error:', error)
+    logger.error('Delete equipment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -142,7 +143,7 @@ export const updateEquipmentStatus = async (req, res) => {
     
     res.json(equipment)
   } catch (error) {
-    console.error('Update equipment status error:', error)
+    logger.error('Update equipment status error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -164,7 +165,7 @@ export const updateEquipmentLocation = async (req, res) => {
     
     res.json(equipment)
   } catch (error) {
-    console.error('Update equipment location error:', error)
+    logger.error('Update equipment location error:', error)
     res.status(500).json({ message: error.message })
   }
 }

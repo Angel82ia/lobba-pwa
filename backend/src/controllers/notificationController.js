@@ -4,20 +4,27 @@ import * as Notification from '../models/Notification.js'
 import * as NotificationRateLimit from '../models/NotificationRateLimit.js'
 import * as SalonProfile from '../models/SalonProfile.js'
 import { sendPushNotification } from '../utils/fcm.js'
+import { validationResult } from 'express-validator'
+import logger from '../utils/logger.js'
 
 export const registerFCMToken = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
+  if (!req.body.token) {
+    return res.status(400).json({ message: 'Token is required' })
+  }
+
   try {
     const { token, deviceType } = req.body
     const userId = req.user.id
 
-    if (!token) {
-      return res.status(400).json({ message: 'Token is required' })
-    }
-
     const fcmToken = await FCMToken.registerToken({ userId, token, deviceType })
     res.json(fcmToken)
   } catch (error) {
-    console.error('Register FCM token error:', error)
+    logger.error('Register FCM token error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -28,7 +35,7 @@ export const getNotificationPreferences = async (req, res) => {
     const preference = await NotificationPreference.getOrCreatePreference(userId)
     res.json(preference)
   } catch (error) {
-    console.error('Get preferences error:', error)
+    logger.error('Get preferences error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -41,19 +48,24 @@ export const updateNotificationPreferences = async (req, res) => {
     const preference = await NotificationPreference.updatePreference(userId, updates)
     res.json(preference)
   } catch (error) {
-    console.error('Update preferences error:', error)
+    logger.error('Update preferences error:', error)
     res.status(500).json({ message: error.message })
   }
 }
 
 export const sendNotification = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
+  if (!req.body.title || !req.body.body || !req.body.type || !req.body.targetingType) {
+    return res.status(400).json({ message: 'Missing required fields' })
+  }
+
   try {
     const { title, body, type, targetingType, radiusKm } = req.body
     const userId = req.user.id
-
-    if (!title || !body || !type || !targetingType) {
-      return res.status(400).json({ message: 'Missing required fields' })
-    }
 
     if (!['oferta', 'evento', 'descuento', 'noticia'].includes(type)) {
       return res.status(400).json({ message: 'Invalid notification type' })
@@ -152,7 +164,7 @@ export const sendNotification = async (req, res) => {
 
     res.json(updatedNotification)
   } catch (error) {
-    console.error('Send notification error:', error)
+    logger.error('Send notification error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -173,7 +185,7 @@ export const getNotificationHistory = async (req, res) => {
     )
     res.json(notifications)
   } catch (error) {
-    console.error('Get notification history error:', error)
+    logger.error('Get notification history error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -187,7 +199,7 @@ export const getAllNotifications = async (req, res) => {
     })
     res.json(notifications)
   } catch (error) {
-    console.error('Get all notifications error:', error)
+    logger.error('Get all notifications error:', error)
     res.status(500).json({ message: error.message })
   }
 }

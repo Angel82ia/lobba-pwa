@@ -1,5 +1,6 @@
 import * as Comment from '../models/Comment.js'
 import * as Post from '../models/Post.js'
+import logger from '../utils/logger.js'
 
 export const createComment = async (req, res) => {
   try {
@@ -20,7 +21,7 @@ export const createComment = async (req, res) => {
 
     res.status(201).json(comment)
   } catch (error) {
-    console.error('Create comment error:', error)
+    logger.error('Create comment error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -36,7 +37,7 @@ export const getPostComments = async (req, res) => {
     })
     res.json(comments)
   } catch (error) {
-    console.error('Get comments error:', error)
+    logger.error('Get comments error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -60,7 +61,7 @@ export const deleteComment = async (req, res) => {
 
     res.json({ message: 'Comentario eliminado correctamente' })
   } catch (error) {
-    console.error('Delete comment error:', error)
+    logger.error('Delete comment error:', error)
     res.status(500).json({ message: error.message })
   }
 }

@@ -1,4 +1,5 @@
 import * as Message from '../models/Message.js'
+import logger from '../utils/logger.js'
 
 export const getConversations = async (req, res) => {
   try {
@@ -6,7 +7,7 @@ export const getConversations = async (req, res) => {
     const conversations = await Message.findConversations(userId)
     res.json(conversations)
   } catch (error) {
-    console.error('Get conversations error:', error)
+    logger.error('Get conversations error:', error)
     res.status(500).json({ error: 'Failed to get conversations' })
   }
 }
@@ -23,7 +24,7 @@ export const getMessages = async (req, res) => {
 
     res.json(messages)
   } catch (error) {
-    console.error('Get messages error:', error)
+    logger.error('Get messages error:', error)
     res.status(500).json({ error: 'Failed to get messages' })
   }
 }
@@ -52,7 +53,7 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(message)
   } catch (error) {
-    console.error('Send message error:', error)
+    logger.error('Send message error:', error)
     res.status(500).json({ error: 'Failed to send message' })
   }
 }
@@ -73,7 +74,7 @@ export const markMessageAsRead = async (req, res) => {
     const updated = await Message.markAsRead(id)
     res.json(updated)
   } catch (error) {
-    console.error('Mark as read error:', error)
+    logger.error('Mark as read error:', error)
     res.status(500).json({ error: 'Failed to mark message as read' })
   }
 }

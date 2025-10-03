@@ -1,5 +1,6 @@
 import { validationResult } from 'express-validator'
 import * as DeviceProfile from '../models/DeviceProfile.js'
+import logger from '../utils/logger.js'
 
 export const getDeviceProfile = async (req, res) => {
   try {
@@ -24,7 +25,7 @@ export const getDeviceProfile = async (req, res) => {
       lastPing: profile.last_ping,
     })
   } catch (error) {
-    console.error('Get device profile error:', error)
+    logger.error('Get device profile error:', error)
     res.status(500).json({ error: 'Failed to fetch device profile' })
   }
 }
@@ -62,7 +63,7 @@ export const createDeviceProfile = async (req, res) => {
       createdAt: profile.created_at,
     })
   } catch (error) {
-    console.error('Create device profile error:', error)
+    logger.error('Create device profile error:', error)
     res.status(500).json({ error: 'Failed to create device profile' })
   }
 }
@@ -101,7 +102,7 @@ export const updateDeviceProfile = async (req, res) => {
       deviceType: updatedProfile.device_type,
     })
   } catch (error) {
-    console.error('Update device profile error:', error)
+    logger.error('Update device profile error:', error)
     res.status(500).json({ error: 'Failed to update device profile' })
   }
 }
@@ -123,7 +124,7 @@ export const deleteDeviceProfile = async (req, res) => {
 
     res.json({ message: 'Device profile deleted successfully' })
   } catch (error) {
-    console.error('Delete device profile error:', error)
+    logger.error('Delete device profile error:', error)
     res.status(500).json({ error: 'Failed to delete device profile' })
   }
 }
@@ -155,7 +156,7 @@ export const updateCapabilities = async (req, res) => {
       capabilities: updatedProfile.capabilities,
     })
   } catch (error) {
-    console.error('Update capabilities error:', error)
+    logger.error('Update capabilities error:', error)
     res.status(500).json({ error: 'Failed to update capabilities' })
   }
 }
@@ -190,7 +191,7 @@ export const updateLocation = async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Update location error:', error)
+    logger.error('Update location error:', error)
     res.status(500).json({ error: 'Failed to update location' })
   }
 }
