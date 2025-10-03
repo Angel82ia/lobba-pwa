@@ -1,0 +1,107 @@
+.nails-generator-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.quota-info {
+  background: #f0f0f0;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.quota-info p {
+  margin: 0;
+  color: #333;
+}
+
+.quota-info strong {
+  color: var(--primary-color, #FF1493);
+  font-size: 1.2rem;
+}
+
+.input-section {
+  margin-bottom: 2rem;
+}
+
+.input-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.input-section textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.input-section textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #FF1493);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.action-buttons button {
+  flex: 1;
+}
+
+.generated-result {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.generated-result h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.generated-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.generation-info {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .nails-generator-page {
+    padding: 1rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .generation-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
