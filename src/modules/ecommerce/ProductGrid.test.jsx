@@ -47,4 +47,34 @@ describe('ProductGrid Component', () => {
       expect(screen.getByText('Test Product')).toBeInTheDocument()
     })
   })
+
+  it('should display error when products fetch fails', async () => {
+    productService.getProducts.mockRejectedValue({
+      response: { data: { message: 'Error al cargar los productos' } }
+    })
+
+    render(
+      <MemoryRouter>
+        <ProductGrid />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Error al cargar los productos')).toBeInTheDocument()
+    })
+  })
+
+  it('should display no products message when empty', async () => {
+    productService.getProducts.mockResolvedValue([])
+
+    render(
+      <MemoryRouter>
+        <ProductGrid />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('No se encontraron productos')).toBeInTheDocument()
+    })
+  })
 })

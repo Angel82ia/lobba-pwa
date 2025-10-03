@@ -8,15 +8,17 @@ import './Cart.css'
 const Cart = () => {
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const fetchCart = async () => {
     try {
       setLoading(true)
+      setError('')
       const data = await getCart()
       setCart(data)
-    } catch {
-      // Error silently ignored
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al cargar el carrito')
     } finally {
       setLoading(false)
     }
@@ -30,8 +32,8 @@ const Cart = () => {
     try {
       await updateCartItem(itemId, quantity)
       await fetchCart()
-    } catch {
-      // Error silently ignored
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al actualizar la cantidad')
     }
   }
 
@@ -39,8 +41,8 @@ const Cart = () => {
     try {
       await removeFromCart(itemId)
       await fetchCart()
-    } catch {
-      // Error silently ignored
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al eliminar el producto')
     }
   }
 
@@ -59,6 +61,8 @@ const Cart = () => {
     <div className="cart-page">
       <Card>
         <h1>Carrito de Compras</h1>
+
+        {error && <div className="error-message">{error}</div>}
 
         {items.length === 0 ? (
           <div className="empty-cart">

@@ -11,6 +11,7 @@ const ProductDetail = () => {
   const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -20,13 +21,14 @@ const ProductDetail = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true)
+        setError('')
         const data = await getProductById(slug)
         setProduct(data)
         if (data.variants && data.variants.length > 0) {
           setSelectedVariant(data.variants[0])
         }
-      } catch {
-        // Error silently ignored
+      } catch (err) {
+        setError(err.response?.data?.message || 'Error al cargar el producto')
       } finally {
         setLoading(false)
       }
@@ -38,17 +40,18 @@ const ProductDetail = () => {
   const handleAddToCart = async () => {
     try {
       setAddingToCart(true)
+      setError('')
       await addToCart(product.id, selectedVariant?.id, quantity)
       navigate('/carrito')
-    } catch {
-      // Error silently ignored
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al añadir al carrito')
     } finally {
       setAddingToCart(false)
     }
   }
 
   if (loading) return <div className="loading">Cargando producto...</div>
-  if (!product) return <div className="error">Producto no encontrado</div>
+  if (error && !product) return <div className="error">Error: {error}</div>
 
   const price = parseFloat(product.base_price)
   const discount = parseFloat(product.discount_percentage || 0)
@@ -58,6 +61,8 @@ const ProductDetail = () => {
   return (
     <div className="product-detail">
       <Card>
+        {error && <div className="error-message">{error}</div>}
+
         <div className="product-detail-grid">
           <div className="product-gallery">
             <div className="main-image">

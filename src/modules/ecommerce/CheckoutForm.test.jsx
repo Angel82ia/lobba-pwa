@@ -82,4 +82,20 @@ describe('CheckoutForm', () => {
       expect(screen.getByText(/click & collect/i)).toBeInTheDocument()
     })
   })
+
+  it('displays error when cart fetch fails', async () => {
+    cartService.getCart.mockRejectedValue({
+      response: { data: { message: 'Error al cargar el carrito' } }
+    })
+
+    render(
+      <BrowserRouter>
+        <CheckoutForm />
+      </BrowserRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Error al cargar el carrito')).toBeInTheDocument()
+    })
+  })
 })

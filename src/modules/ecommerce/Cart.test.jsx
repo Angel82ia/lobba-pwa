@@ -63,4 +63,20 @@ describe('Cart Component', () => {
       expect(screen.getByText('Test Product')).toBeInTheDocument()
     })
   })
+
+  it('should display error when cart fetch fails', async () => {
+    cartService.getCart.mockRejectedValue({
+      response: { data: { message: 'Error al cargar el carrito' } }
+    })
+
+    render(
+      <MemoryRouter>
+        <Cart />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Error al cargar el carrito')).toBeInTheDocument()
+    })
+  })
 })

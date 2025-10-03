@@ -52,4 +52,16 @@ describe('ProductDetail Component', () => {
       expect(screen.getByText('Test description')).toBeInTheDocument()
     })
   })
+
+  it('should display error when product fetch fails', async () => {
+    productService.getProductById.mockRejectedValue({
+      response: { data: { message: 'Error al cargar el producto' } }
+    })
+
+    renderWithRouter('test-product')
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error al cargar el producto/i)).toBeInTheDocument()
+    })
+  })
 })

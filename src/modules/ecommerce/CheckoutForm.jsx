@@ -11,6 +11,7 @@ const CheckoutForm = () => {
   const navigate = useNavigate()
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
   const [shippingMethod, setShippingMethod] = useState('standard')
   const [shippingCost, setShippingCost] = useState(0)
@@ -26,10 +27,11 @@ const CheckoutForm = () => {
     const fetchCart = async () => {
       try {
         setLoading(true)
+        setError('')
         const data = await getCart()
         setCart(data)
-      } catch {
-        // Error silently ignored
+      } catch (err) {
+        setError(err.response?.data?.message || 'Error al cargar el carrito')
       } finally {
         setLoading(false)
       }
@@ -42,9 +44,9 @@ const CheckoutForm = () => {
     const fetchShippingCost = async () => {
       try {
         const data = await calculateShipping(shippingMethod)
-        setShippingCost(data.cost || 0)
-      } catch {
-        // Error silently ignored
+        setShippingCost(data.shippingCost || 0)
+      } catch (err) {
+        setError(err.response?.data?.message || 'Error al calcular el envío')
       }
     }
 
@@ -53,14 +55,15 @@ const CheckoutForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
     
     try {
       setProcessing(true)
       const paymentIntent = await createPaymentIntent(shippingMethod)
       await confirmPayment(paymentIntent.clientSecret, shippingAddress, shippingMethod)
       navigate('/orders')
-    } catch {
-      // Error silently ignored
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al procesar el pago')
     } finally {
       setProcessing(false)
     }
@@ -82,6 +85,8 @@ const CheckoutForm = () => {
   return (
     <div className="checkout-page">
       <h1>Checkout</h1>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="checkout-grid">
         <Card className="checkout-form">

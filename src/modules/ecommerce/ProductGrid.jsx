@@ -7,16 +7,18 @@ import './ProductGrid.css'
 const ProductGrid = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [filters, setFilters] = useState({})
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true)
+        setError('')
         const data = await getProducts(filters)
         setProducts(data)
-      } catch {
-        // Error silently ignored
+      } catch (err) {
+        setError(err.response?.data?.message || 'Error al cargar los productos')
       } finally {
         setLoading(false)
       }
@@ -37,6 +39,8 @@ const ProductGrid = () => {
     <div className="product-grid-container">
       <ProductFilters onFilterChange={handleFilterChange} />
       
+      {error && <div className="error-message">{error}</div>}
+
       <div className="product-grid">
         {products.length > 0 ? (
           products.map(product => (
