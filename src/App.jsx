@@ -23,6 +23,9 @@ import NotificationSettings from './modules/notifications/NotificationSettings'
 import NotificationComposer from './modules/notifications/NotificationComposer'
 import NotificationHistory from './modules/notifications/NotificationHistory'
 import NotificationDashboard from './modules/notifications/NotificationDashboard'
+import NailsGenerator from './modules/ai-nails/NailsGenerator'
+import HairstyleTryOn from './modules/hairstyle/HairstyleTryOn'
+import MyDesigns from './modules/ai-nails/MyDesigns'
 import './App.css'
 
 function App() {
@@ -173,6 +176,33 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <NotificationDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="ai/unas"
+            element={
+              <ProtectedRoute>
+                <NailsGenerator />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="ai/peinados"
+            element={
+              <ProtectedRoute>
+                <HairstyleTryOn />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="ai/mis-disenos"
+            element={
+              <ProtectedRoute>
+                <MyDesigns />
               </ProtectedRoute>
             }
           />
