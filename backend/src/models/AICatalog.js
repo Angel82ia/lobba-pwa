@@ -100,3 +100,57 @@ export const deleteCatalogItem = async (id) => {
   )
   return result.rows[0]
 }
+
+export const findPublicCatalog = async ({ type, tags, page = 1, limit = 20, sortBy = 'recent' } = {}) => {
+  const offset = (page - 1) * limit
+  let query = `
+    SELECT ac.*,
+           COALESCE(AVG(dr.rating), 0) as average_rating,
+           COUNT(DISTINCT dr.id) as rating_count
+    FROM ai_catalog ac
+    LEFT JOIN design_ratings dr ON ac.id = dr.catalog_item_id
+    WHERE ac.is_active = true
+  `
+  const params = []
+
+  if (type) {
+    params.push(type)
+    query += ' AND ac.type = $' + params.length
+  }
+
+  if (tags && tags.length > 0) {
+    params.push(tags)
+    query += ' AND ac.tags && $' + params.length
+  }
+
+  query += ' GROUP BY ac.id'
+
+  if (sortBy === 'popular') {
+    query += ' ORDER BY ac.likes_count DESC, ac.created_at DESC'
+  } else if (sortBy === 'top_rated') {
+    query += ' ORDER BY AVG(dr.rating) DESC NULLS LAST, ac.created_at DESC'
+  } else {
+    query += ' ORDER BY ac.created_at DESC'
+  }
+
+  query += ' LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2)
+  params.push(limit, offset)
+
+  const result = await pool.query(query, params)
+  return result.rows.map(row => ({
+    ...row,
+    average_rating: parseFloat(row.average_rating),
+    rating_count: parseInt(row.rating_count)
+  }))
+}
+
+export const togglePublicStatus = async (id) => {
+  const result = await pool.query(
+    `UPDATE ai_catalog 
+     SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP 
+     WHERE id = $1 
+     RETURNING *`,
+    [id]
+  )
+  return result.rows[0]
+}
