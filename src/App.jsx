@@ -19,6 +19,10 @@ import ProductDetail from './modules/ecommerce/ProductDetail'
 import Cart from './modules/ecommerce/Cart'
 import CheckoutForm from './modules/ecommerce/CheckoutForm'
 import Wishlist from './modules/ecommerce/Wishlist'
+import NotificationSettings from './modules/notifications/NotificationSettings'
+import NotificationComposer from './modules/notifications/NotificationComposer'
+import NotificationHistory from './modules/notifications/NotificationHistory'
+import NotificationDashboard from './modules/notifications/NotificationDashboard'
 import './App.css'
 
 function App() {
@@ -133,6 +137,42 @@ function App() {
             element={
               <ProtectedRoute>
                 <CheckoutForm />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="notificaciones/configuracion"
+            element={
+              <ProtectedRoute>
+                <NotificationSettings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="notificaciones/enviar"
+            element={
+              <ProtectedRoute>
+                <NotificationComposer />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="notificaciones/historial"
+            element={
+              <ProtectedRoute>
+                <NotificationHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/notificaciones"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <NotificationDashboard />
               </ProtectedRoute>
             }
           />
