@@ -20,6 +20,10 @@ import wishlistRoutes from './routes/wishlist.js'
 import webhookRoutes from './routes/webhook.js'
 import notificationRoutes from './routes/notification.js'
 import aiRoutes from './routes/ai.js'
+import postRoutes from './routes/post.js'
+import commentRoutes from './routes/comment.js'
+import communityRoutes from './routes/community.js'
+import catalogRoutes from './routes/catalog.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 
@@ -59,6 +63,10 @@ app.use('/api/checkout', checkoutRoutes)
 app.use('/api/wishlist', wishlistRoutes)
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/ai', aiRoutes)
+app.use('/api/posts', postRoutes)
+app.use('/api/comments', commentRoutes)
+app.use('/api/community', communityRoutes)
+app.use('/api/catalog', catalogRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
