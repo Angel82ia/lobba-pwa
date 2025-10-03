@@ -44,6 +44,7 @@ describe('Message Service', () => {
         receiverId: 'receiver-123',
         content: 'Hello',
         messageType: 'text',
+        attachmentUrl: null,
       })
       expect(message).toEqual(mockMessage)
     })

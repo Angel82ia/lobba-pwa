@@ -48,7 +48,7 @@ describe('Reservation Service', () => {
 
       const reservations = await reservationService.getUserReservations()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/reservations/user/')
+      expect(apiClient.get).toHaveBeenCalledWith('/reservations/user/', { params: {} })
       expect(reservations).toEqual(mockReservations)
     })
   })

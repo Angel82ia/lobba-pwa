@@ -11,6 +11,13 @@ import salonRoutes from './routes/salon.js'
 import deviceRoutes from './routes/device.js'
 import reservationRoutes from './routes/reservation.js'
 import messageRoutes from './routes/message.js'
+import productRoutes from './routes/product.js'
+import categoryRoutes from './routes/category.js'
+import cartRoutes from './routes/cart.js'
+import orderRoutes from './routes/order.js'
+import checkoutRoutes from './routes/checkout.js'
+import wishlistRoutes from './routes/wishlist.js'
+import webhookRoutes from './routes/webhook.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 
@@ -28,6 +35,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
 }))
+
+app.use('/api/webhooks', webhookRoutes)
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('combined'))
@@ -39,6 +49,12 @@ app.use('/api/salon', salonRoutes)
 app.use('/api/device', deviceRoutes)
 app.use('/api/reservations', reservationRoutes)
 app.use('/api/messages', messageRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/categories', categoryRoutes)
+app.use('/api/cart', cartRoutes)
+app.use('/api/orders', orderRoutes)
+app.use('/api/checkout', checkoutRoutes)
+app.use('/api/wishlist', wishlistRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
