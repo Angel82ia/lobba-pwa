@@ -14,20 +14,23 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-secondary);
-  color: var(--color-secondary);
+  color: var(--color-text-primary);
   background-color: var(--color-background);
   line-height: 1.6;
   min-height: 100vh;
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-primary);
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
+  color: var(--color-text-primary);
 }
 
 button {
@@ -38,8 +41,13 @@ button {
 }
 
 a {
-  color: inherit;
+  color: var(--color-primary);
   text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
 }
 
 img,
@@ -60,4 +68,8 @@ select {
 ul,
 ol {
   list-style: none;
+}
+
+.page-transition {
+  animation: fadeIn var(--transition-slow);
 }
