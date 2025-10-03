@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { initializeAIProvider, generateNailDesign, generateHairstyleTryOn, resetAIProvider } from '../../src/utils/aiService.js'
+import { initializeAIProvider, generateNailDesign, generateHairstyleTryOn, generateChatbotResponse, resetAIProvider } from '../../src/utils/aiService.js'
 
 describe('AI Service', () => {
   const originalEnv = process.env
@@ -63,6 +63,44 @@ describe('AI Service', () => {
       expect(result).toHaveProperty('provider', 'mock')
       expect(result).toHaveProperty('generationTimeMs')
       expect(result.imageUrl).toContain('placeholder')
+    })
+  })
+
+  describe('generateChatbotResponse', () => {
+    it('should generate chatbot response with mock provider', async () => {
+      process.env.AI_PROVIDER = 'mock'
+      resetAIProvider()
+      
+      const result = await generateChatbotResponse('Hello Olivia')
+      
+      expect(result).toHaveProperty('response')
+      expect(result).toHaveProperty('provider', 'mock')
+      expect(result.response).toContain('Hola, soy Olivia')
+      expect(result.response).toContain('Hello Olivia')
+    })
+
+    it('should include conversation history in context', async () => {
+      process.env.AI_PROVIDER = 'mock'
+      resetAIProvider()
+      
+      const history = [
+        { sender_type: 'user', content: 'Previous question' },
+        { sender_type: 'bot', content: 'Previous answer' }
+      ]
+      
+      const result = await generateChatbotResponse('Follow up question', history)
+      
+      expect(result).toHaveProperty('response')
+      expect(result).toHaveProperty('provider', 'mock')
+    })
+
+    it('should throw error for unsupported provider', async () => {
+      process.env.AI_PROVIDER = 'stability_ai'
+      process.env.AI_API_KEY = 'test-key'
+      resetAIProvider()
+      
+      await expect(generateChatbotResponse('Hello'))
+        .rejects.toThrow('Chatbot not supported for provider: stability_ai')
     })
   })
 })
