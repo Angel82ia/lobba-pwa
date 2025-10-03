@@ -26,6 +26,10 @@ import NotificationDashboard from './modules/notifications/NotificationDashboard
 import NailsGenerator from './modules/ai-nails/NailsGenerator'
 import HairstyleTryOn from './modules/hairstyle/HairstyleTryOn'
 import MyDesigns from './modules/ai-nails/MyDesigns'
+import CommunityFeed from './modules/community/CommunityFeed'
+import UserProfile from './modules/community/UserProfile'
+import CatalogGrid from './modules/catalog/CatalogGrid'
+import DesignDetail from './modules/catalog/DesignDetail'
 import './App.css'
 
 function App() {
@@ -206,6 +210,27 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="comunidad"
+            element={
+              <ProtectedRoute>
+                <CommunityFeed />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="comunidad/perfil/:userId"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="catalogo" element={<CatalogGrid />} />
+          <Route path="catalogo/:id" element={<DesignDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
