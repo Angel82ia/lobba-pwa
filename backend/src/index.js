@@ -19,6 +19,8 @@ import checkoutRoutes from './routes/checkout.js'
 import wishlistRoutes from './routes/wishlist.js'
 import webhookRoutes from './routes/webhook.js'
 import notificationRoutes from './routes/notification.js'
+import chatbotRoutes from './routes/chatbot.js'
+import bannerRoutes from './routes/banner.js'
 import aiRoutes from './routes/ai.js'
 import postRoutes from './routes/post.js'
 import commentRoutes from './routes/comment.js'
@@ -62,6 +64,8 @@ app.use('/api/orders', orderRoutes)
 app.use('/api/checkout', checkoutRoutes)
 app.use('/api/wishlist', wishlistRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/chatbot', chatbotRoutes)
+app.use('/api/banners', bannerRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)
