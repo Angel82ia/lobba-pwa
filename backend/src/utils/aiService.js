@@ -4,6 +4,8 @@ const PROVIDERS = {
   STABILITY_AI: 'stability_ai',
   OPENAI: 'openai',
   REPLICATE: 'replicate',
+  OPENROUTER: 'openrouter',
+  PERFECTCORP: 'perfectcorp',
   MOCK: 'mock'
 }
 
@@ -48,6 +50,10 @@ export const generateNailDesign = async (prompt) => {
     return await generateWithReplicate(prompt, startTime)
   }
 
+  if (provider === PROVIDERS.OPENROUTER) {
+    return await generateWithOpenRouter(prompt, startTime)
+  }
+
   throw new Error(`Unsupported AI provider: ${provider}`)
 }
 
@@ -66,6 +72,10 @@ export const generateHairstyleTryOn = async (selfieBase64, styleId) => {
 
   if (provider === PROVIDERS.REPLICATE) {
     return await tryOnWithReplicate(selfieBase64, styleId, startTime)
+  }
+
+  if (provider === PROVIDERS.PERFECTCORP) {
+    return await tryOnWithPerfectCorp(selfieBase64, styleId, startTime)
   }
 
   throw new Error(`Hairstyle try-on not supported for provider: ${provider}`)
@@ -213,6 +223,55 @@ async function tryOnWithReplicate(selfieBase64, styleId, startTime) {
     provider: 'replicate',
     generationTimeMs: Date.now() - startTime
   }
+}
+
+async function generateWithOpenRouter(prompt, startTime) {
+  const apiKey = process.env.AI_API_KEY
+  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free'
+  
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
+      'X-Title': 'LOBBA PWA'
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an AI assistant that generates detailed descriptions for nail art designs. Respond with only the enhanced prompt description, no other text.'
+        },
+        {
+          role: 'user',
+          content: `Generate a detailed, creative description for this nail design concept: ${prompt}`
+        }
+      ],
+      max_tokens: 500,
+      temperature: 0.7
+    })
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(`OpenRouter error: ${error.error?.message || response.statusText}`)
+  }
+
+  const data = await response.json()
+  const enhancedPrompt = data.choices[0]?.message?.content
+
+  return {
+    imageUrl: `https://via.placeholder.com/512x512.png?text=${encodeURIComponent(enhancedPrompt?.substring(0, 50) || prompt)}`,
+    provider: 'openrouter',
+    generationTimeMs: Date.now() - startTime,
+    enhancedPrompt
+  }
+}
+
+async function tryOnWithPerfectCorp(_selfieBase64, _styleId, _startTime) {
+  throw new Error('PerfectCorp integration pending: API credentials not yet provided. Please configure PERFECTCORP_CLIENT_ID and PERFECTCORP_CLIENT_SECRET in .env')
 }
 
 export const resetAIProvider = () => {
