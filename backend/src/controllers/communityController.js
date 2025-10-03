@@ -1,6 +1,7 @@
 import * as UserFollow from '../models/UserFollow.js'
 import * as User from '../models/User.js'
 import * as Post from '../models/Post.js'
+import logger from '../utils/logger.js'
 
 export const followUser = async (req, res) => {
   try {
@@ -23,7 +24,7 @@ export const followUser = async (req, res) => {
 
     res.json({ message: 'Usuario seguido correctamente' })
   } catch (error) {
-    console.error('Follow user error:', error)
+    logger.error('Follow user error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -40,7 +41,7 @@ export const unfollowUser = async (req, res) => {
 
     res.json({ message: 'Usuario dejado de seguir correctamente' })
   } catch (error) {
-    console.error('Unfollow user error:', error)
+    logger.error('Unfollow user error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -56,7 +57,7 @@ export const getFollowers = async (req, res) => {
     })
     res.json(followers)
   } catch (error) {
-    console.error('Get followers error:', error)
+    logger.error('Get followers error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -72,7 +73,7 @@ export const getFollowing = async (req, res) => {
     })
     res.json(following)
   } catch (error) {
-    console.error('Get following error:', error)
+    logger.error('Get following error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -105,7 +106,7 @@ export const getUserProfile = async (req, res) => {
       recentPosts: posts
     })
   } catch (error) {
-    console.error('Get user profile error:', error)
+    logger.error('Get user profile error:', error)
     res.status(500).json({ message: error.message })
   }
 }

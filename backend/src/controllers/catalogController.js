@@ -1,6 +1,7 @@
 import * as AICatalog from '../models/AICatalog.js'
 import * as DesignRating from '../models/DesignRating.js'
 import * as AIGeneration from '../models/AIGeneration.js'
+import logger from '../utils/logger.js'
 
 export const getPublicCatalog = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ export const getPublicCatalog = async (req, res) => {
 
     res.json(items)
   } catch (error) {
-    console.error('Get public catalog error:', error)
+    logger.error('Get public catalog error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -44,7 +45,7 @@ export const getCatalogItemDetail = async (req, res) => {
       userRating
     })
   } catch (error) {
-    console.error('Get catalog item error:', error)
+    logger.error('Get catalog item error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -84,7 +85,7 @@ export const rateDesign = async (req, res) => {
 
     res.json(result)
   } catch (error) {
-    console.error('Rate design error:', error)
+    logger.error('Rate design error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -101,7 +102,7 @@ export const getDesignRatings = async (req, res) => {
 
     res.json(ratings)
   } catch (error) {
-    console.error('Get design ratings error:', error)
+    logger.error('Get design ratings error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -136,7 +137,7 @@ export const shareDesignToPublic = async (req, res) => {
 
     res.status(201).json(catalogItem)
   } catch (error) {
-    console.error('Share design error:', error)
+    logger.error('Share design error:', error)
     res.status(500).json({ message: error.message })
   }
 }

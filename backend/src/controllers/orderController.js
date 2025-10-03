@@ -1,4 +1,6 @@
 import * as Order from '../models/Order.js'
+import { validationResult } from 'express-validator'
+import logger from '../utils/logger.js'
 
 export const getUserOrders = async (req, res) => {
   try {
@@ -10,6 +12,7 @@ export const getUserOrders = async (req, res) => {
     })
     res.json(orders)
   } catch (error) {
+    logger.error('Get user orders error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -29,11 +32,17 @@ export const getOrderById = async (req, res) => {
 
     res.json(order)
   } catch (error) {
+    logger.error('Get order error:', error)
     res.status(500).json({ message: error.message })
   }
 }
 
 export const updateOrderStatus = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
   if (req.user.role !== 'admin' && req.user.role !== 'salon') {
     return res.status(403).json({ message: 'Admin or salon access required' })
   }
@@ -45,6 +54,7 @@ export const updateOrderStatus = async (req, res) => {
     const order = await Order.updateOrderStatus(id, status)
     res.json(order)
   } catch (error) {
+    logger.error('Update order status error:', error)
     res.status(500).json({ message: error.message })
   }
 }

@@ -1,5 +1,6 @@
 import * as DeviceEvent from '../models/DeviceEvent.js'
 import * as UsePermission from '../models/UsePermission.js'
+import logger from '../utils/logger.js'
 
 export const createEvent = async (req, res) => {
   if (req.user.role !== 'device' && req.user.role !== 'admin') {
@@ -22,7 +23,7 @@ export const createEvent = async (req, res) => {
     
     res.status(201).json(event)
   } catch (error) {
-    console.error('Create event error:', error)
+    logger.error('Create event error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -48,7 +49,7 @@ export const getDeviceEvents = async (req, res) => {
     
     res.json(events)
   } catch (error) {
-    console.error('Get device events error:', error)
+    logger.error('Get device events error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -65,7 +66,7 @@ export const getUserEvents = async (req, res) => {
     
     res.json(events)
   } catch (error) {
-    console.error('Get user events error:', error)
+    logger.error('Get user events error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -88,7 +89,7 @@ export const getEventsByPermission = async (req, res) => {
     
     res.json(events)
   } catch (error) {
-    console.error('Get events by permission error:', error)
+    logger.error('Get events by permission error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -112,7 +113,7 @@ export const getRecentErrors = async (req, res) => {
     
     res.json(errors)
   } catch (error) {
-    console.error('Get recent errors error:', error)
+    logger.error('Get recent errors error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -132,7 +133,7 @@ export const getDeviceStats = async (req, res) => {
     
     res.json(stats)
   } catch (error) {
-    console.error('Get device stats error:', error)
+    logger.error('Get device stats error:', error)
     res.status(500).json({ message: error.message })
   }
 }

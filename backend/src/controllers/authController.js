@@ -2,6 +2,7 @@ import { createUser, findUserByEmail, findUserById } from '../models/User.js'
 import { createRefreshToken, findRefreshToken, revokeAllUserTokens } from '../models/RefreshToken.js'
 import { hashPassword, comparePasswords, generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/auth.js'
 import { validationResult } from 'express-validator'
+import logger from '../utils/logger.js'
 
 export const register = async (req, res) => {
   try {
@@ -47,7 +48,7 @@ export const register = async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Register error:', error)
+    logger.error('Register error:', error)
     res.status(500).json({ error: 'Registration failed' })
   }
 }
@@ -92,7 +93,7 @@ export const login = async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error:', error)
     res.status(500).json({ error: 'Login failed' })
   }
 }
@@ -121,7 +122,7 @@ export const refresh = async (req, res) => {
 
     res.json({ accessToken })
   } catch (error) {
-    console.error('Refresh error:', error)
+    logger.error('Refresh error:', error)
     res.status(401).json({ error: 'Invalid or expired refresh token' })
   }
 }
@@ -137,7 +138,7 @@ export const logout = async (req, res) => {
 
     res.status(204).send()
   } catch (error) {
-    console.error('Logout error:', error)
+    logger.error('Logout error:', error)
     res.status(500).json({ error: 'Logout failed' })
   }
 }
@@ -158,7 +159,7 @@ export const me = async (req, res) => {
       createdAt: user.created_at,
     })
   } catch (error) {
-    console.error('Me error:', error)
+    logger.error('Me error:', error)
     res.status(500).json({ error: 'Failed to fetch user' })
   }
 }

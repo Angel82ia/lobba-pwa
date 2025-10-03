@@ -2,6 +2,8 @@ import * as Reservation from '../models/Reservation.js'
 import { getAvailableSlots } from '../utils/slots.js'
 import { createCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
 import { sendReservationConfirmation, sendReservationCancellation } from '../utils/whatsapp.js'
+import { validationResult } from 'express-validator'
+import logger from '../utils/logger.js'
 
 export const getSlots = async (req, res) => {
   try {
@@ -19,12 +21,17 @@ export const getSlots = async (req, res) => {
 
     res.json(slots)
   } catch (error) {
-    console.error('Get slots error:', error)
+    logger.error('Get slots error:', error)
     res.status(500).json({ error: 'Failed to get available slots' })
   }
 }
 
 export const createReservation = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
   try {
     const userId = req.user.id
     const { salonProfileId, serviceId, startTime, endTime, totalPrice, notes, clientPhone, clientEmail } = req.body
@@ -43,7 +50,7 @@ export const createReservation = async (req, res) => {
 
     res.status(201).json(reservation)
   } catch (error) {
-    console.error('Create reservation error:', error)
+    logger.error('Create reservation error:', error)
     res.status(500).json({ error: 'Failed to create reservation' })
   }
 }
@@ -63,7 +70,7 @@ export const getReservation = async (req, res) => {
 
     res.json(reservation)
   } catch (error) {
-    console.error('Get reservation error:', error)
+    logger.error('Get reservation error:', error)
     res.status(500).json({ error: 'Failed to get reservation' })
   }
 }
@@ -85,7 +92,7 @@ export const getUserReservations = async (req, res) => {
 
     res.json(reservations)
   } catch (error) {
-    console.error('Get user reservations error:', error)
+    logger.error('Get user reservations error:', error)
     res.status(500).json({ error: 'Failed to get reservations' })
   }
 }
@@ -103,7 +110,7 @@ export const getSalonReservations = async (req, res) => {
 
     res.json(reservations)
   } catch (error) {
-    console.error('Get salon reservations error:', error)
+    logger.error('Get salon reservations error:', error)
     res.status(500).json({ error: 'Failed to get salon reservations' })
   }
 }
@@ -128,7 +135,7 @@ export const confirmReservation = async (req, res) => {
       })
       googleCalendarEventId = calendarEvent.id
     } catch (error) {
-      console.error('Google Calendar error:', error)
+      logger.error('Google Calendar error:', error)
     }
 
     const updated = await Reservation.updateReservationStatus(id, 'confirmed', {
@@ -142,17 +149,22 @@ export const confirmReservation = async (req, res) => {
         service: { name: reservation.service_name },
       })
     } catch (error) {
-      console.error('WhatsApp error:', error)
+      logger.error('WhatsApp error:', error)
     }
 
     res.json(updated)
   } catch (error) {
-    console.error('Confirm reservation error:', error)
+    logger.error('Confirm reservation error:', error)
     res.status(500).json({ error: 'Failed to confirm reservation' })
   }
 }
 
 export const cancelReservation = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
   try {
     const { id } = req.params
     const { reason } = req.body
@@ -170,7 +182,7 @@ export const cancelReservation = async (req, res) => {
       try {
         await deleteCalendarEvent(reservation.google_calendar_event_id)
       } catch (error) {
-        console.error('Google Calendar delete error:', error)
+        logger.error('Google Calendar delete error:', error)
       }
     }
 
@@ -183,29 +195,30 @@ export const cancelReservation = async (req, res) => {
         cancellation_reason: reason,
       })
     } catch (error) {
-      console.error('WhatsApp error:', error)
+      logger.error('WhatsApp error:', error)
     }
 
     res.json(cancelled)
   } catch (error) {
-    console.error('Cancel reservation error:', error)
+    logger.error('Cancel reservation error:', error)
     res.status(500).json({ error: 'Failed to cancel reservation' })
   }
 }
 
 export const completeReservation = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
   try {
     const { id } = req.params
     const { status } = req.body
 
-    if (!['completed', 'no_show'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' })
-    }
-
     const updated = await Reservation.updateReservationStatus(id, status)
     res.json(updated)
   } catch (error) {
-    console.error('Complete reservation error:', error)
+    logger.error('Complete reservation error:', error)
     res.status(500).json({ error: 'Failed to update reservation' })
   }
 }

@@ -1,5 +1,6 @@
 import * as Post from '../models/Post.js'
 import * as PostLike from '../models/PostLike.js'
+import logger from '../utils/logger.js'
 
 export const createPost = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ export const createPost = async (req, res) => {
     const post = await Post.createPost({ userId, content, imageUrl })
     res.status(201).json(post)
   } catch (error) {
-    console.error('Create post error:', error)
+    logger.error('Create post error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -29,7 +30,7 @@ export const getFeed = async (req, res) => {
     })
     res.json(posts)
   } catch (error) {
-    console.error('Get feed error:', error)
+    logger.error('Get feed error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -46,7 +47,7 @@ export const getAllPosts = async (req, res) => {
     })
     res.json(posts)
   } catch (error) {
-    console.error('Get all posts error:', error)
+    logger.error('Get all posts error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -63,7 +64,7 @@ export const getPostById = async (req, res) => {
 
     res.json(post)
   } catch (error) {
-    console.error('Get post error:', error)
+    logger.error('Get post error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -81,7 +82,7 @@ export const getUserPosts = async (req, res) => {
     })
     res.json(posts)
   } catch (error) {
-    console.error('Get user posts error:', error)
+    logger.error('Get user posts error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -104,7 +105,7 @@ export const updatePost = async (req, res) => {
     const updatedPost = await Post.updatePost(id, updates)
     res.json(updatedPost)
   } catch (error) {
-    console.error('Update post error:', error)
+    logger.error('Update post error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -126,7 +127,7 @@ export const deletePost = async (req, res) => {
     await Post.deletePost(id)
     res.json({ message: 'Post eliminado correctamente' })
   } catch (error) {
-    console.error('Delete post error:', error)
+    logger.error('Delete post error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -149,7 +150,7 @@ export const likePost = async (req, res) => {
     await Post.incrementLikes(id)
     res.json({ message: 'Like añadido correctamente' })
   } catch (error) {
-    console.error('Like post error:', error)
+    logger.error('Like post error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -167,7 +168,7 @@ export const unlikePost = async (req, res) => {
     await Post.decrementLikes(id)
     res.json({ message: 'Like eliminado correctamente' })
   } catch (error) {
-    console.error('Unlike post error:', error)
+    logger.error('Unlike post error:', error)
     res.status(500).json({ message: error.message })
   }
 }

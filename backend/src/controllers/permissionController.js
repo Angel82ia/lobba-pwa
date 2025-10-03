@@ -4,6 +4,7 @@ import * as Item from '../models/Item.js'
 import * as Equipment from '../models/Equipment.js'
 import * as UserQuota from '../models/UserQuota.js'
 import * as DeviceProfile from '../models/DeviceProfile.js'
+import logger from '../utils/logger.js'
 
 export const requestItemPermission = async (req, res) => {
   try {
@@ -61,7 +62,7 @@ export const requestItemPermission = async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Request item permission error:', error)
+    logger.error('Request item permission error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -123,7 +124,7 @@ export const requestEquipmentPickup = async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Request equipment pickup error:', error)
+    logger.error('Request equipment pickup error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -179,7 +180,7 @@ export const requestEquipmentReturn = async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Request equipment return error:', error)
+    logger.error('Request equipment return error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -203,7 +204,7 @@ export const validatePermission = async (req, res) => {
       permission
     })
   } catch (error) {
-    console.error('Validate permission error:', error)
+    logger.error('Validate permission error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -217,7 +218,7 @@ export const getUserPermissions = async (req, res) => {
     
     res.json(permissions)
   } catch (error) {
-    console.error('Get user permissions error:', error)
+    logger.error('Get user permissions error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -235,7 +236,7 @@ export const getDevicePermissions = async (req, res) => {
     
     res.json(permissions)
   } catch (error) {
-    console.error('Get device permissions error:', error)
+    logger.error('Get device permissions error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -263,7 +264,7 @@ export const cancelPermission = async (req, res) => {
     
     res.json(cancelled)
   } catch (error) {
-    console.error('Cancel permission error:', error)
+    logger.error('Cancel permission error:', error)
     res.status(500).json({ message: error.message })
   }
 }

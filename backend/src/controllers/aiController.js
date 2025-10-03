@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import logger from '../utils/logger.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -17,7 +18,7 @@ const ensureUploadsDir = async () => {
   try {
     await fs.mkdir(UPLOADS_DIR, { recursive: true })
   } catch (error) {
-    console.error('Error creating uploads directory:', error)
+    logger.error('Error creating uploads directory:', error)
   }
 }
 
@@ -79,7 +80,7 @@ export const generateNails = async (req, res) => {
       quota: updatedQuota
     })
   } catch (error) {
-    console.error('Generate nails error:', error)
+    logger.error('Generate nails error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -148,7 +149,7 @@ export const generateHairstyle = async (req, res) => {
       quota: updatedQuota
     })
   } catch (error) {
-    console.error('Generate hairstyle error:', error)
+    logger.error('Generate hairstyle error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -166,7 +167,7 @@ export const getCatalog = async (req, res) => {
 
     res.json(items)
   } catch (error) {
-    console.error('Get catalog error:', error)
+    logger.error('Get catalog error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -183,7 +184,7 @@ export const getMyDesigns = async (req, res) => {
 
     res.json(designs)
   } catch (error) {
-    console.error('Get my designs error:', error)
+    logger.error('Get my designs error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -200,7 +201,7 @@ export const getMyFavorites = async (req, res) => {
 
     res.json(favorites)
   } catch (error) {
-    console.error('Get favorites error:', error)
+    logger.error('Get favorites error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -216,7 +217,7 @@ export const toggleFavoriteDesign = async (req, res) => {
 
     res.json(design)
   } catch (error) {
-    console.error('Toggle favorite error:', error)
+    logger.error('Toggle favorite error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -235,7 +236,7 @@ export const getQuota = async (req, res) => {
       hairstyle: hairstyleCheck
     })
   } catch (error) {
-    console.error('Get quota error:', error)
+    logger.error('Get quota error:', error)
     res.status(500).json({ message: error.message })
   }
 }

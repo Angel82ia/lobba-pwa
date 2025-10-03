@@ -2,6 +2,7 @@ import { validationResult } from 'express-validator'
 import * as SalonProfile from '../models/SalonProfile.js'
 import * as SalonService from '../models/SalonService.js'
 import * as SalonCategory from '../models/SalonCategory.js'
+import logger from '../utils/logger.js'
 
 export const getSalonProfile = async (req, res) => {
   try {
@@ -35,7 +36,7 @@ export const getSalonProfile = async (req, res) => {
       verified: profile.verified,
     })
   } catch (error) {
-    console.error('Get salon profile error:', error)
+    logger.error('Get salon profile error:', error)
     res.status(500).json({ error: 'Failed to fetch salon profile' })
   }
 }
@@ -94,7 +95,7 @@ export const createSalonProfile = async (req, res) => {
       createdAt: profile.created_at,
     })
   } catch (error) {
-    console.error('Create salon profile error:', error)
+    logger.error('Create salon profile error:', error)
     res.status(500).json({ error: 'Failed to create salon profile' })
   }
 }
@@ -155,7 +156,7 @@ export const updateSalonProfile = async (req, res) => {
       city: updatedProfile.city,
     })
   } catch (error) {
-    console.error('Update salon profile error:', error)
+    logger.error('Update salon profile error:', error)
     res.status(500).json({ error: 'Failed to update salon profile' })
   }
 }
@@ -177,7 +178,7 @@ export const deleteSalonProfile = async (req, res) => {
 
     res.json({ message: 'Salon profile deleted successfully' })
   } catch (error) {
-    console.error('Delete salon profile error:', error)
+    logger.error('Delete salon profile error:', error)
     res.status(500).json({ error: 'Failed to delete salon profile' })
   }
 }
@@ -200,7 +201,7 @@ export const getSalonServices = async (req, res) => {
 
     res.json(formattedServices)
   } catch (error) {
-    console.error('Get salon services error:', error)
+    logger.error('Get salon services error:', error)
     res.status(500).json({ error: 'Failed to fetch salon services' })
   }
 }
@@ -244,7 +245,7 @@ export const createSalonService = async (req, res) => {
       discountPercentage: service.discount_percentage,
     })
   } catch (error) {
-    console.error('Create salon service error:', error)
+    logger.error('Create salon service error:', error)
     res.status(500).json({ error: 'Failed to create salon service' })
   }
 }
@@ -266,7 +267,7 @@ export const getAllCategories = async (req, res) => {
 
     res.json(formattedCategories)
   } catch (error) {
-    console.error('Get categories error:', error)
+    logger.error('Get categories error:', error)
     res.status(500).json({ error: 'Failed to fetch categories' })
   }
 }
@@ -290,7 +291,7 @@ export const assignCategory = async (req, res) => {
 
     res.status(201).json({ message: 'Category assigned successfully' })
   } catch (error) {
-    console.error('Assign category error:', error)
+    logger.error('Assign category error:', error)
     res.status(500).json({ error: 'Failed to assign category' })
   }
 }

@@ -1,5 +1,6 @@
 import { findUserById, updateUser } from '../models/User.js'
 import { validationResult } from 'express-validator'
+import logger from '../utils/logger.js'
 
 export const getProfile = async (req, res) => {
   try {
@@ -28,7 +29,7 @@ export const getProfile = async (req, res) => {
       createdAt: user.created_at,
     })
   } catch (error) {
-    console.error('Get profile error:', error)
+    logger.error('Get profile error:', error)
     res.status(500).json({ error: 'Failed to fetch profile' })
   }
 }
@@ -58,7 +59,7 @@ export const updateProfile = async (req, res) => {
       bio: user.bio,
     })
   } catch (error) {
-    console.error('Update profile error:', error)
+    logger.error('Update profile error:', error)
     res.status(500).json({ error: 'Failed to update profile' })
   }
 }
@@ -78,7 +79,7 @@ export const deleteProfile = async (req, res) => {
 
     res.json({ message: 'Profile deleted successfully' })
   } catch (error) {
-    console.error('Delete profile error:', error)
+    logger.error('Delete profile error:', error)
     res.status(500).json({ error: 'Failed to delete profile' })
   }
 }
