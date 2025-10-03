@@ -17,6 +17,7 @@ import cartRoutes from './routes/cart.js'
 import orderRoutes from './routes/order.js'
 import checkoutRoutes from './routes/checkout.js'
 import wishlistRoutes from './routes/wishlist.js'
+import webhookRoutes from './routes/webhook.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 
@@ -34,6 +35,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
 }))
+
+app.use('/api/webhooks', webhookRoutes)
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('combined'))

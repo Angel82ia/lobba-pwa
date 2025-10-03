@@ -114,3 +114,11 @@ export const updateStripePaymentIntent = async (id, paymentIntentId, paymentStat
   )
   return result.rows[0]
 }
+
+export const findOrderByPaymentIntent = async (paymentIntentId) => {
+  const result = await pool.query(
+    'SELECT * FROM orders WHERE stripe_payment_intent_id = $1',
+    [paymentIntentId]
+  )
+  return result.rows[0]
+}

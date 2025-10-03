@@ -1,6 +1,5 @@
 import * as Cart from '../models/Cart.js'
 import * as Order from '../models/Order.js'
-import * as Product from '../models/Product.js'
 import { createPaymentIntent } from '../utils/stripe.js'
 
 export const createPaymentIntentController = async (req, res) => {
@@ -28,11 +27,31 @@ export const createPaymentIntentController = async (req, res) => {
     const tax = subtotal * 0.21
     const total = subtotal + shippingCost + tax
 
+    const tempOrder = await Order.createOrder({
+      userId: req.user.id,
+      items: cartWithItems.items.map(item => ({
+        productId: item.product_id,
+        variantId: item.variant_id,
+        quantity: item.quantity,
+        unitPrice: parseFloat(item.base_price) * (1 - parseFloat(item.discount_percentage || 0) / 100),
+        subtotal: (parseFloat(item.base_price) * (1 - parseFloat(item.discount_percentage || 0) / 100)) * item.quantity,
+        productName: item.product_name,
+        productSnapshot: { name: item.product_name },
+      })),
+      shippingMethod: shippingMethod || 'standard',
+      shippingAddress: {},
+      subtotal,
+      shippingCost,
+      tax,
+      total,
+    })
+
     const paymentIntent = await createPaymentIntent({
       amount: total,
       metadata: {
         userId: req.user.id,
         cartId: cart.id,
+        orderId: tempOrder.id,
       },
     })
 
@@ -80,11 +99,6 @@ export const confirmPayment = async (req, res) => {
       })
 
       subtotal += itemSubtotal
-
-      await Product.updateStock(
-        item.product_id,
-        (await Product.findProductById(item.product_id)).stock_quantity - item.quantity
-      )
     }
 
     const shippingCost = shippingMethod === 'express' ? 9.99 : 
@@ -103,9 +117,8 @@ export const confirmPayment = async (req, res) => {
       total,
     })
 
-    await Order.updateStripePaymentIntent(order.id, paymentIntentId, 'succeeded')
-    await Order.updateOrderStatus(order.id, 'paid')
-    await Cart.clearCart(cart.id)
+    await Order.updateStripePaymentIntent(order.id, paymentIntentId, 'processing')
+    await Order.updateOrderStatus(order.id, 'pending')
 
     res.json(order)
   } catch (error) {
