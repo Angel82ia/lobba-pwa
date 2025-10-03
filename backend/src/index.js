@@ -26,6 +26,10 @@ import postRoutes from './routes/post.js'
 import commentRoutes from './routes/comment.js'
 import communityRoutes from './routes/community.js'
 import catalogRoutes from './routes/catalog.js'
+import itemRoutes from './routes/item.js'
+import equipmentRoutes from './routes/equipment.js'
+import permissionRoutes from './routes/permission.js'
+import deviceEventRoutes from './routes/deviceEvent.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 
@@ -71,6 +75,10 @@ app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/community', communityRoutes)
 app.use('/api/catalog', catalogRoutes)
+app.use('/api/items', itemRoutes)
+app.use('/api/equipment', equipmentRoutes)
+app.use('/api/permissions', permissionRoutes)
+app.use('/api/device-events', deviceEventRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
