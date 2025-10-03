@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import useStore from '../../store'
 import BannerDisplay from '../../modules/banners/BannerDisplay'
 import ChatbotWidget from '../../modules/chatbot/ChatbotWidget'
+import ThemeToggle from '../common/ThemeToggle'
 import './MainLayout.css'
 
 const MainLayout = () => {
@@ -19,6 +20,7 @@ const MainLayout = () => {
             <a href="/community">Comunidad</a>
           </nav>
           <div className="header-actions">
+            <ThemeToggle />
             <a href="/login">Iniciar Sesión</a>
           </div>
         </div>
