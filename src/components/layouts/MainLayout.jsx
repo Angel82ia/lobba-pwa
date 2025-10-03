@@ -1,7 +1,12 @@
 import { Outlet } from 'react-router-dom'
+import useStore from '../../store'
+import BannerDisplay from '../../modules/banners/BannerDisplay'
+import ChatbotWidget from '../../modules/chatbot/ChatbotWidget'
 import './MainLayout.css'
 
 const MainLayout = () => {
+  const { auth } = useStore()
+  
   return (
     <div className="main-layout">
       <header className="main-header">
@@ -19,6 +24,8 @@ const MainLayout = () => {
         </div>
       </header>
       
+      <BannerDisplay />
+      
       <main className="main-content">
         <Outlet />
       </main>
@@ -28,6 +35,8 @@ const MainLayout = () => {
           <p>&copy; 2024 LOBBA. Todos los derechos reservados.</p>
         </div>
       </footer>
+      
+      {auth.isAuthenticated && <ChatbotWidget />}
     </div>
   )
 }

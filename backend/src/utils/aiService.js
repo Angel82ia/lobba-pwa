@@ -81,6 +81,24 @@ export const generateHairstyleTryOn = async (selfieBase64, styleId) => {
   throw new Error(`Hairstyle try-on not supported for provider: ${provider}`)
 }
 
+export const generateChatbotResponse = async (userMessage, conversationHistory = []) => {
+  const provider = initializeAIProvider()
+  
+  if (provider === PROVIDERS.MOCK) {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return {
+      response: `Hola, soy Olivia, tu asistente virtual de LOBBA. Has dicho: "${userMessage}". ¿En qué puedo ayudarte hoy?`,
+      provider: 'mock'
+    }
+  }
+
+  if (provider === PROVIDERS.OPENROUTER) {
+    return await generateChatWithOpenRouter(userMessage, conversationHistory)
+  }
+
+  throw new Error(`Chatbot not supported for provider: ${provider}`)
+}
+
 async function generateWithStabilityAI(prompt, startTime) {
   const apiKey = process.env.AI_API_KEY
   const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
@@ -267,6 +285,59 @@ async function generateWithOpenRouter(prompt, startTime) {
     provider: 'openrouter',
     generationTimeMs: Date.now() - startTime,
     enhancedPrompt
+  }
+}
+
+async function generateChatWithOpenRouter(userMessage, conversationHistory) {
+  const apiKey = process.env.AI_API_KEY
+  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free'
+  
+  const messages = [
+    {
+      role: 'system',
+      content: 'Eres Olivia, la asistente virtual de LOBBA, una plataforma de belleza y bienestar. Eres amable, profesional y útil. Ayudas a los usuarios con preguntas sobre servicios de salones, productos, reservas y uso de la plataforma. Responde siempre en español de forma clara y concisa.'
+    }
+  ]
+  
+  conversationHistory.slice(-10).forEach(msg => {
+    messages.push({
+      role: msg.sender_type === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    })
+  })
+  
+  messages.push({
+    role: 'user',
+    content: userMessage
+  })
+  
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
+      'X-Title': 'LOBBA PWA - Chatbot Olivia'
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7
+    })
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(`OpenRouter error: ${error.error?.message || response.statusText}`)
+  }
+
+  const data = await response.json()
+  const botResponse = data.choices[0]?.message?.content
+
+  return {
+    response: botResponse || 'Lo siento, no pude generar una respuesta. Por favor intenta de nuevo.',
+    provider: 'openrouter'
   }
 }
 
