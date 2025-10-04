@@ -6,6 +6,7 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
+    "build": "echo 'No build step required for Express.js backend'",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "NODE_ENV=test vitest",
