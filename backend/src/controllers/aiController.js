@@ -3,24 +3,8 @@ import * as AIGeneration from '../models/AIGeneration.js'
 import * as AICatalog from '../models/AICatalog.js'
 import * as SavedDesign from '../models/SavedDesign.js'
 import { generateNailDesign, generateHairstyleTryOn } from '../utils/aiService.js'
-import { v4 as uuidv4 } from 'uuid'
-import fs from 'fs/promises'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import logger from '../utils/logger.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const UPLOADS_DIR = path.join(__dirname, '../../uploads/ai')
-
-const ensureUploadsDir = async () => {
-  try {
-    await fs.mkdir(UPLOADS_DIR, { recursive: true })
-  } catch (error) {
-    logger.error('Error creating uploads directory:', error)
-  }
-}
+import { uploadToCloudinary } from '../utils/cloudinary.js'
 
 export const generateNails = async (req, res) => {
   try {
@@ -43,15 +27,18 @@ export const generateNails = async (req, res) => {
 
     const result = await generateNailDesign(prompt)
 
-    await ensureUploadsDir()
-    const filename = `nails-${uuidv4()}.png`
-    const filepath = path.join(UPLOADS_DIR, filename)
-    
     let savedImageUrl = result.imageUrl
+    
     if (result.imageUrl.startsWith('data:image')) {
       const base64Data = result.imageUrl.replace(/^data:image\/\w+;base64,/, '')
-      await fs.writeFile(filepath, base64Data, 'base64')
-      savedImageUrl = `/uploads/ai/${filename}`
+      const buffer = Buffer.from(base64Data, 'base64')
+      
+      const cloudinaryResult = await uploadToCloudinary(
+        { buffer },
+        'lobba/ai-generations/nails'
+      )
+      
+      savedImageUrl = cloudinaryResult.secure_url
     }
 
     const generation = await AIGeneration.createGeneration({
@@ -106,28 +93,38 @@ export const generateHairstyle = async (req, res) => {
 
     const result = await generateHairstyleTryOn(selfieBase64, styleId)
 
-    await ensureUploadsDir()
-    const inputFilename = `hairstyle-input-${uuidv4()}.png`
-    const outputFilename = `hairstyle-output-${uuidv4()}.png`
-    
-    const inputPath = path.join(UPLOADS_DIR, inputFilename)
-    const outputPath = path.join(UPLOADS_DIR, outputFilename)
-
-    const inputBase64 = selfieBase64.replace(/^data:image\/\w+;base64,/, '')
-    await fs.writeFile(inputPath, inputBase64, 'base64')
-
+    let savedInputUrl = selfieBase64
     let savedOutputUrl = result.imageUrl
+    
+    if (selfieBase64.startsWith('data:image')) {
+      const inputBase64 = selfieBase64.replace(/^data:image\/\w+;base64,/, '')
+      const inputBuffer = Buffer.from(inputBase64, 'base64')
+      
+      const inputCloudinaryResult = await uploadToCloudinary(
+        { buffer: inputBuffer },
+        'lobba/ai-generations/hairstyle-inputs'
+      )
+      
+      savedInputUrl = inputCloudinaryResult.secure_url
+    }
+    
     if (result.imageUrl.startsWith('data:image')) {
       const outputBase64 = result.imageUrl.replace(/^data:image\/\w+;base64,/, '')
-      await fs.writeFile(outputPath, outputBase64, 'base64')
-      savedOutputUrl = `/uploads/ai/${outputFilename}`
+      const outputBuffer = Buffer.from(outputBase64, 'base64')
+      
+      const outputCloudinaryResult = await uploadToCloudinary(
+        { buffer: outputBuffer },
+        'lobba/ai-generations/hairstyle-outputs'
+      )
+      
+      savedOutputUrl = outputCloudinaryResult.secure_url
     }
 
     const generation = await AIGeneration.createGeneration({
       userId,
       type: 'hairstyle',
       prompt: null,
-      inputImageUrl: `/uploads/ai/${inputFilename}`,
+      inputImageUrl: savedInputUrl,
       outputImageUrl: savedOutputUrl,
       styleId,
       aiProvider: result.provider,
