@@ -1,0 +1,7 @@
+node_modules
+tests
+*.test.js
+coverage
+.env
+.env.local
+test-*.js
