@@ -28,7 +28,7 @@ export const aiGenerationLimiter = skipInTest
       windowMs: 60 * 1000,
       max: 10,
       message: 'Too many AI generation requests, please slow down',
-      keyGenerator: (req) => req.user?.id || req.ip,
+      keyGenerator: (req) => req.user?.id || 'anonymous',
       standardHeaders: true,
       legacyHeaders: false
     })
@@ -49,7 +49,7 @@ export const deviceValidationLimiter = skipInTest
       windowMs: 60 * 1000,
       max: 30,
       message: 'Too many validation requests, please slow down',
-      keyGenerator: (req) => req.body?.deviceId || req.ip,
+      keyGenerator: (req) => req.body?.deviceId || 'anonymous',
       standardHeaders: true,
       legacyHeaders: false
     })
@@ -70,7 +70,7 @@ export const chatbotLimiter = skipInTest
       windowMs: 60 * 1000,
       max: 20,
       message: 'Too many chatbot messages, please slow down',
-      keyGenerator: (req) => req.user?.id || req.ip,
+      keyGenerator: (req) => req.user?.id || 'anonymous',
       standardHeaders: true,
       legacyHeaders: false
     })
