@@ -45,6 +45,8 @@ const PORT = process.env.PORT || 3000
 const io = initializeWebSocket(httpServer)
 app.set('io', io)
 
+app.set('trust proxy', true)
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
