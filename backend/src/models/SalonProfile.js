@@ -169,3 +169,48 @@ export const getUsersInRadius = async (centerLocation, radiusKm, notificationTyp
   )
   return result.rows
 }
+
+export const findAllSalons = async ({
+  city,
+  category,
+  page = 1,
+  limit = 20,
+  sortBy = 'created_at',
+} = {}) => {
+  const conditions = ['is_active = true']
+  const values = []
+  let paramCount = 1
+
+  if (city) {
+    conditions.push(`city ILIKE $${paramCount}`)
+    values.push(`%${city}%`)
+    paramCount++
+  }
+
+  if (category) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM salon_categories_assignments sca
+      JOIN salon_categories sc ON sca.category_id = sc.id
+      WHERE sca.salon_profile_id = salon_profiles.id
+      AND (sc.slug = $${paramCount} OR sc.name ILIKE $${paramCount})
+    )`)
+    values.push(category)
+    paramCount++
+  }
+
+  const offset = (page - 1) * limit
+  values.push(limit, offset)
+
+  const query = `
+    SELECT sp.*,
+           ST_Y(sp.location::geometry) as latitude,
+           ST_X(sp.location::geometry) as longitude
+    FROM salon_profiles sp
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY ${sortBy} DESC
+    LIMIT $${paramCount} OFFSET $${paramCount + 1}
+  `
+
+  const result = await pool.query(query, values)
+  return result.rows
+}

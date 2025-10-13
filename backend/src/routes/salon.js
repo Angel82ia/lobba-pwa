@@ -7,6 +7,8 @@ const router = express.Router()
 
 router.get('/categories', salonProfileController.getAllCategories)
 
+router.get('/', salonProfileController.getAllSalons)
+
 router.get('/:id', salonProfileController.getSalonProfile)
 
 router.post(

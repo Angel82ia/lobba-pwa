@@ -295,3 +295,45 @@ export const assignCategory = async (req, res) => {
     res.status(500).json({ error: 'Failed to assign category' })
   }
 }
+
+export const getAllSalons = async (req, res) => {
+  try {
+    const { city, category, page, limit, sortBy } = req.query
+
+    const salons = await SalonProfile.findAllSalons({
+      city,
+      category,
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      sortBy,
+    })
+
+    const formattedSalons = salons.map(salon => ({
+      id: salon.id,
+      userId: salon.user_id,
+      businessName: salon.business_name,
+      description: salon.description,
+      address: salon.address,
+      city: salon.city,
+      postalCode: salon.postal_code,
+      country: salon.country,
+      phone: salon.phone,
+      website: salon.website,
+      location: salon.latitude && salon.longitude
+        ? { latitude: salon.latitude, longitude: salon.longitude }
+        : null,
+      businessHours: salon.business_hours,
+      isClickCollect: salon.is_click_collect,
+      acceptsReservations: salon.accepts_reservations,
+      rating: salon.rating,
+      totalReviews: salon.total_reviews,
+      isActive: salon.is_active,
+      verified: salon.verified,
+    }))
+
+    res.json(formattedSalons)
+  } catch (error) {
+    logger.error('Get all salons error:', error)
+    res.status(500).json({ error: 'Failed to fetch salons' })
+  }
+}
