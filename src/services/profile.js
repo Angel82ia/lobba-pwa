@@ -50,6 +50,6 @@ export const getAllSalons = async (filters = {}) => {
   if (filters.city) params.append('city', filters.city)
   if (filters.category) params.append('category', filters.category)
   
-  const response = await apiClient.get(`/api/salon?${params.toString()}`)
+  const response = await apiClient.get(`/salon?${params.toString()}`)
   return response.data
 }
