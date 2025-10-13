@@ -189,7 +189,7 @@ export const findAllSalons = async ({
 
   if (category) {
     conditions.push(`EXISTS (
-      SELECT 1 FROM salon_categories_assignments sca
+      SELECT 1 FROM salon_category_assignments sca
       JOIN salon_categories sc ON sca.category_id = sc.id
       WHERE sca.salon_profile_id = salon_profiles.id
       AND (sc.slug = $${paramCount} OR sc.name ILIKE $${paramCount})
