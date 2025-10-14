@@ -39,6 +39,7 @@ import InventoryManagement from './modules/admin/InventoryManagement'
 import KioskMode from './modules/kiosk/KioskMode'
 import AuditLogDashboard from './modules/admin/AuditLogDashboard'
 import './App.css'
+import './styles/liquid-glass/index.css'
 
 function App() {
   return (

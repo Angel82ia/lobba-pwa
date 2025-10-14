@@ -1,0 +1,7 @@
+/**
+ * LOBBA Liquid Glass Design System
+ * Importa todos los estilos liquid glass
+ */
+
+@import './effects.css';
+@import './animations.css';

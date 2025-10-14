@@ -121,6 +121,20 @@
   /* Additional variables */
   --border-radius-2xl: 1.5rem;
   --shadow-glow-pink: 0 0 20px rgba(255, 20, 147, 0.4);
+  
+  /* Liquid Glass Variables */
+  --liquid-glass-bg: rgba(255, 255, 255, 0.1);
+  --liquid-glass-border: rgba(255, 255, 255, 0.2);
+  --liquid-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --liquid-glass-blur: 10px;
+  
+  --liquid-glass-pink-bg: rgba(255, 20, 147, 0.1);
+  --liquid-glass-pink-border: rgba(255, 20, 147, 0.3);
+  --liquid-glass-pink-shadow: 0 8px 32px rgba(255, 20, 147, 0.2);
+  
+  --liquid-glass-dark-bg: rgba(0, 0, 0, 0.3);
+  --liquid-glass-dark-border: rgba(0, 0, 0, 0.4);
+  --liquid-glass-dark-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* Dark Mode Variables */
@@ -147,6 +161,15 @@
   --shadow-md: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(255, 255, 255, 0.1), 0 10px 10px -5px rgba(255, 255, 255, 0.04);
+  
+  /* Liquid Glass Dark Mode */
+  --liquid-glass-bg: rgba(0, 0, 0, 0.4);
+  --liquid-glass-border: rgba(255, 255, 255, 0.1);
+  --liquid-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  --liquid-glass-pink-bg: rgba(255, 20, 147, 0.2);
+  --liquid-glass-pink-border: rgba(255, 20, 147, 0.4);
+  --liquid-glass-pink-shadow: 0 0 25px rgba(255, 20, 147, 0.3);
 }
 
 /* Global Animation Keyframes */

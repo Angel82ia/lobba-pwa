@@ -1,0 +1,295 @@
+/**
+ * LOBBA Liquid Glass Animations
+ * Animaciones suaves para efectos liquid glass
+ */
+
+/* Animación Liquid Flow - Flujo de líquido */
+@keyframes liquid-flow {
+  0%, 100% {
+    transform: translate(-100%, -100%) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(50%, 50%) rotate(180deg);
+    opacity: 0.5;
+  }
+  75% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(100%, 100%) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Animación Liquid Bubble - Burbuja flotante */
+@keyframes liquid-bubble {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+}
+
+/* Animación Liquid Glow - Resplandor pulsante */
+@keyframes liquid-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 20, 147, 0.3),
+      0 8px 32px rgba(255, 20, 147, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(255, 20, 147, 0.5),
+      0 8px 32px rgba(255, 20, 147, 0.3);
+  }
+}
+
+/* Animación Liquid Shimmer - Brillo deslizante */
+@keyframes liquid-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Animación Liquid Wave - Onda líquida */
+@keyframes liquid-wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Animación Slide In - Deslizamiento suave */
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animación Scale - Escala con efecto liquid */
+@keyframes liquid-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animación Rotate - Rotación suave */
+@keyframes liquid-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Clases de utilidad para animaciones */
+.animate-liquid-flow {
+  animation: liquid-flow 3s infinite ease-in-out;
+}
+
+.animate-liquid-bubble {
+  animation: liquid-bubble 2s infinite ease-in-out;
+}
+
+.animate-liquid-glow {
+  animation: liquid-glow 2s infinite ease-in-out;
+}
+
+.animate-liquid-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 20, 147, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: liquid-shimmer 2s infinite;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.6s ease-out;
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out;
+}
+
+.animate-liquid-scale-in {
+  animation: liquid-scale-in 0.4s ease-out;
+}
+
+.animate-liquid-rotate {
+  animation: liquid-rotate 20s linear infinite;
+}
+
+/* Delays para animaciones secuenciales */
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Hover Animations */
+.hover-liquid-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-liquid-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 0 25px rgba(255, 20, 147, 0.3);
+}
+
+.hover-liquid-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-liquid-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 20, 147, 0.5);
+  border-color: rgba(255, 20, 147, 0.6);
+}
+
+.hover-liquid-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-liquid-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Loading Animation */
+@keyframes liquid-loading {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-liquid {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.loading-liquid span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  animation: liquid-loading 1.4s infinite ease-in-out both;
+}
+
+.loading-liquid span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-liquid span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* Transiciones suaves globales para liquid glass */
+.liquid-glass-transition {
+  transition: 
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+/* Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
