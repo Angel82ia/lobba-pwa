@@ -2,8 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import MainLayout from './components/layouts/MainLayout'
 import Home from './pages/Home'
 import Login from './pages/Login'
-import LoginForm from './modules/auth/LoginForm'
-import RegisterForm from './modules/auth/RegisterForm'
+import Register from './pages/Register'
 import ProtectedRoute from './components/routes/ProtectedRoute'
 import ClientProfile from './modules/profile/ClientProfile'
 import EditProfile from './modules/profile/EditProfile'
@@ -48,8 +47,7 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
-          <Route path="auth/login" element={<LoginForm />} />
-          <Route path="auth/register" element={<RegisterForm />} />
+          <Route path="register" element={<Register />} />
           
           <Route
             path="profile/:id?"
