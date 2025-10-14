@@ -12,6 +12,7 @@ const Input = ({
   disabled = false,
   required = false,
   fullWidth = false,
+  variant = 'default',
   className = '',
   ...props
 }) => {
@@ -45,7 +46,7 @@ const Input = ({
         placeholder={placeholder}
         disabled={disabled}
         required={required}
-        className="input-field"
+        className={`input-field input-${variant}`}
         {...props}
       />
       {error && <span className="input-error-message">{error}</span>}
@@ -63,6 +64,7 @@ Input.propTypes = {
   disabled: PropTypes.bool,
   required: PropTypes.bool,
   fullWidth: PropTypes.bool,
+  variant: PropTypes.oneOf(['default', 'liquid-glass']),
   className: PropTypes.string,
   id: PropTypes.string,
 }

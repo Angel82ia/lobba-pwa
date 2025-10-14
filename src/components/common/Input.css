@@ -73,3 +73,55 @@
   color: var(--color-error);
   margin-top: var(--spacing-xs);
 }
+
+/* Liquid Glass Input Variant */
+.input-liquid-glass {
+  background: var(--liquid-glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
+  transition: all 0.3s ease;
+}
+
+.input-liquid-glass:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--liquid-glass-pink-border);
+  box-shadow: 
+    0 0 0 4px rgba(255, 20, 147, 0.1),
+    0 0 20px rgba(255, 20, 147, 0.2);
+}
+
+.input-liquid-glass::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.input-liquid-glass:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+}
+
+[data-theme="dark"] .input-liquid-glass {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .input-liquid-glass:focus {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 20, 147, 0.5);
+  box-shadow: 
+    0 0 0 4px rgba(255, 20, 147, 0.15),
+    0 0 25px rgba(255, 20, 147, 0.3);
+}
+
+.input-error .input-liquid-glass {
+  border-color: var(--color-error);
+}
+
+.input-error .input-liquid-glass:focus {
+  box-shadow: 
+    0 0 0 4px rgba(239, 68, 68, 0.15),
+    0 0 20px rgba(239, 68, 68, 0.2);
+}
