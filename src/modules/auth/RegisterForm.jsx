@@ -15,9 +15,15 @@ const RegisterForm = () => {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPasswordHints, setShowPasswordHints] = useState(false)
   
   const { setUser, setToken } = useStore()
   const navigate = useNavigate()
+
+  // Validación de requisitos de contraseña
+  const passwordRequirements = {
+    minLength: formData.password.length >= 8,
+  }
 
   const handleChange = (e) => {
     setFormData({
@@ -37,7 +43,7 @@ const RegisterForm = () => {
       setToken(localStorage.getItem('accessToken'))
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed')
+      setError(err.response?.data?.error || 'Error al registrarse. Por favor, verifica los datos.')
     } finally {
       setLoading(false)
     }
@@ -83,11 +89,24 @@ const RegisterForm = () => {
         type="password"
         value={formData.password}
         onChange={handleChange}
+        onFocus={() => setShowPasswordHints(true)}
+        placeholder="Mínimo 8 caracteres"
         required
         fullWidth
       />
       
-      <Button type="submit" loading={loading} fullWidth>
+      {showPasswordHints && (
+        <div className="password-requirements">
+          <p className="requirements-title">La contraseña debe contener:</p>
+          <ul className="requirements-list">
+            <li className={passwordRequirements.minLength ? 'valid' : 'invalid'}>
+              {passwordRequirements.minLength ? '✓' : '○'} Al menos 8 caracteres
+            </li>
+          </ul>
+        </div>
+      )}
+      
+      <Button type="submit" loading={loading} fullWidth size="large">
         Registrarse
       </Button>
     </form>

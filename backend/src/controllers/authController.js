@@ -1,6 +1,16 @@
 import { createUser, findUserByEmail, findUserById } from '../models/User.js'
-import { createRefreshToken, findRefreshToken, revokeAllUserTokens } from '../models/RefreshToken.js'
-import { hashPassword, comparePasswords, generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/auth.js'
+import {
+  createRefreshToken,
+  findRefreshToken,
+  revokeAllUserTokens,
+} from '../models/RefreshToken.js'
+import {
+  hashPassword,
+  comparePasswords,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from '../utils/auth.js'
 import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
 
@@ -146,7 +156,7 @@ export const logout = async (req, res) => {
 export const me = async (req, res) => {
   try {
     const user = await findUserById(req.user.id)
-    
+
     res.json({
       id: user.id,
       email: user.email,

@@ -26,7 +26,7 @@ const LoginForm = () => {
       setToken(localStorage.getItem('accessToken'))
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed')
+      setError(err.response?.data?.error || 'Error al iniciar sesión')
     } finally {
       setLoading(false)
     }
@@ -43,6 +43,7 @@ const LoginForm = () => {
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        placeholder="tu@email.com"
         required
         fullWidth
       />
@@ -52,12 +53,13 @@ const LoginForm = () => {
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        placeholder="••••••••"
         required
         fullWidth
       />
       
-      <Button type="submit" loading={loading} fullWidth>
-        Entrar
+      <Button type="submit" loading={loading} fullWidth size="large">
+        Iniciar Sesión
       </Button>
     </form>
   )
