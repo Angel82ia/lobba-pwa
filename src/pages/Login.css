@@ -38,3 +38,12 @@
 .login-footer a:hover {
   text-decoration: underline;
 }
+
+.error-message {
+  background-color: var(--color-error-light, #fee);
+  color: var(--color-error, #c00);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
