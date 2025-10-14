@@ -6,16 +6,20 @@ const ThemeToggle = () => {
 
   return (
     <button
-      className="theme-toggle"
+      className={`theme-toggle ${theme === 'dark' ? 'theme-toggle-active' : ''}`}
       onClick={toggleTheme}
       aria-label={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
       title={`Modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
     >
-      {theme === 'light' ? (
-        <span className="theme-icon">🌙</span>
-      ) : (
-        <span className="theme-icon">☀️</span>
-      )}
+      <div className="theme-toggle-track">
+        <div className="theme-toggle-thumb">
+          {theme === 'light' ? (
+            <span className="theme-icon">☀️</span>
+          ) : (
+            <span className="theme-icon">🌙</span>
+          )}
+        </div>
+      </div>
     </button>
   )
 }
