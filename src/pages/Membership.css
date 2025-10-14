@@ -1,0 +1,177 @@
+.membership-page {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.membership-page h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 2rem;
+}
+
+.loading,
+.error,
+.no-membership {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.no-membership h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333333;
+}
+
+.no-membership p {
+  margin-bottom: 2rem;
+  color: #666666;
+  line-height: 1.6;
+}
+
+.membership-card {
+  margin-bottom: 2rem;
+}
+
+.membership-header {
+  margin-bottom: 2rem;
+}
+
+.membership-type {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.membership-type h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.suspended {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.expired {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge.cancelled {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.membership-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-row .label {
+  font-weight: 500;
+  color: #666666;
+}
+
+.detail-row .value {
+  font-weight: 600;
+  color: #000000;
+  text-align: right;
+}
+
+.membership-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.share-cta {
+  background: linear-gradient(135deg, #FFF0F5 0%, #FFE4F1 100%);
+  border: 2px solid #FF1493;
+  text-align: center;
+  padding: 2rem !important;
+}
+
+.share-cta h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FF1493;
+  margin-bottom: 1rem;
+}
+
+.share-cta p {
+  margin-bottom: 1.5rem;
+  color: #666666;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .membership-page {
+    margin: 1rem auto;
+  }
+
+  .membership-page h1 {
+    font-size: 1.5rem;
+  }
+
+  .membership-type {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .membership-type h2 {
+    font-size: 1.25rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .detail-row .value {
+    text-align: left;
+  }
+
+  .membership-actions {
+    flex-direction: column;
+  }
+
+  .share-cta {
+    padding: 1.5rem !important;
+  }
+
+  .share-cta h3 {
+    font-size: 1.25rem;
+  }
+}

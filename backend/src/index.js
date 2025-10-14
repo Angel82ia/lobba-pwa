@@ -31,6 +31,10 @@ import equipmentRoutes from './routes/equipment.js'
 import permissionRoutes from './routes/permission.js'
 import deviceEventRoutes from './routes/deviceEvent.js'
 import auditLogRoutes from './routes/auditLog.js'
+import membershipRoutes from './routes/membership.js'
+import stripeConnectRoutes from './routes/stripeConnect.js'
+import reservationCheckoutRoutes from './routes/reservationCheckout.js'
+import csvImportRoutes from './routes/csvImport.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
@@ -105,6 +109,10 @@ app.use('/api/equipment', equipmentRoutes)
 app.use('/api/permissions', permissionRoutes)
 app.use('/api/device-events', deviceEventRoutes)
 app.use('/api/audit-logs', auditLogRoutes)
+app.use('/api/membership', membershipRoutes)
+app.use('/api/stripe-connect', stripeConnectRoutes)
+app.use('/api/reservations/checkout', reservationCheckoutRoutes)
+app.use('/api/admin/salons/import', csvImportRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

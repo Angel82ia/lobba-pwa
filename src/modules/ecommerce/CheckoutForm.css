@@ -136,6 +136,69 @@
   color: var(--color-primary);
 }
 
+.card-element-container {
+  padding: 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background: white;
+  margin-bottom: 1rem;
+}
+
+.membership-badge {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.membership-badge span {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.membership-badge .badge-essential {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.membership-badge .badge-spirit {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.summary-row.discount {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.summary-row.discount .discount-amount {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.free-shipping {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.shipping-info {
+  margin-top: -0.5rem;
+  text-align: right;
+}
+
+.shipping-info small {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+}
+
 @media (max-width: 768px) {
   .checkout-grid {
     grid-template-columns: 1fr;
