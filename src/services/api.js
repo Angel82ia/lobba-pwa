@@ -26,7 +26,12 @@ apiClient.interceptors.response.use(
   async error => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // No intentar refresh en rutas de autenticación
+    const isAuthRoute =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register')
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true
 
       const refreshToken = localStorage.getItem('refreshToken')
