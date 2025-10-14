@@ -1,0 +1,92 @@
+.login-link {
+    font-family: var(--font-primary);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+    text-decoration: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-base);
+}
+
+.login-link:hover {
+    background-color: var(--color-primary);
+    color: var(--color-background);
+}
+
+.user-menu-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-family: var(--font-primary);
+    color: var(--color-text);
+    background: none;
+    border: none;
+    padding: var(--spacing-xs);
+    cursor: pointer;
+    transition: opacity var(--transition-base);
+    border-radius: var(--border-radius-md);
+}
+
+.user-menu-trigger:hover {
+    opacity: 0.7;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-bold);
+    font-size: 0.875rem;
+}
+
+.user-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+}
+
+.user-menu-icon {
+    font-size: 0.625rem;
+    color: var(--color-gray-500);
+    transition: transform var(--transition-base);
+}
+
+.user-menu-trigger:hover .user-menu-icon {
+    transform: translateY(2px);
+}
+
+.user-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-family: var(--font-primary);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-base);
+}
+
+.user-menu-item:hover {
+    background-color: var(--color-gray-100);
+}
+
+.user-menu-logout {
+    border-top: 1px solid var(--color-gray-200);
+    font-weight: var(--font-weight-semibold);
+}

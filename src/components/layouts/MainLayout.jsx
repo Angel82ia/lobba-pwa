@@ -3,6 +3,7 @@ import useStore from '../../store'
 import BannerDisplay from '../../modules/banners/BannerDisplay'
 import ChatbotWidget from '../../modules/chatbot/ChatbotWidget'
 import ThemeToggle from '../common/ThemeToggle'
+import UserMenu from '../../modules/user-menu/UserMenu'
 import './MainLayout.css'
 
 const MainLayout = () => {
@@ -12,7 +13,7 @@ const MainLayout = () => {
     <div className="main-layout">
       <header className="main-header">
         <div className="header-content">
-          <div className="logo">LOBBA</div>
+          <Link to="/" className="logo">LOBBA</Link>
           <nav className="main-nav">
             <Link to="/">Inicio</Link>
             <Link to="/salones">Salones</Link>
@@ -21,7 +22,7 @@ const MainLayout = () => {
           </nav>
           <div className="header-actions">
             <ThemeToggle />
-            <Link to="/login">Iniciar Sesión</Link>
+            <UserMenu />
           </div>
         </div>
       </header>
