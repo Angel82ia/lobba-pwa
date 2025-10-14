@@ -38,7 +38,7 @@ const Button = ({
 
 Button.propTypes = {
   children: PropTypes.node.isRequired,
-  variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'ghost']),
+  variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'ghost', 'liquid-glass']),
   size: PropTypes.oneOf(['small', 'medium', 'large']),
   fullWidth: PropTypes.bool,
   disabled: PropTypes.bool,
