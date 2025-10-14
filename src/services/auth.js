@@ -1,43 +1,106 @@
-import apiClient from './api'
+import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 
+let isRefreshing = false
+let refreshSubscribers = []
+
+const onRefreshed = token => {
+  refreshSubscribers.forEach(callback => callback(token))
+  refreshSubscribers = []
+}
+
+const addRefreshSubscriber = callback => {
+  refreshSubscribers.push(callback)
+}
+
+let apiClientCached = null
+const getApiClient = async () => {
+  if (apiClientCached) return apiClientCached
+  const module = await import('./api.js')
+  apiClientCached = module.default
+  return apiClientCached
+}
+
 export const login = async (email, password) => {
+  const apiClient = await getApiClient()
   const response = await apiClient.post('/auth/login', { email, password })
   const { user, tokens } = response.data
 
-  localStorage.setItem('accessToken', tokens.accessToken)
-  localStorage.setItem('refreshToken', tokens.refreshToken)
-
+  setAuthTokens(tokens.accessToken, tokens.refreshToken)
   return user
 }
 
 export const register = async userData => {
+  const apiClient = await getApiClient()
   const response = await apiClient.post('/auth/register', userData)
   const { user, tokens } = response.data
 
-  localStorage.setItem('accessToken', tokens.accessToken)
-  localStorage.setItem('refreshToken', tokens.refreshToken)
-
+  setAuthTokens(tokens.accessToken, tokens.refreshToken)
   return user
 }
 
 export const logout = async () => {
   try {
+    const apiClient = await getApiClient()
     await apiClient.post('/auth/logout')
   } finally {
     clearAuthTokens()
   }
 }
 
+export const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem('refreshToken')
+
+  if (!refreshToken) {
+    throw new Error('No refresh token available')
+  }
+
+  if (isRefreshing) {
+    return new Promise(resolve => {
+      addRefreshSubscriber(token => {
+        resolve(token)
+      })
+    })
+  }
+
+  isRefreshing = true
+
+  try {
+    const response = await axios.post(`/api/auth/refresh`, {
+      refreshToken,
+    })
+
+    const { accessToken } = response.data
+    localStorage.setItem('accessToken', accessToken)
+
+    isRefreshing = false
+    onRefreshed(accessToken)
+
+    return accessToken
+  } catch (error) {
+    isRefreshing = false
+    clearAuthTokens()
+    throw error
+  }
+}
+
+// Función centralizada para guardar tokens
+export const setAuthTokens = (accessToken, refreshToken) => {
+  localStorage.setItem('accessToken', accessToken)
+  localStorage.setItem('refreshToken', refreshToken)
+}
+
 // Función centralizada para limpiar tokens
 export const clearAuthTokens = () => {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
-  // Notificar a otras pestañas que se cerró sesión
   localStorage.setItem('logout-event', Date.now().toString())
+  isRefreshing = false
+  refreshSubscribers = []
 }
 
 export const getCurrentUser = async () => {
+  const apiClient = await getApiClient()
   const response = await apiClient.get('/auth/me')
   return response.data
 }
@@ -70,17 +133,14 @@ export const getUserRole = () => {
   }
 }
 
-// Verificar si hay tokens válidos
 export const hasValidTokens = () => {
   const accessToken = getStoredToken()
   const refreshToken = localStorage.getItem('refreshToken')
 
-  // Si hay access token válido, está autenticado
   if (accessToken && isTokenValid(accessToken)) {
     return true
   }
 
-  // Si solo hay refresh token válido, podemos intentar renovar
   if (refreshToken) {
     try {
       const decoded = jwtDecode(refreshToken)
