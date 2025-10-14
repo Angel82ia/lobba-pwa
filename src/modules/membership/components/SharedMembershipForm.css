@@ -1,0 +1,158 @@
+.shared-membership-form {
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.share-checkbox-container {
+  margin-bottom: 1.5rem;
+}
+
+.share-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.share-checkbox {
+  margin-top: 0.25rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #FF1493;
+}
+
+.share-checkbox-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #000000;
+  flex: 1;
+}
+
+.share-checkbox-description {
+  margin-top: 0.5rem;
+  margin-left: 2rem;
+  font-size: 0.9rem;
+  color: #666666;
+  line-height: 1.5;
+}
+
+.share-form-fields {
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 2px solid #FF1493;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-field {
+  margin-bottom: 1.5rem;
+}
+
+.form-field:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333333;
+  font-size: 0.95rem;
+}
+
+.form-label .required {
+  color: #FF1493;
+  margin-left: 0.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #ffffff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FF1493;
+  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.1);
+}
+
+.form-input.error {
+  border-color: #dc3545;
+}
+
+.form-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.error-message {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.minor-warning {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #856404;
+  line-height: 1.5;
+}
+
+.legal-notice {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-left: 4px solid #FF1493;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #555555;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .shared-membership-form {
+    padding: 1rem;
+  }
+
+  .share-form-fields {
+    padding: 1rem;
+  }
+
+  .share-checkbox-description {
+    margin-left: 1.75rem;
+    font-size: 0.85rem;
+  }
+
+  .form-input {
+    font-size: 16px;
+  }
+}
