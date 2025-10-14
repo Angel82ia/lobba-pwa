@@ -26,7 +26,39 @@ const LoginForm = () => {
       setToken(localStorage.getItem('accessToken'))
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al iniciar sesión')
+      if (err.response) {
+        const { status, data } = err.response
+        
+        switch (status) {
+          case 400:
+            // Si hay errores de validación específicos, mostrar el primero
+            if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+              setError(data.errors[0].msg)
+            } else {
+              setError(data.error || 'Datos inválidos')
+            }
+            break
+            
+          case 401:
+            setError(data.message || data.error || 'Email o contraseña incorrectos')
+            break
+            
+          case 429:
+            setError('Demasiados intentos. Por favor, espera unos minutos e intenta de nuevo.')
+            break
+            
+          case 500:
+            setError(data.message || 'Error del servidor. Por favor, intenta más tarde.')
+            break
+            
+          default:
+            setError('Error al iniciar sesión. Por favor, intenta de nuevo.')
+        }
+      } else if (err.request) {
+        setError('No se pudo conectar al servidor. Verifica tu conexión a internet.')
+      } else {
+        setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.')
+      }
     } finally {
       setLoading(false)
     }

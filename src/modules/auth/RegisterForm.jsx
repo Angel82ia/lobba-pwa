@@ -15,15 +15,9 @@ const RegisterForm = () => {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [showPasswordHints, setShowPasswordHints] = useState(false)
   
   const { setUser, setToken } = useStore()
   const navigate = useNavigate()
-
-  // Validación de requisitos de contraseña
-  const passwordRequirements = {
-    minLength: formData.password.length >= 8,
-  }
 
   const handleChange = (e) => {
     setFormData({
@@ -43,7 +37,35 @@ const RegisterForm = () => {
       setToken(localStorage.getItem('accessToken'))
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al registrarse. Por favor, verifica los datos.')
+      if (err.response) {
+        const { status, data } = err.response
+        
+        switch (status) {
+          case 400:
+            // Si hay errores de validación específicos, mostrar el primero
+            if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+              setError(data.errors[0].msg)
+            } else {
+              setError(data.error || 'Datos inválidos. Por favor, verifica los campos.')
+            }
+            break
+            
+          case 429:
+            setError('Demasiados intentos. Por favor, espera unos minutos e intenta de nuevo.')
+            break
+            
+          case 500:
+            setError(data.message || 'Error del servidor. Por favor, intenta más tarde.')
+            break
+            
+          default:
+            setError('Error al registrarse. Por favor, intenta de nuevo.')
+        }
+      } else if (err.request) {
+        setError('No se pudo conectar al servidor. Verifica tu conexión a internet.')
+      } else {
+        setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.')
+      }
     } finally {
       setLoading(false)
     }
@@ -89,22 +111,10 @@ const RegisterForm = () => {
         type="password"
         value={formData.password}
         onChange={handleChange}
-        onFocus={() => setShowPasswordHints(true)}
         placeholder="Mínimo 8 caracteres"
         required
         fullWidth
       />
-      
-      {showPasswordHints && (
-        <div className="password-requirements">
-          <p className="requirements-title">La contraseña debe contener:</p>
-          <ul className="requirements-list">
-            <li className={passwordRequirements.minLength ? 'valid' : 'invalid'}>
-              {passwordRequirements.minLength ? '✓' : '○'} Al menos 8 caracteres
-            </li>
-          </ul>
-        </div>
-      )}
       
       <Button type="submit" loading={loading} fullWidth size="large">
         Registrarse

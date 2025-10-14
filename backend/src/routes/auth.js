@@ -14,10 +14,26 @@ router.post(
   '/register',
   authLimiter,
   [
-    body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 8 }),
-    body('firstName').trim().isLength({ min: 1 }),
-    body('lastName').trim().isLength({ min: 1 }),
+    body('email')
+      .trim()
+      .isEmail()
+      .withMessage('Ingresa un email válido')
+      .normalizeEmail({ gmail_remove_dots: false }),
+    body('password')
+      .isLength({ min: 8 })
+      .withMessage('La contraseña debe tener al menos 8 caracteres'),
+    body('firstName')
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('El nombre debe tener al menos 2 caracteres')
+      .isLength({ max: 50 })
+      .withMessage('El nombre no puede exceder 50 caracteres'),
+    body('lastName')
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('El apellido debe tener al menos 2 caracteres')
+      .isLength({ max: 50 })
+      .withMessage('El apellido no puede exceder 50 caracteres'),
     body('role').optional().isIn(['user', 'salon', 'admin', 'device']),
   ],
   auditAuthAction,
@@ -28,8 +44,16 @@ router.post(
   '/login',
   authLimiter,
   [
-    body('email').isEmail().normalizeEmail(),
-    body('password').exists(),
+    body('email')
+      .trim()
+      .isEmail()
+      .withMessage('Ingresa un email válido')
+      .normalizeEmail({ gmail_remove_dots: false }),
+    body('password')
+      .notEmpty()
+      .withMessage('La contraseña es requerida')
+      .isLength({ min: 1 })
+      .withMessage('La contraseña no puede estar vacía'),
   ],
   auditAuthAction,
   authController.login
@@ -41,7 +65,10 @@ router.post('/logout', requireAuth, auditAuthAction, authController.logout)
 
 router.get('/me', requireAuth, authController.me)
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }))
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+)
 
 router.get(
   '/google/callback',
@@ -50,11 +77,13 @@ router.get(
     try {
       const accessToken = generateAccessToken(req.user)
       const refreshToken = generateRefreshToken(req.user)
-      
+
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       await createRefreshToken(req.user.id, refreshToken, expiresAt)
 
-      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refresh=${refreshToken}`)
+      res.redirect(
+        `${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refresh=${refreshToken}`
+      )
     } catch (error) {
       res.redirect('/login?error=auth_failed')
     }
@@ -70,7 +99,7 @@ router.post(
     try {
       const accessToken = generateAccessToken(req.user)
       const refreshToken = generateRefreshToken(req.user)
-      
+
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       await createRefreshToken(req.user.id, refreshToken, expiresAt)
 
