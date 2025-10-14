@@ -1,0 +1,187 @@
+.liquid-glass-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--liquid-glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid var(--liquid-glass-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--liquid-glass-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.liquid-glass-icon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 20, 147, 0.15) 0%,
+    rgba(138, 43, 226, 0.15) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.liquid-glass-icon:hover::before {
+  opacity: 1;
+}
+
+.icon-background {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 20, 147, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.liquid-glass-icon:hover .icon-background {
+  opacity: 1;
+}
+
+.icon-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  transition: transform 0.3s ease;
+}
+
+.liquid-glass-icon:hover .icon-content {
+  transform: scale(1.1);
+}
+
+/* Size variants */
+.icon-xs {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+}
+
+.icon-xs .icon-content {
+  font-size: 14px;
+}
+
+.icon-sm {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+}
+
+.icon-sm .icon-content {
+  font-size: 16px;
+}
+
+.icon-md {
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+}
+
+.icon-md .icon-content {
+  font-size: 20px;
+}
+
+.icon-lg {
+  width: 56px;
+  height: 56px;
+  padding: 12px;
+}
+
+.icon-lg .icon-content {
+  font-size: 24px;
+}
+
+.icon-xl {
+  width: 72px;
+  height: 72px;
+  padding: 16px;
+}
+
+.icon-xl .icon-content {
+  font-size: 32px;
+}
+
+/* Animated variant */
+.icon-animated .icon-content {
+  animation: icon-float 3s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.icon-animated:hover .icon-content {
+  animation: icon-pulse 0.6s ease-in-out;
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+/* Glow variant */
+.icon-glow {
+  box-shadow: 
+    var(--liquid-glass-shadow),
+    0 0 20px rgba(255, 20, 147, 0.3),
+    inset 0 0 15px rgba(255, 20, 147, 0.1);
+}
+
+.icon-glow:hover {
+  box-shadow: 
+    var(--liquid-glass-shadow),
+    0 0 30px rgba(255, 20, 147, 0.5),
+    inset 0 0 20px rgba(255, 20, 147, 0.15);
+}
+
+/* Dark mode */
+[data-theme="dark"] .liquid-glass-icon {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .liquid-glass-icon:hover {
+  border-color: rgba(255, 20, 147, 0.5);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 20, 147, 0.25);
+}
+
+[data-theme="dark"] .icon-glow {
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 25px rgba(255, 20, 147, 0.4),
+    inset 0 0 15px rgba(255, 20, 147, 0.15);
+}
+
+[data-theme="dark"] .icon-glow:hover {
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 35px rgba(255, 20, 147, 0.6),
+    inset 0 0 20px rgba(255, 20, 147, 0.2);
+}
