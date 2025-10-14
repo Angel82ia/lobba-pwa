@@ -67,19 +67,36 @@ export const login = async (req, res) => {
   try {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() })
+      return res.status(400).json({
+        error: 'Datos de entrada inválidos',
+        errors: errors.array(),
+      })
     }
 
     const { email, password } = req.body
 
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email y contraseña son requeridos',
+      })
+    }
+
     const user = await findUserByEmail(email)
+
     if (!user || !user.password_hash) {
-      return res.status(401).json({ error: 'Invalid credentials' })
+      return res.status(401).json({
+        error: 'Credenciales inválidas',
+        message: 'El email o la contraseña son incorrectos',
+      })
     }
 
     const isValidPassword = await comparePasswords(password, user.password_hash)
+
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' })
+      return res.status(401).json({
+        error: 'Credenciales inválidas',
+        message: 'El email o la contraseña son incorrectos',
+      })
     }
 
     const accessToken = generateAccessToken(user)
@@ -104,7 +121,10 @@ export const login = async (req, res) => {
     })
   } catch (error) {
     logger.error('Login error:', error)
-    res.status(500).json({ error: 'Login failed' })
+    res.status(500).json({
+      error: 'Error en el servidor',
+      message: 'Ocurrió un error al procesar tu solicitud. Por favor, intenta de nuevo.',
+    })
   }
 }
 
