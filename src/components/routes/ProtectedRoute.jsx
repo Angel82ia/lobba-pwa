@@ -19,10 +19,15 @@ const ProtectedRoute = ({ children, requiredRole, requireMembership = false }) =
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [logout])
 
-  if (!token || !isTokenValid(token)) {
-    if (auth.isAuthenticated) {
-      logout()
+  useEffect(() => {
+    if (!token || !isTokenValid(token)) {
+      if (auth.isAuthenticated) {
+        logout()
+      }
     }
+  }, [token, auth.isAuthenticated, logout])
+
+  if (!token || !isTokenValid(token)) {
     return <Navigate to="/login" replace />
   }
 
