@@ -1,22 +1,27 @@
 import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+import { refreshAccessToken, getStoredToken } from './auth'
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
 })
 
 apiClient.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    try {
+      const token = getStoredToken()
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+      config.headers['Cache-Control'] = 'no-cache'
+      return config
+    } catch (e) {
+      return Promise.reject(e)
     }
-    return config
   },
   error => Promise.reject(error)
 )
@@ -24,36 +29,27 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   response => response,
   async error => {
-    const originalRequest = error.config
+    const originalRequest = error?.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (!originalRequest || !error?.response) {
+      return Promise.reject(error)
+    }
+
+    const isAuthRoute =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register') ||
+      originalRequest.url?.includes('/auth/refresh')
+
+    if (error.response.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true
 
-      const refreshToken = localStorage.getItem('refreshToken')
-
-      // Si no hay refresh token, redirigir directamente al login
-      if (!refreshToken) {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
-        return Promise.reject(error)
-      }
-
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        })
+        const newToken = await refreshAccessToken()
 
-        const { accessToken } = response.data
-        localStorage.setItem('accessToken', accessToken)
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
+        originalRequest.headers = originalRequest.headers || {}
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
         return apiClient(originalRequest)
       } catch (refreshError) {
-        // Limpiar todo y redirigir al login
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
         return Promise.reject(refreshError)
       }
     }

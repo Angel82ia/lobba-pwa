@@ -1,11 +1,31 @@
 import { Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import PropTypes from 'prop-types'
 import useStore from '../../store'
 import { isTokenValid, getStoredToken } from '../../services/auth'
 
 const ProtectedRoute = ({ children, requiredRole, requireMembership = false }) => {
-  const { auth } = useStore()
+  const { auth, logout } = useStore()
   const token = getStoredToken()
+
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'logout-event') {
+        logout()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [logout])
+
+  useEffect(() => {
+    if (!token || !isTokenValid(token)) {
+      if (auth.isAuthenticated) {
+        logout()
+      }
+    }
+  }, [token, auth.isAuthenticated, logout])
 
   if (!token || !isTokenValid(token)) {
     return <Navigate to="/login" replace />
