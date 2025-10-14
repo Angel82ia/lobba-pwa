@@ -29,8 +29,17 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      // Si no hay refresh token, redirigir directamente al login
+      if (!refreshToken) {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refreshToken,
         })
@@ -41,6 +50,7 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         return apiClient(originalRequest)
       } catch (refreshError) {
+        // Limpiar todo y redirigir al login
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         window.location.href = '/login'

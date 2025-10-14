@@ -11,7 +11,7 @@ export const login = async (email, password) => {
   return user
 }
 
-export const register = async (userData) => {
+export const register = async userData => {
   const response = await apiClient.post('/auth/register', userData)
   const { user, tokens } = response.data
 
@@ -25,9 +25,16 @@ export const logout = async () => {
   try {
     await apiClient.post('/auth/logout')
   } finally {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    clearAuthTokens()
   }
+}
+
+// Función centralizada para limpiar tokens
+export const clearAuthTokens = () => {
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
+  // Notificar a otras pestañas que se cerró sesión
+  localStorage.setItem('logout-event', Date.now().toString())
 }
 
 export const getCurrentUser = async () => {
@@ -39,7 +46,7 @@ export const getStoredToken = () => {
   return localStorage.getItem('accessToken')
 }
 
-export const isTokenValid = (token) => {
+export const isTokenValid = token => {
   if (!token) return false
 
   try {
@@ -61,4 +68,28 @@ export const getUserRole = () => {
   } catch (error) {
     return null
   }
+}
+
+// Verificar si hay tokens válidos
+export const hasValidTokens = () => {
+  const accessToken = getStoredToken()
+  const refreshToken = localStorage.getItem('refreshToken')
+
+  // Si hay access token válido, está autenticado
+  if (accessToken && isTokenValid(accessToken)) {
+    return true
+  }
+
+  // Si solo hay refresh token válido, podemos intentar renovar
+  if (refreshToken) {
+    try {
+      const decoded = jwtDecode(refreshToken)
+      const currentTime = Date.now() / 1000
+      return decoded.exp > currentTime
+    } catch {
+      return false
+    }
+  }
+
+  return false
 }
