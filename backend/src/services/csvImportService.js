@@ -1,5 +1,5 @@
 import pool from '../config/database.js'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 export const validateSalonRow = (row, lineNumber) => {
   const errors = []
@@ -31,9 +31,9 @@ export const validateSalonRow = (row, lineNumber) => {
   return { valid: errors.length === 0, errors }
 }
 
-export const parseSalonCSV = (csvText) => {
+export const parseSalonCSV = csvText => {
   const lines = csvText.split('\n').filter(line => line.trim())
-  
+
   if (lines.length < 2) {
     throw new Error('CSV must have at least a header and one data row')
   }
@@ -41,7 +41,7 @@ export const parseSalonCSV = (csvText) => {
   const headers = lines[0].split(',').map(h => h.trim())
   const results = {
     valid: [],
-    invalid: []
+    invalid: [],
   }
 
   for (let i = 1; i < lines.length; i++) {
@@ -64,12 +64,12 @@ export const parseSalonCSV = (csvText) => {
   return results
 }
 
-export const importSalons = async (validatedData, adminUserId) => {
+export const importSalons = async (validatedData, _adminUserId) => {
   const client = await pool.connect()
   const results = {
     success: 0,
     failed: 0,
-    errors: []
+    errors: [],
   }
 
   try {
@@ -77,7 +77,9 @@ export const importSalons = async (validatedData, adminUserId) => {
 
     for (const salonData of validatedData) {
       try {
-        const email = salonData.email || `salon_${Date.now()}_${Math.random().toString(36).substring(7)}@lobba.generated.com`
+        const email =
+          salonData.email ||
+          `salon_${Date.now()}_${Math.random().toString(36).substring(7)}@lobba.generated.com`
         const tempPassword = Math.random().toString(36).substring(2, 10)
         const hashedPassword = await bcrypt.hash(tempPassword, 10)
 
@@ -85,7 +87,7 @@ export const importSalons = async (validatedData, adminUserId) => {
           `INSERT INTO users (email, password, first_name, last_name, role) 
            VALUES ($1, $2, $3, $4, 'salon') 
            RETURNING id`,
-          [email, hashedPassword, salonData.business_name, '', ]
+          [email, hashedPassword, salonData.business_name, '']
         )
 
         const userId = userResult.rows[0].id
@@ -99,17 +101,38 @@ export const importSalons = async (validatedData, adminUserId) => {
           `INSERT INTO salon_profiles 
            (user_id, business_name, description, address, city, postal_code, phone, website, location, accepts_reservations)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ${location ? 'ST_GeogFromText($9)' : 'NULL'}, $${location ? 10 : 9})`,
-          location 
-            ? [userId, salonData.business_name, salonData.description || '', salonData.address, salonData.city, salonData.postal_code || '', salonData.phone || '', salonData.website || '', `POINT(${salonData.longitude} ${salonData.latitude})`, salonData.accepts_reservations === 'true']
-            : [userId, salonData.business_name, salonData.description || '', salonData.address, salonData.city, salonData.postal_code || '', salonData.phone || '', salonData.website || '', salonData.accepts_reservations === 'true']
+          location
+            ? [
+                userId,
+                salonData.business_name,
+                salonData.description || '',
+                salonData.address,
+                salonData.city,
+                salonData.postal_code || '',
+                salonData.phone || '',
+                salonData.website || '',
+                `POINT(${salonData.longitude} ${salonData.latitude})`,
+                salonData.accepts_reservations === 'true',
+              ]
+            : [
+                userId,
+                salonData.business_name,
+                salonData.description || '',
+                salonData.address,
+                salonData.city,
+                salonData.postal_code || '',
+                salonData.phone || '',
+                salonData.website || '',
+                salonData.accepts_reservations === 'true',
+              ]
         )
 
         results.success++
       } catch (err) {
         results.failed++
-        results.errors.push({ 
-          salon: salonData.business_name, 
-          error: err.message 
+        results.errors.push({
+          salon: salonData.business_name,
+          error: err.message,
         })
       }
     }

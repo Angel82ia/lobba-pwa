@@ -31,10 +31,6 @@ import equipmentRoutes from './routes/equipment.js'
 import permissionRoutes from './routes/permission.js'
 import deviceEventRoutes from './routes/deviceEvent.js'
 import auditLogRoutes from './routes/auditLog.js'
-import membershipRoutes from './routes/membership.js'
-import stripeConnectRoutes from './routes/stripeConnect.js'
-import reservationCheckoutRoutes from './routes/reservationCheckout.js'
-import csvImportRoutes from './routes/csvImport.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
@@ -51,30 +47,53 @@ app.set('io', io)
 
 app.set('trust proxy', true)
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://api.stripe.com", "https://openrouter.ai", "https://yce.perfectcorp.com"],
-      frameSrc: ["'self'", "https://js.stripe.com"],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
-    }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}))
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
-}))
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        connectSrc: [
+          "'self'",
+          'https://api.stripe.com',
+          'https://openrouter.ai',
+          'https://yce.perfectcorp.com',
+        ],
+        frameSrc: ["'self'", 'https://js.stripe.com'],
+        fontSrc: ["'self'", 'data:'],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+)
+// Configuración de CORS para múltiples orígenes
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173']
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (como mobile apps o curl)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    credentials: true,
+  })
+)
 
 app.use('/api/webhooks', webhookRoutes)
 
@@ -109,10 +128,6 @@ app.use('/api/equipment', equipmentRoutes)
 app.use('/api/permissions', permissionRoutes)
 app.use('/api/device-events', deviceEventRoutes)
 app.use('/api/audit-logs', auditLogRoutes)
-app.use('/api/membership', membershipRoutes)
-app.use('/api/stripe-connect', stripeConnectRoutes)
-app.use('/api/reservations/checkout', reservationCheckoutRoutes)
-app.use('/api/admin/salons/import', csvImportRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

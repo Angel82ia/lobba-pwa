@@ -33,6 +33,7 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+api-tests/
 
 # Temporary files
 tmp/
@@ -61,3 +62,6 @@ secrets/
 # PWA
 sw.js
 workbox-*.js
+
+# Vercel
+.vercel
