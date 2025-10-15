@@ -49,32 +49,59 @@ const PORT = process.env.PORT || 3000
 const io = initializeWebSocket(httpServer)
 app.set('io', io)
 
-app.set('trust proxy', true)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', true)
+} else {
+  app.set('trust proxy', false)
+}
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://api.stripe.com", "https://openrouter.ai", "https://yce.perfectcorp.com"],
-      frameSrc: ["'self'", "https://js.stripe.com"],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
-    }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}))
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
-}))
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        connectSrc: [
+          "'self'",
+          'https://api.stripe.com',
+          'https://openrouter.ai',
+          'https://yce.perfectcorp.com',
+        ],
+        frameSrc: ["'self'", 'https://js.stripe.com'],
+        fontSrc: ["'self'", 'data:'],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+)
+// Configuración de CORS para múltiples orígenes
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173']
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (como mobile apps o curl)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    credentials: true,
+  })
+)
 
 app.use('/api/webhooks', webhookRoutes)
 
@@ -123,8 +150,10 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong!' })
 })
 
-httpServer.listen(PORT, () => {
-  console.log(`Backend with WebSocket running on port ${PORT}`)
-})
+if (process.env.NODE_ENV !== 'test') {
+  httpServer.listen(PORT, () => {
+    console.log(`Backend with WebSocket running on port ${PORT}`)
+  })
+}
 
 export default app
