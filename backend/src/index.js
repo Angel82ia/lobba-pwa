@@ -156,7 +156,7 @@ app.use((err, req, res, _next) => {
 })
 
 if (process.env.NODE_ENV !== 'test') {
-  httpServer.listen(PORT, () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
   })
 }
