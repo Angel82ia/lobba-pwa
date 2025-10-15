@@ -5,13 +5,12 @@ dotenv.config()
 const isTest = process.env.NODE_ENV === 'test'
 const databaseUrl = isTest ? process.env.DATABASE_URL_TEST : process.env.DATABASE_URL
 
-// Detectar el proveedor de base de datos
-const isSupabase = databaseUrl && databaseUrl.includes('supabase.co')
+// Detectar si la base de datos requiere SSL
 const requiresSSL =
   databaseUrl &&
-  (databaseUrl.includes('amazonaws.com') ||
+  (databaseUrl.includes('supabase.co') ||
+    databaseUrl.includes('amazonaws.com') ||
     databaseUrl.includes('heroku.com') ||
-    isSupabase ||
     databaseUrl.includes('sslmode=require'))
 
 // Si la URL explícitamente dice que no use SSL, respetarlo
@@ -23,14 +22,8 @@ const getSSLConfig = () => {
   if (explicitNoSSL) return false
   if (!requiresSSL) return false
 
-  // Supabase requiere SSL con verificación de certificados
-  if (isSupabase) {
-    return {
-      rejectUnauthorized: true,
-    }
-  }
-
-  // Otros proveedores (AWS RDS, Heroku Postgres, etc.)
+  // Todos los proveedores cloud requieren SSL pero sin verificación estricta
+  // debido a certificados intermedios y proxies
   return {
     rejectUnauthorized: false,
   }
