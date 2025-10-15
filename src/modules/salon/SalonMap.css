@@ -1,0 +1,78 @@
+.salon-map-container {
+  width: 100%;
+  height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.salon-map-empty {
+  width: 100%;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  color: #666;
+}
+
+.salon-map-empty p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.salon-map-popup {
+  min-width: 200px;
+}
+
+.salon-map-popup h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.salon-map-popup p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.salon-map-address,
+.salon-map-phone,
+.salon-map-distance,
+.salon-map-rating {
+  font-size: 13px;
+}
+
+.salon-map-rating {
+  color: #f59e0b;
+}
+
+@media (max-width: 768px) {
+  .salon-map-container {
+    height: 400px;
+  }
+  
+  .salon-map-empty {
+    height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .salon-map-container {
+    height: 300px;
+  }
+  
+  .salon-map-empty {
+    height: 300px;
+  }
+  
+  .salon-map-popup h3 {
+    font-size: 14px;
+  }
+  
+  .salon-map-popup p {
+    font-size: 12px;
+  }
+}

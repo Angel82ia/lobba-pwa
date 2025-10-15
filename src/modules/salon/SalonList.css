@@ -111,3 +111,92 @@
 .error-message {
   color: var(--color-error);
 }
+
+.view-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.location-controls {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--color-gray-50);
+  border-radius: var(--border-radius-lg);
+}
+
+.location-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+}
+
+.location-toggle input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.location-toggle span {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.radius-control {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm);
+}
+
+.radius-control label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.radius-control input[type="range"] {
+  width: 100%;
+  max-width: 300px;
+}
+
+.geo-error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+  text-align: center;
+}
+
+.map-view {
+  margin-top: var(--spacing-xl);
+  padding: 0;
+  overflow: hidden;
+}
+
+.salon-distance {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-sm);
+}
+
+@media (max-width: 768px) {
+  .salon-list-page {
+    padding: var(--spacing-md);
+  }
+  
+  .salon-filters {
+    flex-direction: column;
+  }
+  
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .salons-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+}
