@@ -138,8 +138,10 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong!' })
 })
 
-httpServer.listen(PORT, () => {
-  console.log(`Backend with WebSocket running on port ${PORT}`)
-})
+if (process.env.NODE_ENV !== 'test') {
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`Backend with WebSocket running on port ${PORT}`)
+  })
+}
 
 export default app
