@@ -31,6 +31,7 @@ import equipmentRoutes from './routes/equipment.js'
 import permissionRoutes from './routes/permission.js'
 import deviceEventRoutes from './routes/deviceEvent.js'
 import auditLogRoutes from './routes/auditLog.js'
+import courtesyRoutes from './routes/courtesy.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
@@ -128,6 +129,7 @@ app.use('/api/equipment', equipmentRoutes)
 app.use('/api/permissions', permissionRoutes)
 app.use('/api/device-events', deviceEventRoutes)
 app.use('/api/audit-logs', auditLogRoutes)
+app.use('/api/courtesy', courtesyRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
