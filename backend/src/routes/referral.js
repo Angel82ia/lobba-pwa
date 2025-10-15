@@ -1,19 +1,19 @@
 import express from 'express'
 import * as referralController from '../controllers/referralController.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { requireAuth } from '../middleware/auth.js'
 
 const router = express.Router()
 
-router.get('/code', authenticateToken, referralController.getReferralCode)
+router.get('/code', requireAuth, referralController.getReferralCode)
 
-router.post('/campaign', authenticateToken, referralController.createCampaign)
+router.post('/campaign', requireAuth, referralController.createCampaign)
 
-router.post('/register', authenticateToken, referralController.registerReferral)
+router.post('/register', requireAuth, referralController.registerReferral)
 
-router.post('/complete', authenticateToken, referralController.completeReferral)
+router.post('/complete', requireAuth, referralController.completeReferral)
 
-router.get('/stats', authenticateToken, referralController.getStats)
+router.get('/stats', requireAuth, referralController.getStats)
 
-router.get('/history', authenticateToken, referralController.getHistory)
+router.get('/history', requireAuth, referralController.getHistory)
 
 export default router
