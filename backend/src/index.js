@@ -47,6 +47,11 @@ app.set('io', io)
 
 app.set('trust proxy', true)
 
+// Health check endpoint - DEBE estar antes de todos los middlewares
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -128,10 +133,6 @@ app.use('/api/equipment', equipmentRoutes)
 app.use('/api/permissions', permissionRoutes)
 app.use('/api/device-events', deviceEventRoutes)
 app.use('/api/audit-logs', auditLogRoutes)
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
 
 app.use((err, req, res, _next) => {
   logger.error('Unhandled error:', err)
