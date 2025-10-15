@@ -10,6 +10,7 @@ export const connectSocket = token => {
   socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000', {
     auth: { token },
     transports: ['websocket'],
+    withCredentials: true,
   })
 
   return socket
