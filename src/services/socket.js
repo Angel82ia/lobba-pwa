@@ -2,12 +2,12 @@ import io from 'socket.io-client'
 
 let socket = null
 
-export const connectSocket = (token) => {
+export const connectSocket = token => {
   if (socket?.connected) {
     return socket
   }
 
-  socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
+  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000', {
     auth: { token },
     transports: ['websocket'],
   })
@@ -22,7 +22,7 @@ export const disconnectSocket = () => {
   }
 }
 
-export const joinConversation = (conversationId) => {
+export const joinConversation = conversationId => {
   if (socket) {
     socket.emit('join_conversation', conversationId)
   }
@@ -39,19 +39,19 @@ export const sendMessage = (conversationId, receiverId, content, messageType = '
   }
 }
 
-export const onMessageReceived = (callback) => {
+export const onMessageReceived = callback => {
   if (socket) {
     socket.on('new_message', callback)
   }
 }
 
-export const onTyping = (callback) => {
+export const onTyping = callback => {
   if (socket) {
     socket.on('user_typing', callback)
   }
 }
 
-export const emitTyping = (conversationId) => {
+export const emitTyping = conversationId => {
   if (socket) {
     socket.emit('typing', { conversationId })
   }

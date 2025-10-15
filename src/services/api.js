@@ -2,7 +2,7 @@ import axios from 'axios'
 import { refreshAccessToken, getStoredToken } from './auth'
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
