@@ -252,8 +252,9 @@ Usar variables de entorno o servicios como:
 ### DevOps
 - GitHub Actions (CI/CD)
 - Docker (opcional)
-- Vercel / Netlify (frontend)
-- Railway / Fly.io (backend)
+- Vercel (frontend)
+- Railway (backend)
+- Supabase (PostgreSQL)
 
 ## 📝 Convenciones de Código
 
