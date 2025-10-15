@@ -7,6 +7,12 @@ const router = express.Router()
 
 router.get('/categories', salonProfileController.getAllCategories)
 
+router.get('/nearby', [
+  body('latitude').optional().isFloat({ min: -90, max: 90 }),
+  body('longitude').optional().isFloat({ min: -180, max: 180 }),
+  body('radius').optional().isFloat({ min: 0.1, max: 50 }),
+], salonProfileController.getSalonsNearby)
+
 router.get('/', salonProfileController.getAllSalons)
 
 router.get('/:id', salonProfileController.getSalonProfile)

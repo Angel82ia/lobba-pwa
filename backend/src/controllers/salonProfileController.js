@@ -337,3 +337,57 @@ export const getAllSalons = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch salons' })
   }
 }
+
+export const getSalonsNearby = async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { latitude, longitude, radius } = req.query
+    
+    const centerLocation = {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude)
+    }
+    
+    const radiusKm = radius ? parseFloat(radius) : 5
+
+    const salons = await SalonProfile.findSalonsInRadius(centerLocation, radiusKm)
+
+    const formattedSalons = salons.map(salon => ({
+      id: salon.id,
+      userId: salon.user_id,
+      businessName: salon.business_name,
+      description: salon.description,
+      address: salon.address,
+      city: salon.city,
+      postalCode: salon.postal_code,
+      country: salon.country,
+      phone: salon.phone,
+      website: salon.website,
+      location: salon.latitude && salon.longitude
+        ? { latitude: salon.latitude, longitude: salon.longitude }
+        : null,
+      distance: salon.distance_km ? parseFloat(salon.distance_km).toFixed(2) : null,
+      businessHours: salon.business_hours,
+      isClickCollect: salon.is_click_collect,
+      acceptsReservations: salon.accepts_reservations,
+      rating: salon.rating,
+      totalReviews: salon.total_reviews,
+      isActive: salon.is_active,
+      verified: salon.verified,
+    }))
+
+    res.json({
+      center: centerLocation,
+      radius: radiusKm,
+      count: formattedSalons.length,
+      salons: formattedSalons
+    })
+  } catch (error) {
+    logger.error('Get salons nearby error:', error)
+    res.status(500).json({ error: 'Failed to fetch nearby salons' })
+  }
+}
