@@ -6,16 +6,18 @@ const ThemeToggle = () => {
 
   return (
     <button
-      className="theme-toggle"
+      className="theme-toggle liquid-glass glass-button"
       onClick={toggleTheme}
       aria-label={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
       title={`Modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
     >
-      {theme === 'light' ? (
-        <span className="theme-icon">🌙</span>
-      ) : (
-        <span className="theme-icon">☀️</span>
-      )}
+      <div className={`theme-toggle-track ${theme}`}>
+        <div className="theme-toggle-thumb glass-float">
+          <span className="theme-icon">
+            {theme === 'light' ? '☀️' : '🌙'}
+          </span>
+        </div>
+      </div>
     </button>
   )
 }

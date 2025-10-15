@@ -1,35 +1,78 @@
 .theme-toggle {
-  background: transparent;
-  border: 2px solid var(--color-gray-300);
+  padding: var(--spacing-xs);
+  min-width: 60px;
+  height: 32px;
+  cursor: pointer;
+  position: relative;
+}
+
+.theme-toggle-track {
+  width: 100%;
+  height: 100%;
   border-radius: var(--border-radius-full);
-  width: 44px;
-  height: 44px;
+  position: relative;
+  transition: all var(--liquid-duration-fast) var(--liquid-easing);
+  overflow: hidden;
+}
+
+.theme-toggle-track::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-liquid-pink);
+  opacity: 0.3;
+  transition: opacity var(--liquid-duration-fast);
+}
+
+.theme-toggle-track.dark::before {
+  background: var(--gradient-liquid-dark);
+  opacity: 0.5;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all var(--liquid-duration-fast) var(--liquid-easing);
+  box-shadow: var(--shadow-md);
 }
 
-.theme-toggle:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-alpha-10);
-  transform: scale(1.05);
+.theme-toggle-track.light .theme-toggle-thumb {
+  left: 2px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
 }
 
-.theme-toggle:active {
-  transform: scale(0.95);
+.theme-toggle-track.dark .theme-toggle-thumb {
+  left: calc(100% - 26px);
+  background: linear-gradient(135deg, #4B5563 0%, #1F2937 100%);
 }
 
 .theme-icon {
-  font-size: 1.5rem;
-  transition: transform var(--transition-base);
+  font-size: 14px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.theme-toggle:hover .theme-icon {
-  transform: rotate(20deg);
+.theme-toggle:hover {
+  transform: translateY(-1px);
+}
+
+.theme-toggle:hover .theme-toggle-thumb {
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle:active {
+  transform: scale(0.98);
 }
 
 [data-theme="dark"] .theme-toggle {
-  border-color: var(--color-gray-600);
+  background: var(--glass-background);
 }

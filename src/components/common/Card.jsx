@@ -28,7 +28,7 @@ const Card = ({
 
 Card.propTypes = {
   children: PropTypes.node.isRequired,
-  variant: PropTypes.oneOf(['default', 'outlined', 'elevated']),
+  variant: PropTypes.oneOf(['default', 'outlined', 'elevated', 'glass', 'glass-card']),
   padding: PropTypes.oneOf(['none', 'small', 'medium', 'large']),
   onClick: PropTypes.func,
   className: PropTypes.string,
