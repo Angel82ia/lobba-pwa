@@ -54,3 +54,46 @@
 .card-clickable:active {
   transform: translateY(0);
 }
+
+/* === LIQUID GLASS VARIANTS === */
+
+.card-glass {
+  background: var(--glass-background);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.card-glass-card {
+  background: var(--glass-background);
+  backdrop-filter: blur(var(--blur-medium));
+  -webkit-backdrop-filter: blur(var(--blur-medium));
+  border-radius: var(--border-radius-xl);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-liquid-pink);
+  opacity: 0.5;
+}
+
+.card-glass.card-clickable:hover,
+.card-glass-card.card-clickable:hover {
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary-alpha-50);
+}
+
+.card-glass.card-clickable:hover::before,
+.card-glass-card.card-clickable:hover::before {
+  opacity: 1;
+}
