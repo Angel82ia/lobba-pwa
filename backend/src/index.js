@@ -87,24 +87,15 @@ const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:5173']
 
-logger.info('CORS allowed origins:', allowedOrigins)
-
 app.use(
   cors({
     origin: (origin, callback) => {
       // Permitir requests sin origin (como mobile apps o curl)
-      if (!origin) {
-        logger.info('Request without origin - allowing')
-        return callback(null, true)
-      }
+      if (!origin) return callback(null, true)
 
-      logger.info(`CORS check for origin: ${origin}`)
-      
       if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
-        logger.info(`Origin ${origin} allowed`)
         callback(null, true)
       } else {
-        logger.warn(`Origin ${origin} not allowed. Allowed origins:`, allowedOrigins)
         callback(new Error('Not allowed by CORS'))
       }
     },
