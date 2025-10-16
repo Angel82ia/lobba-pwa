@@ -20,7 +20,7 @@ describe('LoginForm', () => {
       </BrowserRouter>
     )
     
-    expect(screen.getByText('Iniciar Sesión')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument()
   })
@@ -41,7 +41,7 @@ describe('LoginForm', () => {
       target: { value: 'password123' },
     })
     
-    fireEvent.click(screen.getByText('Entrar'))
+    fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
     
     await waitFor(() => {
       expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123')

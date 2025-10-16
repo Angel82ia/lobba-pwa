@@ -4,14 +4,14 @@ import { ThemeProvider } from '../../contexts/ThemeContext'
 import ThemeToggle from './ThemeToggle'
 
 describe('ThemeToggle', () => {
-  it('should render moon icon in light mode', () => {
+  it('should render sun icon in light mode', () => {
     render(
       <ThemeProvider>
         <ThemeToggle />
       </ThemeProvider>
     )
 
-    expect(screen.getByText('🌙')).toBeInTheDocument()
+    expect(screen.getByText('☀️')).toBeInTheDocument()
   })
 
   it('should toggle theme on click', () => {
@@ -22,12 +22,12 @@ describe('ThemeToggle', () => {
     )
 
     const button = screen.getByRole('button')
-    expect(screen.getByText('🌙')).toBeInTheDocument()
-
-    fireEvent.click(button)
     expect(screen.getByText('☀️')).toBeInTheDocument()
 
     fireEvent.click(button)
     expect(screen.getByText('🌙')).toBeInTheDocument()
+
+    fireEvent.click(button)
+    expect(screen.getByText('☀️')).toBeInTheDocument()
   })
 })
