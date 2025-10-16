@@ -16,33 +16,52 @@ const ChatWindow = () => {
   const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
 
-  const fetchMessages = useCallback(async () => {
-    try {
-      setLoading(true)
-      const data = await getMessages(conversationId)
-      setMessages(data.reverse())
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [conversationId])
-
   useEffect(() => {
     if (!conversationId) return
 
-    fetchMessages()
+    let isMounted = true
+    
+    const loadMessages = async () => {
+      try {
+        setLoading(true)
+        const data = await getMessages(conversationId)
+        if (isMounted) {
+          setMessages(data.reverse())
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadMessages()
 
     const token = localStorage.getItem('token')
+    let cleanup = null
+    
     if (token) {
       connectSocket(token)
       joinConversation(conversationId)
 
-      onMessageReceived((newMessage) => {
-        setMessages((prev) => [newMessage, ...prev])
-      })
+      const handleNewMessage = (newMessage) => {
+        if (isMounted) {
+          setMessages((prev) => [newMessage, ...prev])
+        }
+      }
+
+      cleanup = onMessageReceived(handleNewMessage)
     }
-  }, [conversationId, fetchMessages])
+
+    return () => {
+      isMounted = false
+      if (cleanup) cleanup()
+    }
+  }, [conversationId])
 
   useEffect(() => {
     scrollToBottom()

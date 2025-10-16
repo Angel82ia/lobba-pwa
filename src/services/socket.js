@@ -43,12 +43,29 @@ export const sendMessage = (conversationId, receiverId, content, messageType = '
 export const onMessageReceived = callback => {
   if (socket) {
     socket.on('new_message', callback)
+    // Return cleanup function
+    return () => socket.off('new_message', callback)
+  }
+  return () => {}
+}
+
+export const offMessageReceived = callback => {
+  if (socket) {
+    socket.off('new_message', callback)
   }
 }
 
 export const onTyping = callback => {
   if (socket) {
     socket.on('user_typing', callback)
+    return () => socket.off('user_typing', callback)
+  }
+  return () => {}
+}
+
+export const offTyping = callback => {
+  if (socket) {
+    socket.off('user_typing', callback)
   }
 }
 
