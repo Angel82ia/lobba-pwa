@@ -1,12 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import * as Cart from '../../src/models/Cart.js'
+import * as Order from '../../src/models/Order.js'
 import * as checkoutController from '../../src/controllers/checkoutController.js'
 import * as stripe from '../../src/utils/stripe.js'
+import * as membershipDiscountService from '../../src/services/membershipDiscountService.js'
 
 vi.mock('../../src/models/Cart.js')
 vi.mock('../../src/models/Order.js')
 vi.mock('../../src/models/Product.js')
 vi.mock('../../src/utils/stripe.js')
+vi.mock('../../src/services/membershipDiscountService.js')
 
 describe('Checkout Controller', () => {
   let req, res
@@ -25,17 +28,30 @@ describe('Checkout Controller', () => {
   describe('createPaymentIntent', () => {
     it('should create payment intent', async () => {
       req.body.shippingMethod = 'standard'
-      const mockCart = { 
-        id: 'cart-1', 
-        items: [{ 
-          base_price: '50.00', 
-          discount_percentage: '0', 
-          price_adjustment: '0',
-          quantity: 2 
-        }] 
+      const mockCart = {
+        id: 'cart-1',
+        items: [
+          {
+            product_id: 'prod-1',
+            product_name: 'Test Product',
+            base_price: '50.00',
+            discount_percentage: '0',
+            price_adjustment: '0',
+            quantity: 2,
+          },
+        ],
       }
       Cart.findOrCreateCart.mockResolvedValue({ id: 'cart-1' })
       Cart.getCartWithItems.mockResolvedValue(mockCart)
+
+      membershipDiscountService.calculateCheckoutTotals.mockResolvedValue({
+        subtotal: 100,
+        discount: { discountAmount: 0, membershipType: 'none' },
+        totalAfterDiscount: 100,
+        shipping: { shippingCost: 4.99, freeShipping: false },
+      })
+
+      Order.createOrder.mockResolvedValue({ id: 'order-1' })
       stripe.createPaymentIntent.mockResolvedValue({ client_secret: 'secret_123' })
 
       await checkoutController.createPaymentIntentController(req, res)

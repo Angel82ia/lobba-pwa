@@ -1,14 +1,33 @@
 import twilio from 'twilio'
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+let client = null
 
-export const sendWhatsAppMessage = async ({ to, body }) => {
-  if (!process.env.TWILIO_WHATSAPP_NUMBER) {
-    console.warn('TWILIO_WHATSAPP_NUMBER not configured')
-    return { sid: 'mock-sid' }
+const initializeTwilioClient = () => {
+  if (client) return client
+
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+    console.warn('Twilio credentials not configured. WhatsApp messaging will be disabled.')
+    return null
   }
 
-  const message = await client.messages.create({
+  if (!process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
+    console.warn('Twilio ACCOUNT_SID is invalid. WhatsApp messaging will be disabled.')
+    return null
+  }
+
+  client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  return client
+}
+
+export const sendWhatsAppMessage = async ({ to, body }) => {
+  const twilioClient = initializeTwilioClient()
+
+  if (!twilioClient || !process.env.TWILIO_WHATSAPP_NUMBER) {
+    console.warn('Twilio not configured. Message not sent:', { to, body: body.substring(0, 50) })
+    return { sid: 'mock-sid', status: 'skipped' }
+  }
+
+  const message = await twilioClient.messages.create({
     from: process.env.TWILIO_WHATSAPP_NUMBER,
     to: `whatsapp:${to}`,
     body,
@@ -17,9 +36,9 @@ export const sendWhatsAppMessage = async ({ to, body }) => {
   return message
 }
 
-export const sendReservationConfirmation = async (reservation) => {
+export const sendReservationConfirmation = async reservation => {
   const { client_phone, start_time, salon_profile, service } = reservation
-  
+
   if (!client_phone) return null
 
   const startDate = new Date(start_time)
@@ -45,9 +64,9 @@ Hora: ${formattedTime}
   return sendWhatsAppMessage({ to: client_phone, body })
 }
 
-export const sendReservationReminder = async (reservation) => {
+export const sendReservationReminder = async reservation => {
   const { client_phone, start_time, salon_profile } = reservation
-  
+
   if (!client_phone) return null
 
   const startDate = new Date(start_time)
@@ -61,9 +80,9 @@ export const sendReservationReminder = async (reservation) => {
   return sendWhatsAppMessage({ to: client_phone, body })
 }
 
-export const sendReservationCancellation = async (reservation) => {
+export const sendReservationCancellation = async reservation => {
   const { client_phone, salon_profile, cancellation_reason } = reservation
-  
+
   if (!client_phone) return null
 
   const body = `❌ Tu reserva en ${salon_profile.business_name} ha sido cancelada.

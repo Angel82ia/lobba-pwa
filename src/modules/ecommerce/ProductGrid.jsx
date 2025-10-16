@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getProducts } from '../../services/product'
 import ProductCard from './ProductCard'
 import ProductFilters from './ProductFilters'
@@ -7,31 +7,43 @@ import './ProductGrid.css'
 const ProductGrid = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isFiltering, setIsFiltering] = useState(false)
   const [error, setError] = useState('')
   const [filters, setFilters] = useState({})
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true)
+        // Si ya cargamos una vez, mostrar indicador de filtrado
+        if (hasLoadedOnce) {
+          setIsFiltering(true)
+        } else {
+          setLoading(true)
+        }
         setError('')
         const data = await getProducts(filters)
         setProducts(data)
+        if (!hasLoadedOnce) {
+          setHasLoadedOnce(true)
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Error al cargar los productos')
       } finally {
         setLoading(false)
+        setIsFiltering(false)
       }
     }
 
     fetchProducts()
   }, [filters])
 
-  const handleFilterChange = (newFilters) => {
+  const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters)
-  }
+  }, [])
 
-  if (loading) {
+  // Solo mostrar loading completo en la carga inicial
+  if (loading && products.length === 0) {
     return <div className="loading">Cargando productos...</div>
   }
 
@@ -40,8 +52,14 @@ const ProductGrid = () => {
       <ProductFilters onFilterChange={handleFilterChange} />
       
       {error && <div className="error-message">{error}</div>}
+      
+      {isFiltering && (
+        <div className="filtering-indicator">
+          <span>🔄 Filtrando productos...</span>
+        </div>
+      )}
 
-      <div className="product-grid">
+      <div className={`product-grid ${isFiltering ? 'filtering' : ''}`}>
         {products.length > 0 ? (
           products.map(product => (
             <ProductCard key={product.id} product={product} />

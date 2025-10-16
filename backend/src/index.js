@@ -112,7 +112,7 @@ app.use(generalLimiter)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
-app.use('/api/salon', salonRoutes)
+app.use('/api/salons', salonRoutes)
 app.use('/api/device', deviceRoutes)
 app.use('/api/reservations', reservationRoutes)
 app.use('/api/messages', messageRoutes)

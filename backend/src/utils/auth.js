@@ -30,7 +30,7 @@ export const generateRefreshToken = (user) => {
       userId: user.id,
       jti: crypto.randomBytes(16).toString('hex')
     },
-    process.env.JWT_REFRESH_SECRET,
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   )
 }
@@ -40,7 +40,7 @@ export const verifyAccessToken = (token) => {
 }
 
 export const verifyRefreshToken = (token) => {
-  return jwt.verify(token, process.env.JWT_REFRESH_SECRET)
+  return jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET)
 }
 
 export const generateToken = generateAccessToken

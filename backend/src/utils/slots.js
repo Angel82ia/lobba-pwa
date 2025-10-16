@@ -30,7 +30,7 @@ const addMinutesToTime = (timeString, minutes) => {
   return `${String(newHour).padStart(2, '0')}:${String(newMinute).padStart(2, '0')}`
 }
 
-const timeToMinutes = (timeString) => {
+const timeToMinutes = timeString => {
   const [hour, minute] = timeString.split(':').map(Number)
   return hour * 60 + minute
 }
@@ -44,8 +44,9 @@ const isSlotBlocked = (slotTime, slotEndTime, reservations, bufferMinutes) => {
     const resEnd = new Date(reservation.end_time)
     const buffer = reservation.buffer_minutes || bufferMinutes
 
-    const resStartMinutes = resStart.getUTCHours() * 60 + resStart.getUTCMinutes() - buffer
-    const resEndMinutes = resEnd.getUTCHours() * 60 + resEnd.getUTCMinutes() + buffer
+    // Use getHours() instead of getUTCHours() to work in local time
+    const resStartMinutes = resStart.getHours() * 60 + resStart.getMinutes() - buffer
+    const resEndMinutes = resEnd.getHours() * 60 + resEnd.getMinutes() + buffer
 
     if (
       (slotStartMinutes >= resStartMinutes && slotStartMinutes < resEndMinutes) ||
@@ -60,10 +61,9 @@ const isSlotBlocked = (slotTime, slotEndTime, reservations, bufferMinutes) => {
 }
 
 export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => {
-  const salonResult = await pool.query(
-    'SELECT business_hours FROM salon_profiles WHERE id = $1',
-    [salonProfileId]
-  )
+  const salonResult = await pool.query('SELECT business_hours FROM salon_profiles WHERE id = $1', [
+    salonProfileId,
+  ])
 
   if (salonResult.rows.length === 0) {
     throw new Error('Salon not found')
@@ -92,7 +92,7 @@ export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => 
     `SELECT start_time, end_time, buffer_minutes
      FROM reservations
      WHERE salon_profile_id = $1
-       AND DATE(start_time) = $2
+       AND DATE(start_time AT TIME ZONE 'UTC') = $2
        AND status IN ('confirmed', 'pending')`,
     [salonProfileId, date]
   )
@@ -101,7 +101,7 @@ export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => 
 
   const allSlots = generateTimeSlots(businessHours.open, businessHours.close, 15)
 
-  const availableSlots = allSlots.filter((slot) => {
+  const availableSlots = allSlots.filter(slot => {
     const slotEnd = addMinutesToTime(slot, serviceDuration)
     const slotEndMinutes = timeToMinutes(slotEnd)
     const closeMinutes = timeToMinutes(businessHours.close)

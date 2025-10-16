@@ -33,7 +33,15 @@ export const getAllProducts = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params
-    const product = await Product.findProductById(id)
+    
+    // Detectar si es UUID o slug
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const isUUID = uuidRegex.test(id)
+    
+    // Buscar por UUID o slug según corresponda
+    const product = isUUID 
+      ? await Product.findProductById(id)
+      : await Product.findProductBySlug(id)
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' })

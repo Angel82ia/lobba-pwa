@@ -10,15 +10,18 @@ export const createMessage = async ({ conversationId, senderType, content }) => 
   return result.rows[0]
 }
 
-export const findMessagesByConversation = async (conversationId, { limit = 50, offset = 0 } = {}) => {
+export const findMessagesByConversation = async (
+  conversationId,
+  { limit = 50, offset = 0 } = {}
+) => {
   const result = await pool.query(
     `SELECT * FROM chatbot_messages 
      WHERE conversation_id = $1 
-     ORDER BY created_at DESC 
+     ORDER BY created_at ASC 
      LIMIT $2 OFFSET $3`,
     [conversationId, limit, offset]
   )
-  return result.rows.reverse()
+  return result.rows
 }
 
 export const findRecentMessages = async (conversationId, limit = 10) => {
@@ -32,7 +35,7 @@ export const findRecentMessages = async (conversationId, limit = 10) => {
   return result.rows.reverse()
 }
 
-export const deleteConversationMessages = async (conversationId) => {
+export const deleteConversationMessages = async conversationId => {
   const result = await pool.query(
     'DELETE FROM chatbot_messages WHERE conversation_id = $1 RETURNING *',
     [conversationId]

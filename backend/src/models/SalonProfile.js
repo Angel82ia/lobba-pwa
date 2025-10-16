@@ -55,7 +55,7 @@ export const createSalonProfile = async ({
   return result.rows[0]
 }
 
-export const findSalonProfileByUserId = async (userId) => {
+export const findSalonProfileByUserId = async userId => {
   const result = await pool.query(
     `SELECT sp.*, 
             ST_Y(sp.location::geometry) as latitude,
@@ -67,7 +67,7 @@ export const findSalonProfileByUserId = async (userId) => {
   return result.rows[0]
 }
 
-export const findSalonProfileById = async (id) => {
+export const findSalonProfileById = async id => {
   const result = await pool.query(
     `SELECT sp.*,
             ST_Y(sp.location::geometry) as latitude,
@@ -118,7 +118,7 @@ export const updateSalonProfile = async (id, updates) => {
   return result.rows[0]
 }
 
-export const deleteSalonProfile = async (id) => {
+export const deleteSalonProfile = async id => {
   const result = await pool.query(
     `UPDATE salon_profiles 
      SET is_active = false, updated_at = CURRENT_TIMESTAMP 
@@ -177,12 +177,12 @@ export const findAllSalons = async ({
   limit = 20,
   sortBy = 'created_at',
 } = {}) => {
-  const conditions = ['is_active = true']
+  const conditions = ['sp.is_active = true']
   const values = []
   let paramCount = 1
 
   if (city) {
-    conditions.push(`city ILIKE $${paramCount}`)
+    conditions.push(`sp.city ILIKE $${paramCount}`)
     values.push(`%${city}%`)
     paramCount++
   }
@@ -191,7 +191,7 @@ export const findAllSalons = async ({
     conditions.push(`EXISTS (
       SELECT 1 FROM salon_category_assignments sca
       JOIN salon_categories sc ON sca.category_id = sc.id
-      WHERE sca.salon_profile_id = salon_profiles.id
+      WHERE sca.salon_profile_id = sp.id
       AND (sc.slug = $${paramCount} OR sc.name ILIKE $${paramCount})
     )`)
     values.push(category)
@@ -201,13 +201,17 @@ export const findAllSalons = async ({
   const offset = (page - 1) * limit
   values.push(limit, offset)
 
+  // Whitelist de columnas permitidas para evitar inyección SQL
+  const allowedSortColumns = ['created_at', 'business_name', 'city', 'rating', 'total_reviews']
+  const sanitizedSortBy = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at'
+
   const query = `
     SELECT sp.*,
            ST_Y(sp.location::geometry) as latitude,
            ST_X(sp.location::geometry) as longitude
     FROM salon_profiles sp
     WHERE ${conditions.join(' AND ')}
-    ORDER BY ${sortBy} DESC
+    ORDER BY sp.${sanitizedSortBy} DESC
     LIMIT $${paramCount} OFFSET $${paramCount + 1}
   `
 

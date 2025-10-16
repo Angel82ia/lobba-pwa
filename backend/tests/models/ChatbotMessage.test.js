@@ -10,6 +10,7 @@ describe('ChatbotMessage Model', () => {
   beforeEach(async () => {
     await pool.query('DELETE FROM chatbot_messages')
     await pool.query('DELETE FROM chatbot_conversations')
+    await pool.query("DELETE FROM users WHERE email IN ('chatbot-msg-test@example.com')")
     
     const userResult = await pool.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role)

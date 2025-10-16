@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { getCategories } from '../../services/product'
 import './ProductFilters.css'
@@ -23,17 +23,42 @@ const ProductFilters = ({ onFilterChange }) => {
     fetchCategories()
   }, [])
 
+  // Debounce para los filtros de precio
   useEffect(() => {
-    const filters = {
-      ...(selectedCategory && { categoryId: selectedCategory }),
-      ...(priceRange.min && { minPrice: priceRange.min }),
-      ...(priceRange.max && { maxPrice: priceRange.max }),
-      ...(showNewOnly && { isNew: 'true' }),
-      sortBy,
-    }
+    const timeoutId = setTimeout(() => {
+      const filters = {
+        ...(selectedCategory && { categoryId: selectedCategory }),
+        ...(priceRange.min && { minPrice: priceRange.min }),
+        ...(priceRange.max && { maxPrice: priceRange.max }),
+        ...(showNewOnly && { isNew: 'true' }),
+        sortBy,
+      }
 
-    onFilterChange(filters)
-  }, [selectedCategory, priceRange, sortBy, showNewOnly, onFilterChange])
+      onFilterChange(filters)
+    }, 500) // Espera 500ms después del último cambio
+
+    return () => clearTimeout(timeoutId)
+  }, [selectedCategory, priceRange.min, priceRange.max, sortBy, showNewOnly, onFilterChange])
+
+  const handleCategoryChange = useCallback((e) => {
+    setSelectedCategory(e.target.value)
+  }, [])
+
+  const handleMinPriceChange = useCallback((e) => {
+    setPriceRange(prev => ({ ...prev, min: e.target.value }))
+  }, [])
+
+  const handleMaxPriceChange = useCallback((e) => {
+    setPriceRange(prev => ({ ...prev, max: e.target.value }))
+  }, [])
+
+  const handleNewOnlyChange = useCallback((e) => {
+    setShowNewOnly(e.target.checked)
+  }, [])
+
+  const handleSortByChange = useCallback((e) => {
+    setSortBy(e.target.value)
+  }, [])
 
   return (
     <div className="product-filters">
@@ -43,7 +68,7 @@ const ProductFilters = ({ onFilterChange }) => {
         <label>Categoría</label>
         <select
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={handleCategoryChange}
         >
           <option value="">Todas</option>
           {categories.map(cat => (
@@ -61,14 +86,14 @@ const ProductFilters = ({ onFilterChange }) => {
             type="number"
             placeholder="Mín"
             value={priceRange.min}
-            onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+            onChange={handleMinPriceChange}
           />
           <span>-</span>
           <input
             type="number"
             placeholder="Máx"
             value={priceRange.max}
-            onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+            onChange={handleMaxPriceChange}
           />
         </div>
       </div>
@@ -78,7 +103,7 @@ const ProductFilters = ({ onFilterChange }) => {
           <input
             type="checkbox"
             checked={showNewOnly}
-            onChange={(e) => setShowNewOnly(e.target.checked)}
+            onChange={handleNewOnlyChange}
           />
           Solo nuevos
         </label>
@@ -86,7 +111,7 @@ const ProductFilters = ({ onFilterChange }) => {
 
       <div className="filter-group">
         <label>Ordenar por</label>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+        <select value={sortBy} onChange={handleSortByChange}>
           <option value="created_at">Más recientes</option>
           <option value="base_price">Precio: menor a mayor</option>
           <option value="name">Nombre A-Z</option>

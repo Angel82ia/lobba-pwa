@@ -91,12 +91,14 @@ pwa-lobba/
 ### Instalación
 
 1. **Clonar repositorio:**
+
 ```bash
 git clone <repository-url>
 cd pwa-lobba
 ```
 
 2. **Instalar dependencias:**
+
 ```bash
 # Frontend
 pnpm install
@@ -107,6 +109,7 @@ npm install
 ```
 
 3. **Configurar variables de entorno:**
+
 ```bash
 # Copiar plantilla
 cp .env.example .env
@@ -116,6 +119,7 @@ cp backend/.env.example backend/.env
 ```
 
 4. **Configurar base de datos:**
+
 ```bash
 # Crear base de datos
 createdb pwa_lobba
@@ -128,6 +132,7 @@ npm run seed
 ```
 
 5. **Iniciar en desarrollo:**
+
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -138,6 +143,7 @@ pnpm dev
 ```
 
 La aplicación estará disponible en:
+
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
 
@@ -177,12 +183,14 @@ pnpm test:e2e
 ### Variables Sensibles
 
 **NUNCA** commitear:
+
 - Archivos `.env`
 - Claves privadas (`.pem`, `.key`)
 - Tokens de API
 - Credenciales de base de datos
 
 Usar variables de entorno o servicios como:
+
 - AWS Secrets Manager
 - HashiCorp Vault
 - GitHub Secrets (CI/CD)
@@ -197,6 +205,7 @@ Usar variables de entorno o servicios como:
 ## 🎯 Roles de Usuario
 
 ### 1. Cliente/Socia (`role=user`)
+
 - Reservas en salones
 - Compras e-commerce
 - Acceso IA (uñas, peinados)
@@ -204,6 +213,7 @@ Usar variables de entorno o servicios como:
 - Uso equipos remotos
 
 ### 2. Salón/Negocio (`role=salon`)
+
 - Gestión servicios propios
 - Recepción reservas y pagos
 - Notificaciones push geolocalización
@@ -211,6 +221,7 @@ Usar variables de entorno o servicios como:
 - Estadísticas
 
 ### 3. Administrador (`role=admin`)
+
 - Control total sistema
 - Gestión usuarios
 - Configuración global
@@ -218,6 +229,7 @@ Usar variables de entorno o servicios como:
 - Soporte
 
 ### 4. Equipo Remoto (`role=device`)
+
 - Modo kiosko (PWA)
 - Validación backend
 - Telemetría
@@ -235,6 +247,7 @@ Usar variables de entorno o servicios como:
 ## 🛠️ Stack Tecnológico
 
 ### Frontend
+
 - React 18
 - Vite
 - Zustand (estado global)
@@ -243,6 +256,7 @@ Usar variables de entorno o servicios como:
 - Vite PWA Plugin
 
 ### Backend
+
 - Node.js + Express
 - PostgreSQL + PostGIS
 - JWT
@@ -250,6 +264,7 @@ Usar variables de entorno o servicios como:
 - Express Validator
 
 ### DevOps
+
 - GitHub Actions (CI/CD)
 - Docker (opcional)
 - Vercel (frontend)
@@ -259,11 +274,13 @@ Usar variables de entorno o servicios como:
 ## 📝 Convenciones de Código
 
 ### Principios TDD
+
 1. **Red:** Escribir test que falla
 2. **Green:** Implementar código mínimo para pasar test
 3. **Refactor:** Mejorar código manteniendo tests verdes
 
 ### Estilo
+
 - **Nombres descriptivos** (no abreviaturas)
 - **Early returns** para reducir anidamiento
 - **Variables intermedias** para legibilidad
@@ -271,6 +288,7 @@ Usar variables de entorno o servicios como:
 - **Funciones pequeñas** (máx 20-30 líneas)
 
 ### Commits
+
 ```bash
 git commit -m "feat(module): descripción concisa"
 git commit -m "fix(module): corrección de bug"

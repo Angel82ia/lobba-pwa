@@ -26,6 +26,6 @@ export const uploadToCloudinary = async (file, folder = 'lobba') => {
   })
 }
 
-export const deleteFromCloudinary = async (publicId) => {
+export const deleteFromCloudinary = async publicId => {
   return await cloudinary.uploader.destroy(publicId)
 }

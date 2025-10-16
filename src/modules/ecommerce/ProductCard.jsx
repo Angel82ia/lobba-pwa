@@ -112,7 +112,7 @@ ProductCard.propTypes = {
     })),
   }).isRequired,
   isInWishlist: PropTypes.bool,
-  onWishlistToggle: PropTypes.func.isRequired,
+  onWishlistToggle: PropTypes.func,
 }
 
 export default ProductCard

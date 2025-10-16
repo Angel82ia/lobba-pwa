@@ -14,18 +14,30 @@ router.post(
   requireAuth,
   requireRole('admin'),
   adminLimiter,
-  [
-    body('name').trim().isLength({ min: 1 }),
-    body('slug').trim().isLength({ min: 1 }),
-  ],
+  [body('name').trim().isLength({ min: 1 }), body('slug').trim().isLength({ min: 1 })],
   auditAdminAction,
   categoryController.createCategory
 )
 
-router.put('/:id', requireAuth, requireRole('admin'), adminLimiter, [
-  body('name').optional().trim().isLength({ min: 1 }),
-  body('slug').optional().trim().isLength({ min: 1 })
-], auditAdminAction, categoryController.updateCategory)
-router.delete('/:id', requireAuth, requireRole('admin'), adminLimiter, auditAdminAction, categoryController.deleteCategory)
+router.put(
+  '/:id',
+  requireAuth,
+  requireRole('admin'),
+  adminLimiter,
+  [
+    body('name').optional().trim().isLength({ min: 1 }),
+    body('slug').optional().trim().isLength({ min: 1 }),
+  ],
+  auditAdminAction,
+  categoryController.updateCategory
+)
+router.delete(
+  '/:id',
+  requireAuth,
+  requireRole('admin'),
+  adminLimiter,
+  auditAdminAction,
+  categoryController.deleteCategory
+)
 
 export default router

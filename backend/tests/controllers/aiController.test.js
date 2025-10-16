@@ -8,7 +8,15 @@ import * as aiService from '../../src/utils/aiService.js'
 vi.mock('../../src/models/UserQuota.js')
 vi.mock('../../src/models/AIGeneration.js')
 vi.mock('../../src/models/SavedDesign.js')
-vi.mock('../../src/utils/aiService.js')
+vi.mock('../../src/utils/aiService.js', () => ({
+  generateNailDesign: vi.fn(),
+  generateHairstyleTryOn: vi.fn(),
+  initializeAIProvider: vi.fn(() => 'mock'),
+  resetAIProvider: vi.fn(),
+}))
+vi.mock('../../src/utils/cloudinary.js', () => ({
+  uploadToCloudinary: vi.fn().mockResolvedValue({ secure_url: 'https://example.com/image.png' }),
+}))
 vi.mock('fs/promises')
 
 describe('AI Controller', () => {
@@ -20,11 +28,11 @@ describe('AI Controller', () => {
       user: { id: 'user-123' },
       body: {},
       query: {},
-      params: {}
+      params: {},
     }
     res = {
       json: vi.fn().mockReturnThis(),
-      status: vi.fn().mockReturnThis()
+      status: vi.fn().mockReturnThis(),
     }
   })
 
@@ -36,18 +44,18 @@ describe('AI Controller', () => {
         hasQuota: true,
         used: 50,
         limit: 100,
-        remaining: 50
+        remaining: 50,
       })
 
       aiService.generateNailDesign.mockResolvedValue({
-        imageUrl: '/uploads/ai/image.png',
+        imageUrl: 'https://example.com/uploads/ai/image.png',
         provider: 'mock',
-        generationTimeMs: 1000
+        generationTimeMs: 1000,
       })
 
       AIGeneration.createGeneration.mockResolvedValue({
         id: 'gen-1',
-        output_image_url: '/uploads/ai/image.png'
+        output_image_url: 'https://example.com/uploads/ai/image.png',
       })
 
       UserQuota.incrementNailsQuota.mockResolvedValue({})
@@ -57,7 +65,7 @@ describe('AI Controller', () => {
         hasQuota: true,
         used: 51,
         limit: 100,
-        remaining: 49
+        remaining: 49,
       })
 
       await aiController.generateNails(req, res)
@@ -73,7 +81,7 @@ describe('AI Controller', () => {
         hasQuota: false,
         used: 100,
         limit: 100,
-        remaining: 0
+        remaining: 0,
       })
 
       await aiController.generateNails(req, res)
@@ -95,25 +103,25 @@ describe('AI Controller', () => {
     it('should generate hairstyle successfully', async () => {
       req.body = {
         selfieBase64: 'data:image/png;base64,test',
-        styleId: 'style-001'
+        styleId: 'style-001',
       }
 
       UserQuota.checkHairstyleQuota.mockResolvedValue({
         hasQuota: true,
         used: 2,
         limit: 4,
-        remaining: 2
+        remaining: 2,
       })
 
       aiService.generateHairstyleTryOn.mockResolvedValue({
-        imageUrl: '/uploads/ai/image.png',
+        imageUrl: 'https://example.com/uploads/ai/image.png',
         provider: 'mock',
-        generationTimeMs: 1500
+        generationTimeMs: 1500,
       })
 
       AIGeneration.createGeneration.mockResolvedValue({
         id: 'gen-1',
-        output_image_url: '/uploads/ai/image.png'
+        output_image_url: 'https://example.com/uploads/ai/image.png',
       })
 
       UserQuota.incrementHairstyleQuota.mockResolvedValue({})
@@ -123,7 +131,7 @@ describe('AI Controller', () => {
         hasQuota: true,
         used: 3,
         limit: 4,
-        remaining: 1
+        remaining: 1,
       })
 
       await aiController.generateHairstyle(req, res)
@@ -135,14 +143,14 @@ describe('AI Controller', () => {
     it('should reject when quota exceeded', async () => {
       req.body = {
         selfieBase64: 'data:image/png;base64,test',
-        styleId: 'style-001'
+        styleId: 'style-001',
       }
 
       UserQuota.checkHairstyleQuota.mockResolvedValue({
         hasQuota: false,
         used: 4,
         limit: 4,
-        remaining: 0
+        remaining: 0,
       })
 
       await aiController.generateHairstyle(req, res)
@@ -157,21 +165,21 @@ describe('AI Controller', () => {
         nails_quota_used: 50,
         nails_quota_limit: 100,
         hairstyle_quota_used: 2,
-        hairstyle_quota_limit: 4
+        hairstyle_quota_limit: 4,
       })
 
       UserQuota.checkNailsQuota.mockResolvedValue({
         hasQuota: true,
         used: 50,
         limit: 100,
-        remaining: 50
+        remaining: 50,
       })
 
       UserQuota.checkHairstyleQuota.mockResolvedValue({
         hasQuota: true,
         used: 2,
         limit: 4,
-        remaining: 2
+        remaining: 2,
       })
 
       await aiController.getQuota(req, res)

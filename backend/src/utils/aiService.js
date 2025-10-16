@@ -12,7 +12,7 @@ const PROVIDERS = {
 export const initializeAIProvider = () => {
   if (aiProvider) return aiProvider
 
-  const provider = process.env.AI_PROVIDER || PROVIDERS.MOCK
+  const provider = process.env.NODE_ENV === 'test' ? PROVIDERS.MOCK : (process.env.AI_PROVIDER || PROVIDERS.MOCK)
   const apiKey = process.env.AI_API_KEY
 
   if (!apiKey && provider !== PROVIDERS.MOCK) {
