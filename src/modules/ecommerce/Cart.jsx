@@ -11,21 +11,32 @@ const Cart = () => {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const fetchCart = async () => {
+  const fetchCart = async (signal = null) => {
     try {
       setLoading(true)
       setError('')
-      const data = await getCart()
-      setCart(data)
+      const data = await getCart(signal)
+      if (!signal?.aborted) {
+        setCart(data)
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al cargar el carrito')
+      if (!signal?.aborted) {
+        setError(err.response?.data?.message || 'Error al cargar el carrito')
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
   }
 
   useEffect(() => {
-    fetchCart()
+    const abortController = new AbortController()
+    fetchCart(abortController.signal)
+    
+    return () => {
+      abortController.abort()
+    }
   }, [])
 
   const handleUpdateQuantity = async (itemId, quantity) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { getCategories } from '../../services/product'
 import './ProductFilters.css'
@@ -9,18 +9,37 @@ const ProductFilters = ({ onFilterChange }) => {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
   const [sortBy, setSortBy] = useState('created_at')
   const [showNewOnly, setShowNewOnly] = useState(false)
+  const onFilterChangeRef = useRef(onFilterChange)
+
+  // Mantener la ref actualizada
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange
+  }, [onFilterChange])
 
   useEffect(() => {
+    let isMounted = true
+    const abortController = new AbortController()
+    
     const fetchCategories = async () => {
       try {
-        const data = await getCategories()
-        setCategories(data)
-      } catch {
-        // Error silently ignored
+        const data = await getCategories(abortController.signal)
+        if (isMounted && !abortController.signal.aborted) {
+          setCategories(data)
+        }
+      } catch (err) {
+        if (!abortController.signal.aborted) {
+          console.error('Error al cargar categorías:', err)
+          // Las categorías son opcionales, no bloqueamos la UI
+        }
       }
     }
 
     fetchCategories()
+    
+    return () => {
+      isMounted = false
+      abortController.abort()
+    }
   }, [])
 
   // Debounce para los filtros de precio
@@ -34,11 +53,11 @@ const ProductFilters = ({ onFilterChange }) => {
         sortBy,
       }
 
-      onFilterChange(filters)
+      onFilterChangeRef.current(filters)
     }, 500) // Espera 500ms después del último cambio
 
     return () => clearTimeout(timeoutId)
-  }, [selectedCategory, priceRange.min, priceRange.max, sortBy, showNewOnly, onFilterChange])
+  }, [selectedCategory, priceRange.min, priceRange.max, sortBy, showNewOnly])
 
   const handleCategoryChange = useCallback((e) => {
     setSelectedCategory(e.target.value)
@@ -71,11 +90,11 @@ const ProductFilters = ({ onFilterChange }) => {
           onChange={handleCategoryChange}
         >
           <option value="">Todas</option>
-          {categories.map(cat => (
+          {categories?.map(cat => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
             </option>
-          ))}
+          )) || null}
         </select>
       </div>
 

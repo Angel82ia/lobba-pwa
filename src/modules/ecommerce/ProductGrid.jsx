@@ -13,6 +13,8 @@ const ProductGrid = () => {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
 
   useEffect(() => {
+    const abortController = new AbortController()
+    
     const fetchProducts = async () => {
       try {
         // Si ya cargamos una vez, mostrar indicador de filtrado
@@ -22,21 +24,31 @@ const ProductGrid = () => {
           setLoading(true)
         }
         setError('')
-        const data = await getProducts(filters)
-        setProducts(data)
-        if (!hasLoadedOnce) {
-          setHasLoadedOnce(true)
+        const data = await getProducts(filters, abortController.signal)
+        if (!abortController.signal.aborted) {
+          setProducts(data)
+          if (!hasLoadedOnce) {
+            setHasLoadedOnce(true)
+          }
         }
       } catch (err) {
-        setError(err.response?.data?.message || 'Error al cargar los productos')
+        if (!abortController.signal.aborted) {
+          setError(err.response?.data?.message || 'Error al cargar los productos')
+        }
       } finally {
-        setLoading(false)
-        setIsFiltering(false)
+        if (!abortController.signal.aborted) {
+          setLoading(false)
+          setIsFiltering(false)
+        }
       }
     }
 
     fetchProducts()
-  }, [filters])
+    
+    return () => {
+      abortController.abort()
+    }
+  }, [filters, hasLoadedOnce])
 
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters)

@@ -12,22 +12,33 @@ const Wishlist = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    fetchWishlist()
-  }, [])
-
-  const fetchWishlist = async () => {
+  const fetchWishlist = async (signal = null) => {
     try {
       setLoading(true)
       setError(null)
-      const data = await getWishlist()
-      setItems(data || [])
+      const data = await getWishlist(signal)
+      if (!signal?.aborted) {
+        setItems(data || [])
+      }
     } catch (err) {
-      setError('Error al cargar la lista de deseos')
+      if (!signal?.aborted) {
+        setError('Error al cargar la lista de deseos')
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
   }
+
+  useEffect(() => {
+    const abortController = new AbortController()
+    fetchWishlist(abortController.signal)
+    
+    return () => {
+      abortController.abort()
+    }
+  }, [])
 
   const handleRemove = async (productId) => {
     try {

@@ -118,6 +118,18 @@ const CheckoutFormContent = () => {
     return <div className="loading">Cargando checkout...</div>
   }
 
+  if (error && !cart) {
+    return (
+      <div className="checkout-page">
+        <h1>Checkout</h1>
+        <Card>
+          <div className="error-message">{error}</div>
+          <Button onClick={() => navigate('/products')}>Ver productos</Button>
+        </Card>
+      </div>
+    )
+  }
+
   const items = cart?.items || []
   
   if (items.length === 0) {

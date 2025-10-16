@@ -12,7 +12,7 @@ describe('Product Service', () => {
     const result = await productService.getProducts()
 
     expect(result).toEqual(mockProducts)
-    expect(apiClient.get).toHaveBeenCalledWith('/products?')
+    expect(apiClient.get).toHaveBeenCalledWith('/products?', { signal: null })
   })
 
   it('should fetch product by id', async () => {
@@ -22,6 +22,7 @@ describe('Product Service', () => {
     const result = await productService.getProductById('1')
 
     expect(result).toEqual(mockProduct)
+    expect(apiClient.get).toHaveBeenCalledWith('/products/1', { signal: null })
   })
 
   it('should fetch categories', async () => {
@@ -31,5 +32,6 @@ describe('Product Service', () => {
     const result = await productService.getCategories()
 
     expect(result).toEqual(mockCategories)
+    expect(apiClient.get).toHaveBeenCalledWith('/categories', { signal: null })
   })
 })

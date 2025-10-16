@@ -1,7 +1,7 @@
 import apiClient from './api'
 
-export const getCart = async () => {
-  const response = await apiClient.get('/cart')
+export const getCart = async (signal = null) => {
+  const response = await apiClient.get('/cart', { signal })
   return response.data
 }
 

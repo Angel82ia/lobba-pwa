@@ -1,7 +1,7 @@
 import apiClient from './api'
 
-export const getWishlist = async () => {
-  const response = await apiClient.get('/wishlist')
+export const getWishlist = async (signal = null) => {
+  const response = await apiClient.get('/wishlist', { signal })
   return response.data
 }
 

@@ -1,23 +1,23 @@
 import apiClient from './api'
 
-export const getProducts = async (filters = {}) => {
+export const getProducts = async (filters = {}, signal = null) => {
   const params = new URLSearchParams(filters)
-  const response = await apiClient.get(`/products?${params}`)
+  const response = await apiClient.get(`/products?${params}`, { signal })
   return response.data
 }
 
-export const getProductById = async (id) => {
-  const response = await apiClient.get(`/products/${id}`)
+export const getProductById = async (id, signal = null) => {
+  const response = await apiClient.get(`/products/${id}`, { signal })
   return response.data
 }
 
-export const getProductBySlug = async (slug) => {
-  const response = await apiClient.get(`/products/${slug}`)
+export const getProductBySlug = async (slug, signal = null) => {
+  const response = await apiClient.get(`/products/${slug}`, { signal })
   return response.data
 }
 
-export const getCategories = async () => {
-  const response = await apiClient.get('/categories')
+export const getCategories = async (signal = null) => {
+  const response = await apiClient.get('/categories', { signal })
   return response.data
 }
 
