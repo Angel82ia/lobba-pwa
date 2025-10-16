@@ -7,23 +7,38 @@ const BannerDisplay = () => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dismissed, setDismissed] = useState(new Set())
 
+  // Cargar banners solo una vez al montar
   useEffect(() => {
+    let isMounted = true
+    
+    const fetchBanners = async () => {
+      try {
+        const data = await getActiveBanners()
+        if (isMounted) {
+          setBanners(data)
+        }
+      } catch (err) {
+        console.error('Error loading banners:', err)
+      }
+    }
+
     fetchBanners()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  // Intervalo de rotación independiente
+  useEffect(() => {
+    if (banners.length === 0) return
+
     const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % Math.max(banners.length, 1))
+      setCurrentIndex(prev => (prev + 1) % banners.length)
     }, 5000)
 
     return () => clearInterval(interval)
   }, [banners.length])
-
-  const fetchBanners = async () => {
-    try {
-      const data = await getActiveBanners()
-      setBanners(data)
-    } catch (err) {
-      void err
-    }
-  }
 
   const handleDismiss = (bannerId) => {
     setDismissed(prev => new Set([...prev, bannerId]))
