@@ -6,6 +6,7 @@ import * as salonProfileController from '../../src/controllers/salonProfileContr
 import * as SalonProfile from '../../src/models/SalonProfile.js'
 import * as SalonService from '../../src/models/SalonService.js'
 import * as SalonCategory from '../../src/models/SalonCategory.js'
+import * as SalonGallery from '../../src/models/SalonGallery.js'
 
 vi.mock('../../src/models/SalonProfile.js')
 vi.mock('../../src/models/SalonService.js', () => ({
@@ -13,6 +14,7 @@ vi.mock('../../src/models/SalonService.js', () => ({
   createSalonService: vi.fn(),
 }))
 vi.mock('../../src/models/SalonCategory.js')
+vi.mock('../../src/models/SalonGallery.js')
 
 const app = express()
 app.use(express.json())
@@ -64,11 +66,7 @@ app.post(
   salonProfileController.createSalonService
 )
 
-app.post(
-  '/salon/:id/categories',
-  mockSalonAuth,
-  salonProfileController.assignCategory
-)
+app.post('/salon/:id/categories', mockSalonAuth, salonProfileController.assignCategory)
 
 describe('SalonProfileController', () => {
   beforeEach(() => {
@@ -90,13 +88,14 @@ describe('SalonProfileController', () => {
         city: 'Madrid',
         phone: '+34 600 000 000',
         latitude: 40.416775,
-        longitude: -3.703790,
+        longitude: -3.70379,
         rating: 4.5,
         total_reviews: 10,
         is_active: true,
       }
 
       SalonProfile.findSalonProfileById.mockResolvedValue(mockProfile)
+      SalonGallery.findGalleryImagesBySalonId.mockResolvedValue([])
 
       const response = await request(app).get('/salon/salon-profile-123')
 
@@ -111,11 +110,12 @@ describe('SalonProfileController', () => {
         phone: '+34 600 000 000',
         location: {
           latitude: 40.416775,
-          longitude: -3.703790,
+          longitude: -3.70379,
         },
         rating: 4.5,
         totalReviews: 10,
         isActive: true,
+        gallery: [],
       })
     })
 
@@ -158,21 +158,16 @@ describe('SalonProfileController', () => {
       salonApp.post(
         '/salon',
         mockSalonAuth,
-        [
-          body('businessName').trim().isLength({ min: 1 }),
-          body('description').optional().trim(),
-        ],
+        [body('businessName').trim().isLength({ min: 1 }), body('description').optional().trim()],
         salonProfileController.createSalonProfile
       )
 
-      const response = await request(salonApp)
-        .post('/salon')
-        .send({
-          businessName: 'New Salon',
-          description: 'A new salon',
-          address: 'Calle Nueva 5',
-          city: 'Barcelona',
-        })
+      const response = await request(salonApp).post('/salon').send({
+        businessName: 'New Salon',
+        description: 'A new salon',
+        address: 'Calle Nueva 5',
+        city: 'Barcelona',
+      })
 
       expect(response.status).toBe(201)
       expect(response.body.businessName).toBe('New Salon')
@@ -201,9 +196,7 @@ describe('SalonProfileController', () => {
         salonProfileController.createSalonProfile
       )
 
-      const response = await request(salonApp)
-        .post('/salon')
-        .send({ businessName: 'New Salon' })
+      const response = await request(salonApp).post('/salon').send({ businessName: 'New Salon' })
 
       expect(response.status).toBe(409)
       expect(response.body.error).toBe('Salon profile already exists')
@@ -348,14 +341,14 @@ describe('SalonProfileController', () => {
           id: 'service-1',
           salon_profile_id: 'salon-profile-123',
           name: 'Haircut',
-          price: 25.00,
+          price: 25.0,
           duration_minutes: 30,
         },
         {
           id: 'service-2',
           salon_profile_id: 'salon-profile-123',
           name: 'Hair Color',
-          price: 60.00,
+          price: 60.0,
           duration_minutes: 90,
         },
       ]
@@ -376,7 +369,7 @@ describe('SalonProfileController', () => {
         id: 'service-123',
         salon_profile_id: 'salon-profile-123',
         name: 'New Service',
-        price: 30.00,
+        price: 30.0,
         duration_minutes: 45,
       }
 
@@ -399,13 +392,11 @@ describe('SalonProfileController', () => {
         salonProfileController.createSalonService
       )
 
-      const response = await request(salonApp)
-        .post('/salon/salon-profile-123/services')
-        .send({
-          name: 'New Service',
-          price: 30.00,
-          durationMinutes: 45,
-        })
+      const response = await request(salonApp).post('/salon/salon-profile-123/services').send({
+        name: 'New Service',
+        price: 30.0,
+        durationMinutes: 45,
+      })
 
       expect(response.status).toBe(201)
       expect(response.body.name).toBe('New Service')
@@ -430,13 +421,11 @@ describe('SalonProfileController', () => {
         salonProfileController.createSalonService
       )
 
-      const response = await request(salonApp)
-        .post('/salon/salon-profile-123/services')
-        .send({
-          name: 'Hacked Service',
-          price: 999.00,
-          durationMinutes: 1,
-        })
+      const response = await request(salonApp).post('/salon/salon-profile-123/services').send({
+        name: 'Hacked Service',
+        price: 999.0,
+        durationMinutes: 1,
+      })
 
       expect(response.status).toBe(403)
       expect(response.body.error).toBe('Forbidden')
@@ -473,11 +462,7 @@ describe('SalonProfileController', () => {
 
       const salonApp = express()
       salonApp.use(express.json())
-      salonApp.post(
-        '/salon/:id/categories',
-        mockSalonAuth,
-        salonProfileController.assignCategory
-      )
+      salonApp.post('/salon/:id/categories', mockSalonAuth, salonProfileController.assignCategory)
 
       const response = await request(salonApp)
         .post('/salon/salon-profile-123/categories')

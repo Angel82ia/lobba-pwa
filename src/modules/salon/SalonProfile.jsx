@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getSalonProfile, getSalonServices } from '../../services/profile'
 import Button from '../../components/common/Button'
 import Card from '../../components/common/Card'
@@ -8,6 +8,7 @@ import './SalonProfile.css'
 
 const SalonProfile = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { auth } = useStore()
   const [salon, setSalon] = useState(null)
   const [services, setServices] = useState([])
@@ -52,6 +53,13 @@ const SalonProfile = () => {
   if (error) return <div className="error">{error}</div>
   if (!salon) return <div className="not-found">Salón no encontrado</div>
 
+  // Defensive coercion for rating and reviews to avoid runtime errors
+  const ratingNum = parseFloat(salon.rating)
+  const safeRating = Number.isNaN(ratingNum) ? 0 : ratingNum
+  const starsCount = Math.round(safeRating)
+  const formattedRating = safeRating.toFixed(1)
+  const reviewsCount = Number.isFinite(Number(salon.totalReviews)) ? Number(salon.totalReviews) : 0
+
   return (
     <div className="salon-profile">
       <div className="salon-gallery">
@@ -76,9 +84,9 @@ const SalonProfile = () => {
             <div className="salon-header">
               <h1>{salon.businessName}</h1>
               <div className="salon-rating">
-                <span className="rating-stars">{'★'.repeat(Math.round(salon.rating))}</span>
-                <span className="rating-value">{salon.rating.toFixed(1)}</span>
-                <span className="rating-count">({salon.totalReviews} reseñas)</span>
+                <span className="rating-stars">{'★'.repeat(starsCount)}</span>
+                <span className="rating-value">{formattedRating}</span>
+                <span className="rating-count">({reviewsCount} reseñas)</span>
               </div>
             </div>
 
@@ -144,7 +152,13 @@ const SalonProfile = () => {
                     <span className="service-duration">{service.durationMinutes} min</span>
                     <span className="service-price">{service.price}€</span>
                   </div>
-                  <Button variant="outline" size="small">Reservar</Button>
+                  <Button 
+                    variant="outline" 
+                    size="small"
+                    onClick={() => navigate(`/reservations/new/${id}`)}
+                  >
+                    Reservar
+                  </Button>
                 </Card>
               ))}
             </div>

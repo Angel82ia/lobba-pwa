@@ -2,6 +2,7 @@ import { validationResult } from 'express-validator'
 import * as SalonProfile from '../models/SalonProfile.js'
 import * as SalonService from '../models/SalonService.js'
 import * as SalonCategory from '../models/SalonCategory.js'
+import * as SalonGallery from '../models/SalonGallery.js'
 import logger from '../utils/logger.js'
 
 export const getSalonProfile = async (req, res) => {
@@ -12,6 +13,9 @@ export const getSalonProfile = async (req, res) => {
     if (!profile) {
       return res.status(404).json({ error: 'Salon profile not found' })
     }
+
+    // Obtener galería de imágenes
+    const galleryImages = await SalonGallery.findGalleryImagesBySalonId(id)
 
     res.json({
       id: profile.id,
@@ -24,9 +28,10 @@ export const getSalonProfile = async (req, res) => {
       country: profile.country,
       phone: profile.phone,
       website: profile.website,
-      location: profile.latitude && profile.longitude
-        ? { latitude: profile.latitude, longitude: profile.longitude }
-        : null,
+      location:
+        profile.latitude && profile.longitude
+          ? { latitude: profile.latitude, longitude: profile.longitude }
+          : null,
       businessHours: profile.business_hours,
       isClickCollect: profile.is_click_collect,
       acceptsReservations: profile.accepts_reservations,
@@ -34,6 +39,14 @@ export const getSalonProfile = async (req, res) => {
       totalReviews: profile.total_reviews,
       isActive: profile.is_active,
       verified: profile.verified,
+      gallery: galleryImages.map(img => ({
+        id: img.id,
+        cloudinaryUrl: img.cloudinary_url,
+        thumbnailUrl: img.thumbnail_url,
+        title: img.title,
+        description: img.description,
+        isCover: img.is_cover_photo,
+      })),
     })
   } catch (error) {
     logger.error('Get salon profile error:', error)
@@ -319,9 +332,10 @@ export const getAllSalons = async (req, res) => {
       country: salon.country,
       phone: salon.phone,
       website: salon.website,
-      location: salon.latitude && salon.longitude
-        ? { latitude: salon.latitude, longitude: salon.longitude }
-        : null,
+      location:
+        salon.latitude && salon.longitude
+          ? { latitude: salon.latitude, longitude: salon.longitude }
+          : null,
       businessHours: salon.business_hours,
       isClickCollect: salon.is_click_collect,
       acceptsReservations: salon.accepts_reservations,
@@ -346,12 +360,12 @@ export const getSalonsNearby = async (req, res) => {
     }
 
     const { latitude, longitude, radius } = req.query
-    
+
     const centerLocation = {
       latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude)
+      longitude: parseFloat(longitude),
     }
-    
+
     const radiusKm = radius ? parseFloat(radius) : 5
 
     const salons = await SalonProfile.findSalonsInRadius(centerLocation, radiusKm)
@@ -367,9 +381,10 @@ export const getSalonsNearby = async (req, res) => {
       country: salon.country,
       phone: salon.phone,
       website: salon.website,
-      location: salon.latitude && salon.longitude
-        ? { latitude: salon.latitude, longitude: salon.longitude }
-        : null,
+      location:
+        salon.latitude && salon.longitude
+          ? { latitude: salon.latitude, longitude: salon.longitude }
+          : null,
       distance: salon.distance_km ? parseFloat(salon.distance_km).toFixed(2) : null,
       businessHours: salon.business_hours,
       isClickCollect: salon.is_click_collect,
@@ -384,7 +399,7 @@ export const getSalonsNearby = async (req, res) => {
       center: centerLocation,
       radius: radiusKm,
       count: formattedSalons.length,
-      salons: formattedSalons
+      salons: formattedSalons,
     })
   } catch (error) {
     logger.error('Get salons nearby error:', error)

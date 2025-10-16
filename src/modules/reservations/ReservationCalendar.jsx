@@ -159,13 +159,15 @@ const ReservationCalendar = () => {
 
           {selectedSlot && (
             <>
-              <Input
-                label="Notas (opcional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                multiline
-                rows={3}
-              />
+              <div className="form-group">
+                <label>Notas (opcional)</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Añade cualquier comentario o preferencia..."
+                />
+              </div>
 
               <Input
                 label="Teléfono de Contacto"

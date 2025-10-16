@@ -27,7 +27,7 @@ vi.mock('leaflet', () => ({
 describe('SalonMap', () => {
   const mockSalons = [
     {
-      id: 1,
+      id: 'salon-uuid-1',
       businessName: 'Salon Test',
       description: 'A test salon',
       address: 'Calle Test 123',
@@ -68,7 +68,7 @@ describe('SalonMap', () => {
   it('handles salons without location gracefully', () => {
     const salonsWithoutLocation = [
       {
-        id: 2,
+        id: 'salon-uuid-2',
         businessName: 'Salon Without Location',
         description: 'Test',
         address: 'Test Address',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getAllSalons, getSalonsNearby } from '../../services/salon'
 import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
@@ -8,15 +8,47 @@ import useGeolocation from '../../hooks/useGeolocation'
 import './SalonList.css'
 
 const SalonList = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [salons, setSalons] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [filters, setFilters] = useState({ city: '', category: '' })
-  const [viewMode, setViewMode] = useState('list')
+  const [viewMode, setViewMode] = useState(searchParams.get('view') || 'list')
   const [useNearby, setUseNearby] = useState(false)
   const [radius, setRadius] = useState(5)
+  const [tempRadius, setTempRadius] = useState(5)
+  const [hasRequestedLocation, setHasRequestedLocation] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
   const navigate = useNavigate()
-  const { location, error: geoError, loading: geoLoading } = useGeolocation()
+  const { location, error: geoError, loading: geoLoading, requestLocation } = useGeolocation()
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 600)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (useNearby && !location && !geoLoading && !geoError && !hasRequestedLocation) {
+      requestLocation()
+      setHasRequestedLocation(true)
+    }
+  }, [useNearby, location, geoLoading, geoError, hasRequestedLocation, requestLocation])
+
+  useEffect(() => {
+    if (!useNearby) {
+      setHasRequestedLocation(false)
+    }
+  }, [useNearby])
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setRadius(tempRadius)
+    }, 800)
+
+    return () => {
+      clearTimeout(debounceTimer)
+    }
+  }, [tempRadius])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -60,6 +92,11 @@ const SalonList = () => {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode)
+    setSearchParams({ view: mode })
+  }
+
   const handleSalonClick = (salonId) => {
     navigate(`/salon/${salonId}`)
   }
@@ -68,7 +105,7 @@ const SalonList = () => {
   if (error) return <div className="error-message">{error}</div>
 
   return (
-    <div className="salon-list-page">
+    <div className={`salon-list-page ${isInitialLoad ? 'initial-load' : ''}`}>
       <Card className="salon-list-header">
         <h1>Salones LOBBA</h1>
         <p className="subtitle">Encuentra los mejores salones de belleza cerca de ti</p>
@@ -77,14 +114,14 @@ const SalonList = () => {
           <Button 
             variant={viewMode === 'list' ? 'primary' : 'outline'}
             size="small"
-            onClick={() => setViewMode('list')}
+            onClick={() => handleViewModeChange('list')}
           >
             📋 Lista
           </Button>
           <Button 
             variant={viewMode === 'map' ? 'primary' : 'outline'}
             size="small"
-            onClick={() => setViewMode('map')}
+            onClick={() => handleViewModeChange('map')}
           >
             🗺️ Mapa
           </Button>
@@ -96,26 +133,26 @@ const SalonList = () => {
               type="checkbox"
               checked={useNearby}
               onChange={(e) => setUseNearby(e.target.checked)}
-              disabled={geoLoading || geoError}
+              disabled={geoLoading || (geoError && !location)}
             />
             <span>Buscar cerca de mi ubicación</span>
           </label>
           
-          {useNearby && (
+          {useNearby && location && (
             <div className="radius-control">
-              <label>Radio: {radius} km</label>
+              <label>Radio: {tempRadius} km</label>
               <input
                 type="range"
                 min="1"
                 max="50"
-                value={radius}
-                onChange={(e) => setRadius(Number(e.target.value))}
+                value={tempRadius}
+                onChange={(e) => setTempRadius(Number(e.target.value))}
               />
             </div>
           )}
           
           {geoError && (
-            <p className="geo-error">⚠️ No se pudo obtener tu ubicación</p>
+            <p className="geo-error-text">⚠️ No se pudo obtener tu ubicación</p>
           )}
         </div>
         
@@ -137,9 +174,15 @@ const SalonList = () => {
                 onChange={(e) => handleFilterChange('category', e.target.value)}
               >
                 <option value="">Todas</option>
-                <option value="nails">Uñas</option>
-                <option value="hair">Peluquería</option>
-                <option value="spa">Spa</option>
+                <option value="belleza">Belleza</option>
+                <option value="peluqueria">Peluquería</option>
+                <option value="barberia">Barbería</option>
+                <option value="manicura-pedicura">Manicura y Pedicura</option>
+                <option value="spa-masajes">Spa y Masajes</option>
+                <option value="estetica-avanzada">Estética Avanzada</option>
+                <option value="maquillaje">Maquillaje</option>
+                <option value="depilacion">Depilación</option>
+                <option value="tatuajes-piercings">Tatuajes y Piercings</option>
               </select>
             </div>
           </div>
@@ -167,8 +210,8 @@ const SalonList = () => {
                   <h3>{salon.businessName}</h3>
                   <p className="salon-city">{salon.city}</p>
                   <div className="salon-rating">
-                    <span className="rating-stars">{'★'.repeat(Math.round(salon.rating || 5))}</span>
-                    <span className="rating-value">{(salon.rating || 5).toFixed(1)}</span>
+                    <span className="rating-stars">{'★'.repeat(Math.round(parseFloat(salon.rating) || 5))}</span>
+                    <span className="rating-value">{(parseFloat(salon.rating) || 5).toFixed(1)}</span>
                   </div>
                   {salon.description && (
                     <p className="salon-description">{salon.description.substring(0, 100)}...</p>

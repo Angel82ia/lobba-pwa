@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import PropTypes from 'prop-types'
@@ -12,21 +12,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-function MapUpdater({ center }) {
-  const map = useMap()
-  
-  useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom())
-    }
-  }, [center, map])
-  
-  return null
-}
-
-MapUpdater.propTypes = {
-  center: PropTypes.arrayOf(PropTypes.number),
-}
+// Note: We avoid useMap() to reduce context issues; we re-key MapContainer instead
 
 function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
   const [mapCenter, setMapCenter] = useState(center || [40.416775, -3.703790])
@@ -50,15 +36,16 @@ function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
   return (
     <div className="salon-map-container">
       <MapContainer 
-        center={mapCenter} 
+        key={`map-${mapCenter[0]}-${mapCenter[1]}`}
+        center={mapCenter}
         zoom={zoom} 
         style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MapUpdater center={mapCenter} />
         
         {salons.map((salon) => {
           if (!salon.location || !salon.location.latitude || !salon.location.longitude) {
@@ -71,10 +58,8 @@ function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
               position={[salon.location.latitude, salon.location.longitude]}
               eventHandlers={{
                 click: () => {
-                  if (onSalonClick) {
-                    onSalonClick(salon)
-                  }
-                }
+                  if (onSalonClick) onSalonClick(salon.id)
+                },
               }}
             >
               <Popup>
@@ -111,7 +96,7 @@ function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
 
 SalonMap.propTypes = {
   salons: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired,
     businessName: PropTypes.string.isRequired,
     description: PropTypes.string,
     address: PropTypes.string,
@@ -122,8 +107,8 @@ SalonMap.propTypes = {
       longitude: PropTypes.number.isRequired,
     }),
     distance: PropTypes.string,
-    rating: PropTypes.number,
-    totalReviews: PropTypes.number,
+    rating: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    totalReviews: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   })).isRequired,
   center: PropTypes.arrayOf(PropTypes.number),
   zoom: PropTypes.number,

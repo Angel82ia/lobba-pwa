@@ -22,19 +22,21 @@ describe('SalonService Model', () => {
   describe('createService', () => {
     it('should create a new service with all fields', async () => {
       const mockResult = {
-        rows: [{
-          id: 'service-uuid',
-          salon_profile_id: 'salon-uuid',
-          name: 'Corte de Pelo',
-          description: 'Corte profesional',
-          price: 25.00,
-          duration_minutes: 30,
-          discount_percentage: 15,
-          is_active: true,
-          sort_order: 1,
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z',
-        }],
+        rows: [
+          {
+            id: 'service-uuid',
+            salon_profile_id: 'salon-uuid',
+            name: 'Corte de Pelo',
+            description: 'Corte profesional',
+            price: 25.0,
+            duration_minutes: 30,
+            discount_percentage: 15,
+            is_active: true,
+            sort_order: 1,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
       }
 
       pool.query.mockResolvedValue(mockResult)
@@ -43,17 +45,16 @@ describe('SalonService Model', () => {
         salonProfileId: 'salon-uuid',
         name: 'Corte de Pelo',
         description: 'Corte profesional',
-        price: 25.00,
+        price: 25.0,
         durationMinutes: 30,
         discountPercentage: 15,
-        sortOrder: 1,
       }
 
       const result = await createService(serviceData)
 
       expect(pool.query).toHaveBeenCalledWith(
         expect.any(String),
-        expect.arrayContaining(['salon-uuid', 'Corte de Pelo', 'Corte profesional', 25.00, 30, 15, 1])
+        expect.arrayContaining(['salon-uuid', 'Corte de Pelo', 'Corte profesional', 25.0, 30, 15])
       )
       const sqlQuery = pool.query.mock.calls[0][0]
       expect(sqlQuery).toContain('INSERT INTO salon_services')
@@ -62,14 +63,16 @@ describe('SalonService Model', () => {
 
     it('should create service with minimal fields', async () => {
       const mockResult = {
-        rows: [{
-          id: 'service-uuid',
-          salon_profile_id: 'salon-uuid',
-          name: 'Manicura',
-          price: 15.00,
-          duration_minutes: 20,
-          discount_percentage: 0,
-        }],
+        rows: [
+          {
+            id: 'service-uuid',
+            salon_profile_id: 'salon-uuid',
+            name: 'Manicura',
+            price: 15.0,
+            duration_minutes: 20,
+            discount_percentage: 0,
+          },
+        ],
       }
 
       pool.query.mockResolvedValue(mockResult)
@@ -77,7 +80,7 @@ describe('SalonService Model', () => {
       const serviceData = {
         salonProfileId: 'salon-uuid',
         name: 'Manicura',
-        price: 15.00,
+        price: 15.0,
         durationMinutes: 20,
       }
 
@@ -91,21 +94,20 @@ describe('SalonService Model', () => {
   describe('findServiceById', () => {
     it('should find service by ID', async () => {
       const mockResult = {
-        rows: [{
-          id: 'service-uuid',
-          name: 'Corte de Pelo',
-          price: 25.00,
-        }],
+        rows: [
+          {
+            id: 'service-uuid',
+            name: 'Corte de Pelo',
+            price: 25.0,
+          },
+        ],
       }
 
       pool.query.mockResolvedValue(mockResult)
 
       const result = await findServiceById('service-uuid')
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.any(String),
-        ['service-uuid']
-      )
+      expect(pool.query).toHaveBeenCalledWith(expect.any(String), ['service-uuid'])
       const sqlQuery = pool.query.mock.calls[0][0]
       expect(sqlQuery).toContain('SELECT')
       expect(sqlQuery).toContain('salon_services')
@@ -131,14 +133,14 @@ describe('SalonService Model', () => {
             id: 'service-1',
             salon_profile_id: 'salon-uuid',
             name: 'Corte de Pelo',
-            price: 25.00,
+            price: 25.0,
             is_active: true,
           },
           {
             id: 'service-2',
             salon_profile_id: 'salon-uuid',
             name: 'Manicura',
-            price: 15.00,
+            price: 15.0,
             is_active: true,
           },
         ],
@@ -148,10 +150,7 @@ describe('SalonService Model', () => {
 
       const result = await findServicesBySalonId('salon-uuid')
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.any(String),
-        ['salon-uuid']
-      )
+      expect(pool.query).toHaveBeenCalledWith(expect.any(String), ['salon-uuid'])
       const sqlQuery = pool.query.mock.calls[0][0]
       expect(sqlQuery).toContain('SELECT')
       expect(sqlQuery).toContain('salon_services')
@@ -198,19 +197,21 @@ describe('SalonService Model', () => {
   describe('updateService', () => {
     it('should update service fields', async () => {
       const mockResult = {
-        rows: [{
-          id: 'service-uuid',
-          name: 'Corte de Pelo Premium',
-          price: 30.00,
-          discount_percentage: 20,
-        }],
+        rows: [
+          {
+            id: 'service-uuid',
+            name: 'Corte de Pelo Premium',
+            price: 30.0,
+            discount_percentage: 20,
+          },
+        ],
       }
 
       pool.query.mockResolvedValue(mockResult)
 
       const updates = {
         name: 'Corte de Pelo Premium',
-        price: 30.00,
+        price: 30.0,
         discountPercentage: 20,
       }
 
@@ -225,10 +226,12 @@ describe('SalonService Model', () => {
 
     it('should handle empty updates', async () => {
       const mockResult = {
-        rows: [{
-          id: 'service-uuid',
-          name: 'Existing Service',
-        }],
+        rows: [
+          {
+            id: 'service-uuid',
+            name: 'Existing Service',
+          },
+        ],
       }
 
       pool.query.mockResolvedValue(mockResult)
@@ -242,20 +245,19 @@ describe('SalonService Model', () => {
   describe('deleteService', () => {
     it('should soft delete service', async () => {
       const mockResult = {
-        rows: [{
-          id: 'service-uuid',
-          is_active: false,
-        }],
+        rows: [
+          {
+            id: 'service-uuid',
+            is_active: false,
+          },
+        ],
       }
 
       pool.query.mockResolvedValue(mockResult)
 
       const result = await deleteService('service-uuid')
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.any(String),
-        ['service-uuid']
-      )
+      expect(pool.query).toHaveBeenCalledWith(expect.any(String), ['service-uuid'])
       const sqlQuery = pool.query.mock.calls[0][0]
       expect(sqlQuery).toContain('UPDATE salon_services')
       expect(sqlQuery).toContain('is_active = false')

@@ -25,19 +25,16 @@ export const createGalleryImage = async ({
   return result.rows[0]
 }
 
-export const findGalleryImageById = async (id) => {
-  const result = await pool.query(
-    `SELECT * FROM salon_gallery WHERE id = $1`,
-    [id]
-  )
+export const findGalleryImageById = async id => {
+  const result = await pool.query(`SELECT * FROM salon_gallery WHERE id = $1`, [id])
   return result.rows[0]
 }
 
-export const findGalleryImagesBySalonId = async (salonProfileId) => {
+export const findGalleryImagesBySalonId = async salonProfileId => {
   const result = await pool.query(
     `SELECT * FROM salon_gallery 
      WHERE salon_profile_id = $1 
-     ORDER BY is_cover DESC, sort_order ASC`,
+     ORDER BY is_cover_photo DESC, sort_order ASC`,
     [salonProfileId]
   )
   return result.rows
@@ -72,7 +69,7 @@ export const updateGalleryImage = async (id, updates) => {
   return result.rows[0]
 }
 
-export const deleteGalleryImage = async (id) => {
+export const deleteGalleryImage = async id => {
   const result = await pool.query(
     `DELETE FROM salon_gallery 
      WHERE id = $1 
@@ -85,14 +82,14 @@ export const deleteGalleryImage = async (id) => {
 export const setImageAsCover = async (salonProfileId, imageId) => {
   await pool.query(
     `UPDATE salon_gallery 
-     SET is_cover = false 
+     SET is_cover_photo = false 
      WHERE salon_profile_id = $1`,
     [salonProfileId]
   )
 
   const result = await pool.query(
     `UPDATE salon_gallery 
-     SET is_cover = true, updated_at = CURRENT_TIMESTAMP 
+     SET is_cover_photo = true 
      WHERE id = $1 
      RETURNING *`,
     [imageId]

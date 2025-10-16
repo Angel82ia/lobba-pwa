@@ -77,7 +77,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.getSalonProfile('salon-123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/salon/salon-123', { signal: null })
+      expect(apiClient.get).toHaveBeenCalledWith('/salons/salon-123', { signal: null })
       expect(result).toEqual(mockSalon)
     })
   })
@@ -98,7 +98,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.updateSalonProfile('salon-123', profileData)
 
-      expect(apiClient.put).toHaveBeenCalledWith('/salon/salon-123', profileData)
+      expect(apiClient.put).toHaveBeenCalledWith('/salons/salon-123', profileData)
       expect(result).toEqual(mockResponse)
     })
   })
@@ -114,7 +114,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.getSalonServices('salon-123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/salon/salon-123/services', { signal: null })
+      expect(apiClient.get).toHaveBeenCalledWith('/salons/salon-123/services', { signal: null })
       expect(result).toEqual(mockServices)
     })
   })
@@ -136,7 +136,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.createSalonService('salon-123', serviceData)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/salon/salon-123/services', serviceData)
+      expect(apiClient.post).toHaveBeenCalledWith('/salons/salon-123/services', serviceData)
       expect(result).toEqual(mockResponse)
     })
   })
@@ -154,7 +154,7 @@ describe('Profile Service', () => {
       const result = await profileService.uploadSalonImage('salon-123', mockFile)
 
       expect(apiClient.post).toHaveBeenCalledWith(
-        '/salon/salon-123/gallery',
+        '/salons/salon-123/gallery',
         expect.any(FormData),
         { headers: { 'Content-Type': 'multipart/form-data' } }
       )
@@ -173,7 +173,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.getSalonCategories()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/salon/categories')
+      expect(apiClient.get).toHaveBeenCalledWith('/salons/categories')
       expect(result).toEqual(mockCategories)
     })
   })

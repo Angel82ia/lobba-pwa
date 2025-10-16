@@ -7,11 +7,15 @@ const router = express.Router()
 
 router.get('/categories', salonProfileController.getAllCategories)
 
-router.get('/nearby', [
-  body('latitude').optional().isFloat({ min: -90, max: 90 }),
-  body('longitude').optional().isFloat({ min: -180, max: 180 }),
-  body('radius').optional().isFloat({ min: 0.1, max: 50 }),
-], salonProfileController.getSalonsNearby)
+router.get(
+  '/nearby',
+  [
+    body('latitude').optional().isFloat({ min: -90, max: 90 }),
+    body('longitude').optional().isFloat({ min: -180, max: 180 }),
+    body('radius').optional().isFloat({ min: 0.1, max: 50 }),
+  ],
+  salonProfileController.getSalonsNearby
+)
 
 router.get('/', salonProfileController.getAllSalons)
 
@@ -27,7 +31,7 @@ router.post(
     body('city').optional().trim(),
     body('postalCode').optional().trim(),
     body('phone').optional().trim(),
-    body('website').optional().isURL(),
+    body('website').optional({ nullable: true, checkFalsy: true }).isURL(),
     body('location.latitude').optional().isFloat({ min: -90, max: 90 }),
     body('location.longitude').optional().isFloat({ min: -180, max: 180 }),
     body('businessHours').optional().isObject(),
@@ -47,7 +51,7 @@ router.put(
     body('city').optional().trim(),
     body('postalCode').optional().trim(),
     body('phone').optional().trim(),
-    body('website').optional().isURL(),
+    body('website').optional({ nullable: true, checkFalsy: true }).isURL(),
     body('location.latitude').optional().isFloat({ min: -90, max: 90 }),
     body('location.longitude').optional().isFloat({ min: -180, max: 180 }),
     body('businessHours').optional().isObject(),

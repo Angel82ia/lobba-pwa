@@ -12,12 +12,16 @@ vi.mock('./SalonMap', () => ({
   )
 }))
 
+const mockRequestLocation = vi.fn()
+const mockGeolocationReturn = {
+  location: { latitude: 40.416775, longitude: -3.703790 },
+  error: null,
+  loading: false,
+  requestLocation: mockRequestLocation
+}
+
 vi.mock('../../hooks/useGeolocation', () => ({
-  default: () => ({
-    location: { latitude: 40.416775, longitude: -3.703790 },
-    error: null,
-    loading: false
-  })
+  default: () => mockGeolocationReturn
 }))
 
 const mockSalons = [
@@ -67,6 +71,8 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    
+
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
       expect(screen.getByText('Beauty Center')).toBeInTheDocument()
@@ -85,6 +91,8 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    
+
     await waitFor(() => {
       expect(screen.getByText('Error de red')).toBeInTheDocument()
     })
@@ -99,6 +107,8 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    
+
     await waitFor(() => {
       expect(screen.getByText('No se encontraron salones')).toBeInTheDocument()
     })
@@ -112,6 +122,8 @@ describe('SalonList', () => {
         <SalonList />
       </BrowserRouter>
     )
+
+    
 
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
@@ -137,16 +149,24 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    // Switch to list view first
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /📋 Lista/i })).toBeInTheDocument()
+    })
+    
+    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButton)
+
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
     })
 
     const categorySelect = screen.getByRole('combobox')
-    fireEvent.change(categorySelect, { target: { value: 'hair' } })
+    fireEvent.change(categorySelect, { target: { value: 'peluqueria' } })
 
     await waitFor(() => {
       expect(salonService.getAllSalons).toHaveBeenCalledWith(
-        expect.objectContaining({ city: '', category: 'hair' }),
+        expect.objectContaining({ city: '', category: 'peluqueria' }),
         expect.any(Object)
       )
     })
@@ -160,6 +180,8 @@ describe('SalonList', () => {
         <SalonList />
       </BrowserRouter>
     )
+
+    
 
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
@@ -184,6 +206,15 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    // Wait for buttons to load
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /🗺️ Mapa/i })).toBeInTheDocument()
+    })
+
+    // Start in list view
+    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButton)
+
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
     })
@@ -195,8 +226,8 @@ describe('SalonList', () => {
       expect(screen.getByTestId('salon-map')).toBeInTheDocument()
     })
 
-    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
-    fireEvent.click(listButton)
+    const listButtonAgain = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButtonAgain)
 
     await waitFor(() => {
       expect(screen.queryByTestId('salon-map')).not.toBeInTheDocument()
@@ -214,12 +245,22 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    // Wait for initial load and switch to list view
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /📋 Lista/i })).toBeInTheDocument()
+    })
+    
+    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButton)
+
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
     })
 
     const nearbyCheckbox = screen.getByRole('checkbox', { name: /Buscar cerca de mi ubicación/i })
     fireEvent.click(nearbyCheckbox)
+
+    
 
     await waitFor(() => {
       expect(salonService.getSalonsNearby).toHaveBeenCalledWith(
@@ -241,6 +282,14 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    // Wait for initial load and switch to list view
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /📋 Lista/i })).toBeInTheDocument()
+    })
+    
+    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButton)
+
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
     })
@@ -249,6 +298,9 @@ describe('SalonList', () => {
 
     const nearbyCheckbox = screen.getByRole('checkbox', { name: /Buscar cerca de mi ubicación/i })
     fireEvent.click(nearbyCheckbox)
+    
+    
+    
     await waitFor(() => {
       expect(screen.getByText('Radio: 5 km')).toBeInTheDocument()
     })
@@ -264,6 +316,14 @@ describe('SalonList', () => {
       </BrowserRouter>
     )
 
+    // Wait for initial load and switch to list view
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /📋 Lista/i })).toBeInTheDocument()
+    })
+    
+    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButton)
+
     await waitFor(() => {
       expect(screen.getByText('Salón Elegante')).toBeInTheDocument()
     })
@@ -273,6 +333,9 @@ describe('SalonList', () => {
 
     const nearbyCheckbox = screen.getByRole('checkbox', { name: /Buscar cerca de mi ubicación/i })
     fireEvent.click(nearbyCheckbox)
+    
+    
+    
     await waitFor(() => {
       expect(screen.queryByPlaceholderText('Buscar por ciudad...')).not.toBeInTheDocument()
       expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
@@ -287,6 +350,14 @@ describe('SalonList', () => {
         <SalonList />
       </BrowserRouter>
     )
+
+    // Wait for initial load and switch to list view
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /📋 Lista/i })).toBeInTheDocument()
+    })
+    
+    const listButton = screen.getByRole('button', { name: /📋 Lista/i })
+    fireEvent.click(listButton)
 
     await waitFor(() => {
       expect(screen.getByText('4.5')).toBeInTheDocument()
