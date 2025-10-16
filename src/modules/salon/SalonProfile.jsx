@@ -17,23 +17,35 @@ const SalonProfile = () => {
   const isOwner = auth.user?.id === salon?.userId
 
   useEffect(() => {
+    const abortController = new AbortController()
+    
     const fetchSalon = async () => {
       try {
         setLoading(true)
         const [salonData, servicesData] = await Promise.all([
-          getSalonProfile(id),
-          getSalonServices(id)
+          getSalonProfile(id, abortController.signal),
+          getSalonServices(id, abortController.signal)
         ])
-        setSalon(salonData)
-        setServices(servicesData)
+        if (!abortController.signal.aborted) {
+          setSalon(salonData)
+          setServices(servicesData)
+        }
       } catch (error) {
-        setError(error.message || 'Failed to load salon')
+        if (!abortController.signal.aborted) {
+          setError(error.message || 'Failed to load salon')
+        }
       } finally {
-        setLoading(false)
+        if (!abortController.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchSalon()
+    
+    return () => {
+      abortController.abort()
+    }
   }, [id])
 
   if (loading) return <div className="loading">Cargando salón...</div>

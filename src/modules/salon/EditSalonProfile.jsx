@@ -26,35 +26,47 @@ const EditSalonProfile = () => {
   })
 
   useEffect(() => {
+    const abortController = new AbortController()
+    
     const fetchProfile = async () => {
       try {
         setLoading(true)
-        const data = await getSalonProfile(id)
+        const data = await getSalonProfile(id, abortController.signal)
         
-        if (data.userId !== auth.user?.id && auth.user?.role !== 'admin') {
-          setUnauthorized(true)
-          setLoading(false)
-          return
-        }
+        if (!abortController.signal.aborted) {
+          if (data.userId !== auth.user?.id && auth.user?.role !== 'admin') {
+            setUnauthorized(true)
+            setLoading(false)
+            return
+          }
 
-        setFormData({
-          businessName: data.businessName || '',
-          description: data.description || '',
-          address: data.address || '',
-          city: data.city || '',
-          postalCode: data.postalCode || '',
-          phone: data.phone || '',
-          website: data.website || '',
-        })
+          setFormData({
+            businessName: data.businessName || '',
+            description: data.description || '',
+            address: data.address || '',
+            city: data.city || '',
+            postalCode: data.postalCode || '',
+            phone: data.phone || '',
+            website: data.website || '',
+          })
+        }
       } catch (err) {
-        setError(err.message)
+        if (!abortController.signal.aborted) {
+          setError(err.message)
+        }
       } finally {
-        setLoading(false)
+        if (!abortController.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     if (auth.isAuthenticated && id) {
       fetchProfile()
+    }
+    
+    return () => {
+      abortController.abort()
     }
   }, [auth.isAuthenticated, auth.user, id])
 

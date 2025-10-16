@@ -77,7 +77,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.getSalonProfile('salon-123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/salon/salon-123')
+      expect(apiClient.get).toHaveBeenCalledWith('/salon/salon-123', { signal: null })
       expect(result).toEqual(mockSalon)
     })
   })
@@ -114,7 +114,7 @@ describe('Profile Service', () => {
 
       const result = await profileService.getSalonServices('salon-123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/salon/salon-123/services')
+      expect(apiClient.get).toHaveBeenCalledWith('/salon/salon-123/services', { signal: null })
       expect(result).toEqual(mockServices)
     })
   })

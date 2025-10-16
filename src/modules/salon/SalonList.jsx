@@ -19,6 +19,8 @@ const SalonList = () => {
   const { location, error: geoError, loading: geoLoading } = useGeolocation()
 
   useEffect(() => {
+    const abortController = new AbortController()
+    
     const fetchSalons = async () => {
       try {
         setLoading(true)
@@ -26,20 +28,32 @@ const SalonList = () => {
         
         let data
         if (useNearby && location) {
-          data = await getSalonsNearby(location.latitude, location.longitude, radius)
-          setSalons(data.salons || [])
+          data = await getSalonsNearby(location.latitude, location.longitude, radius, abortController.signal)
+          if (!abortController.signal.aborted) {
+            setSalons(data.salons || [])
+          }
         } else {
-          data = await getAllSalons(filters)
-          setSalons(data)
+          data = await getAllSalons(filters, abortController.signal)
+          if (!abortController.signal.aborted) {
+            setSalons(data)
+          }
         }
       } catch (err) {
-        setError(err.message || 'Error al cargar salones')
+        if (!abortController.signal.aborted) {
+          setError(err.message || 'Error al cargar salones')
+        }
       } finally {
-        setLoading(false)
+        if (!abortController.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchSalons()
+    
+    return () => {
+      abortController.abort()
+    }
   }, [filters, useNearby, location, radius])
 
   const handleFilterChange = (key, value) => {
