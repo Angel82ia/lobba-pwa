@@ -1,24 +1,52 @@
 import pool from '../config/database.js'
 
-export const createUser = async ({ email, passwordHash, firstName, lastName, role, googleId, appleId }) => {
+export const createUser = async ({
+  email,
+  passwordHash,
+  firstName,
+  lastName,
+  role,
+  googleId,
+  appleId,
+}) => {
   const result = await pool.query(
     `INSERT INTO users (email, password_hash, first_name, last_name, role, google_id, apple_id, membership_active, membership_status)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING id, email, first_name, last_name, role, membership_active, membership_status, created_at`,
-    [email, passwordHash, firstName, lastName, role, googleId, appleId, role === 'user', role === 'user' ? 'active' : 'expired']
+    [
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      role,
+      googleId,
+      appleId,
+      role === 'user',
+      role === 'user' ? 'active' : 'expired',
+    ]
   )
   return result.rows[0]
 }
 
-export const findUserByEmail = async (email) => {
+export const findUserByEmail = async email => {
+  const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+  return result.rows[0]
+}
+
+export const findUserByEmailWithSalon = async email => {
   const result = await pool.query(
-    'SELECT * FROM users WHERE email = $1',
+    `SELECT 
+      u.*,
+      sp.id as salon_profile_id
+    FROM users u
+    LEFT JOIN salon_profiles sp ON u.id = sp.user_id
+    WHERE u.email = $1`,
     [email]
   )
   return result.rows[0]
 }
 
-export const findUserById = async (id) => {
+export const findUserById = async id => {
   const result = await pool.query(
     'SELECT id, email, first_name, last_name, role, membership_active, membership_status, avatar, bio, created_at FROM users WHERE id = $1',
     [id]
@@ -26,19 +54,35 @@ export const findUserById = async (id) => {
   return result.rows[0]
 }
 
-export const findUserByGoogleId = async (googleId) => {
+export const findUserByIdWithSalon = async id => {
   const result = await pool.query(
-    'SELECT * FROM users WHERE google_id = $1',
-    [googleId]
+    `SELECT 
+      u.id, 
+      u.email, 
+      u.first_name, 
+      u.last_name, 
+      u.role, 
+      u.membership_active, 
+      u.membership_status, 
+      u.avatar, 
+      u.bio, 
+      u.created_at,
+      sp.id as salon_profile_id
+    FROM users u
+    LEFT JOIN salon_profiles sp ON u.id = sp.user_id
+    WHERE u.id = $1`,
+    [id]
   )
   return result.rows[0]
 }
 
-export const findUserByAppleId = async (appleId) => {
-  const result = await pool.query(
-    'SELECT * FROM users WHERE apple_id = $1',
-    [appleId]
-  )
+export const findUserByGoogleId = async googleId => {
+  const result = await pool.query('SELECT * FROM users WHERE google_id = $1', [googleId])
+  return result.rows[0]
+}
+
+export const findUserByAppleId = async appleId => {
+  const result = await pool.query('SELECT * FROM users WHERE apple_id = $1', [appleId])
   return result.rows[0]
 }
 
@@ -54,7 +98,7 @@ export const updateUser = async (id, updates) => {
   })
 
   values.push(id)
-  
+
   const result = await pool.query(
     `UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramCount} RETURNING *`,
     values

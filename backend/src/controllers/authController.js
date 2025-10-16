@@ -1,4 +1,10 @@
-import { createUser, findUserByEmail, findUserById } from '../models/User.js'
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  findUserByEmailWithSalon,
+  findUserByIdWithSalon,
+} from '../models/User.js'
 import {
   createRefreshToken,
   findRefreshToken,
@@ -43,14 +49,17 @@ export const register = async (req, res) => {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await createRefreshToken(user.id, refreshToken, expiresAt)
 
+    const userWithSalon = await findUserByIdWithSalon(user.id)
+
     res.status(201).json({
       user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        role: user.role,
-        membershipActive: user.membership_active,
+        id: userWithSalon.id,
+        email: userWithSalon.email,
+        firstName: userWithSalon.first_name,
+        lastName: userWithSalon.last_name,
+        role: userWithSalon.role,
+        membershipActive: userWithSalon.membership_active,
+        salonId: userWithSalon.salon_profile_id || null,
       },
       tokens: {
         accessToken,
@@ -81,7 +90,7 @@ export const login = async (req, res) => {
       })
     }
 
-    const user = await findUserByEmail(email)
+    const user = await findUserByEmailWithSalon(email)
 
     if (!user || !user.password_hash) {
       return res.status(401).json({
@@ -113,6 +122,7 @@ export const login = async (req, res) => {
         lastName: user.last_name,
         role: user.role,
         membershipActive: user.membership_active,
+        salonId: user.salon_profile_id || null,
       },
       tokens: {
         accessToken,
@@ -175,7 +185,7 @@ export const logout = async (req, res) => {
 
 export const me = async (req, res) => {
   try {
-    const user = await findUserById(req.user.id)
+    const user = await findUserByIdWithSalon(req.user.id)
 
     res.json({
       id: user.id,
@@ -187,6 +197,7 @@ export const me = async (req, res) => {
       avatar: user.avatar,
       bio: user.bio,
       createdAt: user.created_at,
+      salonId: user.salon_profile_id || null,
     })
   } catch (error) {
     logger.error('Me error:', error)
