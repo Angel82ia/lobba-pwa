@@ -12,7 +12,7 @@ const Button = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed'
+  const baseClasses = 'inline-flex items-center justify-center rounded-3xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed'
   
   const variantClasses = {
     primary: 'bg-[#FF1493] text-white hover:bg-[#C71585] focus:ring-[#FF1493] shadow-sm hover:shadow-md',

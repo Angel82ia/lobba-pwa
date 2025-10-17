@@ -12,7 +12,7 @@ const MainLayout = () => {
     <div className="flex flex-col min-h-screen" style={{ fontFamily: "'Open Sans', sans-serif" }}>
       {/* Header */}
       <header className="sticky top-0 z-[1020] h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+        <div className=" mx-auto h-full px-6 flex items-center justify-between">
           {/* Logo */}
           <Link 
             to="/" 
@@ -62,13 +62,13 @@ const MainLayout = () => {
       <BannerDisplay />
       
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-7xl mx-auto">
+      <main className="flex-1 w-full  mx-auto">
         <Outlet />
       </main>
       
       {/* Footer */}
       <footer className="h-20 bg-gray-900 dark:bg-black text-white flex items-center justify-center">
-        <div className="max-w-7xl w-full px-6 text-center">
+        <div className=" w-full px-6 text-center">
           <p>&copy; 2024 LOBBA. Todos los derechos reservados.</p>
         </div>
       </footer>
