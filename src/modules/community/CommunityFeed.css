@@ -12,18 +12,18 @@
 
 .feed-filters button {
   padding: 10px 20px;
-  border: 2px solid #000000;
-  background: #FFFFFF;
-  color: #000000;
+  border: 2px solid var(--color-secondary);
+  background: var(--color-background);
+  color: var(--color-text-primary);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s;
 }
 
 .feed-filters button.active {
-  background: #FF1493;
-  color: #FFFFFF;
-  border-color: #FF1493;
+  background: var(--color-primary);
+  color: var(--color-background);
+  border-color: var(--color-primary);
 }
 
 .posts-list {
@@ -36,12 +36,13 @@
 .load-more {
   width: 100%;
   padding: 15px;
-  background: #FF1493;
-  color: #FFFFFF;
+  background: var(--color-primary);
+  color: var(--color-background);
   border: none;
   cursor: pointer;
   font-weight: 600;
   margin-top: 20px;
+  transition: opacity 0.3s;
 }
 
 .load-more:hover {
@@ -51,13 +52,14 @@
 .empty-state {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .error-message {
   padding: 15px;
-  background: #ffebee;
-  color: #c62828;
+  background: var(--color-error);
+  color: var(--color-background);
+  opacity: 0.9;
   border-radius: 4px;
   margin: 10px 0;
 }
@@ -65,5 +67,5 @@
 .loading {
   text-align: center;
   padding: 20px;
-  color: #666;
+  color: var(--color-text-secondary);
 }

@@ -1,8 +1,13 @@
 .post-card {
-  background: #FFFFFF;
-  border: 2px solid #f0f0f0;
+  background: var(--color-background);
+  border: 2px solid var(--color-gray-200);
   border-radius: 8px;
   padding: 20px;
+}
+
+[data-theme="dark"] .post-card {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-300);
 }
 
 .post-header {
@@ -33,25 +38,26 @@
 
 .author-name {
   font-weight: 600;
-  color: #000000;
+  color: var(--color-text-primary);
 }
 
 .post-time {
   font-size: 12px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .delete-btn {
   background: none;
   border: none;
   font-size: 24px;
-  color: #999;
+  color: var(--color-gray-500);
   cursor: pointer;
   padding: 0 5px;
+  transition: color 0.2s;
 }
 
 .delete-btn:hover {
-  color: #FF1493;
+  color: var(--color-primary);
 }
 
 .post-content {
@@ -61,7 +67,7 @@
 .post-content p {
   white-space: pre-wrap;
   line-height: 1.6;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .post-image {
@@ -76,7 +82,11 @@
   display: flex;
   gap: 20px;
   padding-top: 15px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+[data-theme="dark"] .post-actions {
+  border-top-color: var(--color-gray-300);
 }
 
 .action-btn {
@@ -86,7 +96,7 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -94,9 +104,9 @@
 }
 
 .action-btn:hover {
-  color: #FF1493;
+  color: var(--color-primary);
 }
 
 .action-btn.liked {
-  color: #FF1493;
+  color: var(--color-primary);
 }
