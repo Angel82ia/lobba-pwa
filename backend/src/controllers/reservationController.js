@@ -2,6 +2,7 @@ import * as Reservation from '../models/Reservation.js'
 import { getAvailableSlots } from '../utils/slots.js'
 import { createCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
 import { sendReservationConfirmation, sendReservationCancellation } from '../utils/whatsapp.js'
+import { notifyReservationCreated, notifyReservationConfirmed, notifyReservationCancelled } from '../services/notificationService.js'
 import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
 
@@ -47,6 +48,12 @@ export const createReservation = async (req, res) => {
       clientPhone,
       clientEmail,
     })
+
+    try {
+      await notifyReservationCreated(reservation)
+    } catch (error) {
+      logger.error('Notification error:', error)
+    }
 
     res.status(201).json(reservation)
   } catch (error) {
@@ -152,6 +159,12 @@ export const confirmReservation = async (req, res) => {
       logger.error('WhatsApp error:', error)
     }
 
+    try {
+      await notifyReservationConfirmed(updated)
+    } catch (error) {
+      logger.error('Notification error:', error)
+    }
+
     res.json(updated)
   } catch (error) {
     logger.error('Confirm reservation error:', error)
@@ -196,6 +209,12 @@ export const cancelReservation = async (req, res) => {
       })
     } catch (error) {
       logger.error('WhatsApp error:', error)
+    }
+
+    try {
+      await notifyReservationCancelled(cancelled, reason)
+    } catch (error) {
+      logger.error('Notification error:', error)
     }
 
     res.json(cancelled)
