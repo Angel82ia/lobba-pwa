@@ -2,8 +2,14 @@ import * as Reservation from '../models/Reservation.js'
 import { getAvailableSlots } from '../utils/slots.js'
 import { createCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
 import { sendReservationConfirmation, sendReservationCancellation } from '../utils/whatsapp.js'
+import { 
+  sendReservationConfirmationEmail, 
+  sendReservationCancellationEmail,
+  sendNewReservationToSalonEmail 
+} from '../utils/emailService.js'
 import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
+import pool from '../config/database.js'
 
 export const getSlots = async (req, res) => {
   try {
@@ -47,6 +53,27 @@ export const createReservation = async (req, res) => {
       clientPhone,
       clientEmail,
     })
+
+    const fullReservation = await Reservation.findReservationById(reservation.id)
+
+    try {
+      const salonResult = await pool.query(
+        'SELECT email FROM salon_profiles WHERE id = $1',
+        [salonProfileId]
+      )
+      
+      if (salonResult.rows.length > 0 && salonResult.rows[0].email) {
+        await sendNewReservationToSalonEmail(
+          {
+            ...fullReservation,
+            service: { name: fullReservation.service_name }
+          },
+          salonResult.rows[0].email
+        )
+      }
+    } catch (emailError) {
+      logger.error('Error sending new reservation email to salon:', emailError)
+    }
 
     res.status(201).json(reservation)
   } catch (error) {
@@ -152,6 +179,17 @@ export const confirmReservation = async (req, res) => {
       logger.error('WhatsApp error:', error)
     }
 
+    try {
+      await sendReservationConfirmationEmail({
+        ...reservation,
+        client_email: reservation.email,
+        salon_profile: { business_name: reservation.business_name },
+        service: { name: reservation.service_name },
+      })
+    } catch (error) {
+      logger.error('Email error:', error)
+    }
+
     res.json(updated)
   } catch (error) {
     logger.error('Confirm reservation error:', error)
@@ -198,6 +236,17 @@ export const cancelReservation = async (req, res) => {
       logger.error('WhatsApp error:', error)
     }
 
+    try {
+      await sendReservationCancellationEmail({
+        ...reservation,
+        client_email: reservation.email,
+        salon_profile: { business_name: reservation.business_name },
+        cancellation_reason: reason,
+      })
+    } catch (error) {
+      logger.error('Email error:', error)
+    }
+
     res.json(cancelled)
   } catch (error) {
     logger.error('Cancel reservation error:', error)
@@ -220,5 +269,50 @@ export const completeReservation = async (req, res) => {
   } catch (error) {
     logger.error('Complete reservation error:', error)
     res.status(500).json({ error: 'Failed to update reservation' })
+  }
+}
+
+export const rejectReservation = async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
+  try {
+    const { id } = req.params
+    const { reason } = req.body
+    const reservation = await Reservation.findReservationById(id)
+
+    if (!reservation) {
+      return res.status(404).json({ error: 'Reservation not found' })
+    }
+
+    const rejected = await Reservation.cancelReservation(id, reason || 'Rechazada por el salón')
+
+    try {
+      await sendReservationCancellationEmail({
+        ...reservation,
+        client_email: reservation.email,
+        salon_profile: { business_name: reservation.business_name },
+        cancellation_reason: reason || 'Rechazada por el salón',
+      })
+    } catch (error) {
+      logger.error('Email error:', error)
+    }
+
+    try {
+      await sendReservationCancellation({
+        ...rejected,
+        salon_profile: { business_name: reservation.business_name },
+        cancellation_reason: reason,
+      })
+    } catch (error) {
+      logger.error('WhatsApp error:', error)
+    }
+
+    res.json(rejected)
+  } catch (error) {
+    logger.error('Reject reservation error:', error)
+    res.status(500).json({ error: 'Failed to reject reservation' })
   }
 }

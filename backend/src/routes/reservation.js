@@ -10,6 +10,7 @@ import {
   confirmReservation,
   cancelReservation,
   completeReservation,
+  rejectReservation,
 } from '../controllers/reservationController.js'
 import { auditUserAction } from '../middleware/audit.js'
 
@@ -45,6 +46,13 @@ router.put(
   [body('status').isIn(['completed', 'no_show']).withMessage('Invalid status')],
   auditUserAction,
   completeReservation
+)
+router.put(
+  '/:id/reject',
+  requireAuth,
+  [body('reason').optional().trim()],
+  auditUserAction,
+  rejectReservation
 )
 
 export default router
