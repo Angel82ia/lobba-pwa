@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import { scheduleReminder, cancelReservationReminders } from '../services/reminderService.js'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -194,9 +195,17 @@ export const confirmReservation = async (req, res) => {
       return res.status(404).json({ error: 'Reservation not found' })
     }
 
+    const reservation = reservationResult.rows[0]
+
+    try {
+      await scheduleReminder(reservation)
+    } catch (error) {
+      console.error('Error scheduling reminder:', error)
+    }
+
     return res.status(200).json({
       success: true,
-      reservation: reservationResult.rows[0]
+      reservation
     })
 
   } catch (error) {
@@ -238,6 +247,12 @@ export const cancelAndRefundReservation = async (req, res) => {
     }
 
     const refund = await refundReservationPayment(reservationId, reason)
+
+    try {
+      await cancelReservationReminders(reservationId)
+    } catch (error) {
+      console.error('Error cancelling reminders:', error)
+    }
 
     return res.status(200).json({
       success: true,
