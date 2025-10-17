@@ -100,8 +100,18 @@ export const processReservationCheckout = async (req, res) => {
       })
     }
 
+    const capacityResult = await client.query(
+      'SELECT simultaneous_capacity, capacity_enabled FROM salon_profiles WHERE id = $1',
+      [service.salon_profile_id]
+    )
+
+    const maxCapacity = capacityResult.rows[0].capacity_enabled 
+      ? (capacityResult.rows[0].simultaneous_capacity || 1) 
+      : 1
+
     const overlappingReservations = await client.query(
-      `SELECT id FROM reservations
+      `SELECT COUNT(*) as count
+       FROM reservations
        WHERE salon_profile_id = $1
          AND status NOT IN ('cancelled', 'no_show')
          AND (
@@ -112,9 +122,16 @@ export const processReservationCheckout = async (req, res) => {
       [service.salon_profile_id, startTime, endTime]
     )
 
-    if (overlappingReservations.rows.length > 0) {
+    const currentCount = parseInt(overlappingReservations.rows[0].count)
+
+    if (currentCount >= maxCapacity) {
       await client.query('ROLLBACK')
-      return res.status(409).json({ error: 'This time slot is already booked' })
+      return res.status(409).json({ 
+        error: 'SLOT_FULL',
+        message: 'This time slot is fully booked',
+        currentBookings: currentCount,
+        maxCapacity
+      })
     }
 
     const totalPrice = parseFloat(service.price)
