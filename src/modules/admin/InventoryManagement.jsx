@@ -5,7 +5,6 @@ import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
 import Input from '../../components/common/Input'
 import useStore from '../../store'
-import './InventoryManagement.css'
 
 const InventoryManagement = () => {
   const { auth } = useStore()

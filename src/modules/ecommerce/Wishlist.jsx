@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getWishlist, removeFromWishlist } from '../../services/wishlist'
 import { addToCart } from '../../services/cart'
-import Card from '../../components/common/Card'
-import Button from '../../components/common/Button'
-import './Wishlist.css'
+import { Card, Button, Alert } from '../../components/common'
 
 const Wishlist = () => {
   const navigate = useNavigate()
@@ -51,7 +49,7 @@ const Wishlist = () => {
 
   const handleAddToCart = async (productId) => {
     try {
-      await addToCart(productId, 1)
+      await addToCart(productId, null, 1)
       navigate('/carrito')
     } catch (err) {
       setError('Error al añadir al carrito')
@@ -64,96 +62,109 @@ const Wishlist = () => {
 
   if (loading) {
     return (
-      <div className="wishlist-container">
-        <h1>Mi Lista de Deseos</h1>
-        <p className="loading-message">Cargando...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600 dark:text-gray-400 text-lg">❤️ Cargando lista de deseos...</p>
       </div>
     )
   }
 
   return (
-    <div className="wishlist-container">
-      <h1>Mi Lista de Deseos</h1>
-      
-      {error && (
-        <div className="error-message" role="alert">
-          {error}
-        </div>
-      )}
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-8">
+        ❤️ Mi Lista de Deseos
+      </h1>
+
+      {error && <Alert variant="error" className="mb-6">{error}</Alert>}
 
       {items.length === 0 ? (
-        <Card className="empty-wishlist">
-          <p>Tu lista de deseos está vacía</p>
+        <Card className="text-center" padding="large">
+          <div className="text-6xl mb-4">💝</div>
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
+            Tu lista de deseos está vacía
+          </p>
           <Button onClick={() => navigate('/tienda')}>
             Explorar Productos
           </Button>
         </Card>
       ) : (
-        <div className="wishlist-grid">
-          {items.map((item) => (
-            <Card key={item.product_id} className="wishlist-item">
-              {item.image_url && (
-                <img 
-                  src={item.image_url} 
-                  alt={item.product_name}
-                  className="wishlist-item-image"
-                  onClick={() => handleViewProduct(item.slug)}
-                />
-              )}
-              
-              <div className="wishlist-item-details">
-                <h3 
-                  className="wishlist-item-name"
-                  onClick={() => handleViewProduct(item.slug)}
-                >
-                  {item.product_name}
-                </h3>
-                
-                {item.description && (
-                  <p className="wishlist-item-description">
-                    {item.description.substring(0, 100)}
-                    {item.description.length > 100 ? '...' : ''}
-                  </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((item) => {
+            const price = parseFloat(item.base_price)
+            const discount = parseFloat(item.discount_percentage || 0)
+            const finalPrice = price * (1 - discount / 100)
+
+            return (
+              <Card key={item.product_id} className="flex flex-col h-full" padding="none">
+                {/* Image */}
+                {item.image_url && (
+                  <div 
+                    className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-900 cursor-pointer group"
+                    onClick={() => handleViewProduct(item.slug)}
+                  >
+                    <img 
+                      src={item.image_url} 
+                      alt={item.product_name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    {discount > 0 && (
+                      <div className="absolute top-3 right-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
+                          -{discount.toFixed(0)}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 )}
-
-                <div className="wishlist-item-price">
-                  {item.discount_percentage > 0 ? (
-                    <>
-                      <span className="original-price">
-                        {parseFloat(item.base_price).toFixed(2)}€
-                      </span>
-                      <span className="discounted-price">
-                        {(parseFloat(item.base_price) * (1 - item.discount_percentage / 100)).toFixed(2)}€
-                      </span>
-                      <span className="discount-badge">
-                        -{item.discount_percentage}%
-                      </span>
-                    </>
-                  ) : (
-                    <span className="price">
-                      {parseFloat(item.base_price).toFixed(2)}€
-                    </span>
+                
+                {/* Content */}
+                <div className="flex flex-col flex-1 p-4 space-y-3">
+                  <h3 
+                    className="font-semibold text-lg text-gray-900 dark:text-white cursor-pointer hover:text-[#FF1493] transition-colors line-clamp-2"
+                    onClick={() => handleViewProduct(item.slug)}
+                  >
+                    {item.product_name}
+                  </h3>
+                  
+                  {item.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 flex-1">
+                      {item.description}
+                    </p>
                   )}
-                </div>
 
-                <div className="wishlist-item-actions">
-                  <Button 
-                    onClick={() => handleAddToCart(item.product_id)}
-                    className="add-to-cart-button"
-                  >
-                    Añadir al Carrito
-                  </Button>
-                  <Button 
-                    onClick={() => handleRemove(item.product_id)}
-                    variant="secondary"
-                    className="remove-button"
-                  >
-                    Eliminar
-                  </Button>
+                  {/* Price */}
+                  <div className="flex items-baseline gap-2">
+                    {discount > 0 && (
+                      <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                        {price.toFixed(2)}€
+                      </span>
+                    )}
+                    <span className="text-2xl font-bold text-[#FF1493]">
+                      {finalPrice.toFixed(2)}€
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      onClick={() => handleAddToCart(item.product_id)}
+                      fullWidth
+                      size="small"
+                    >
+                      🛒 Al Carrito
+                    </Button>
+                    <Button 
+                      onClick={() => handleRemove(item.product_id)}
+                      variant="outline"
+                      size="small"
+                      className="flex-shrink-0"
+                    >
+                      ❌
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>

@@ -21,7 +21,7 @@ describe('HairstyleTryOn', () => {
     render(<HairstyleTryOn />)
 
     await waitFor(() => {
-      expect(screen.getByText('Prueba Virtual de Peinados')).toBeInTheDocument()
+      expect(screen.getByText(/Prueba Virtual de Peinados/)).toBeInTheDocument()
     })
   })
 
@@ -65,7 +65,7 @@ describe('HairstyleTryOn', () => {
       expect(screen.getByText('Long Waves')).toBeInTheDocument()
     })
 
-    const uploadButton = screen.getByText('📸 Seleccionar Foto')
+    const uploadButton = screen.getByText(/Seleccionar Foto/)
     const input = uploadButton.parentElement.querySelector('input[type="file"]')
 
     fireEvent.change(input, { target: { files: [file] } })
@@ -74,15 +74,16 @@ describe('HairstyleTryOn', () => {
       expect(screen.getByAltText('Tu selfie')).toBeInTheDocument()
     })
 
-    const styleCard = screen.getByText('Long Waves').closest('.style-card')
-    fireEvent.click(styleCard)
+    // Click on style by finding its text and clicking parent div
+    const styleElement = screen.getByText('Long Waves')
+    fireEvent.click(styleElement.closest('div'))
 
-    const generateButton = screen.getByText('✨ Probar Peinado')
+    const generateButton = screen.getByText(/Probar Peinado/)
     fireEvent.click(generateButton)
 
     await waitFor(() => {
       expect(aiService.generateHairstyle).toHaveBeenCalled()
-      expect(screen.getByText('Tu nuevo look')).toBeInTheDocument()
+      expect(screen.getByText(/Tu nuevo look/)).toBeInTheDocument()
     })
   })
 
@@ -93,10 +94,11 @@ describe('HairstyleTryOn', () => {
       expect(screen.getByText('Long Waves')).toBeInTheDocument()
     })
 
-    const styleCard = screen.getByText('Long Waves').closest('.style-card')
-    fireEvent.click(styleCard)
+    // Select style
+    const styleElement = screen.getByText('Long Waves')
+    fireEvent.click(styleElement.closest('div'))
 
-    const generateButton = screen.getByText('✨ Probar Peinado')
+    const generateButton = screen.getByText(/Probar Peinado/)
     fireEvent.click(generateButton)
 
     await waitFor(() => {

@@ -1,10 +1,10 @@
-import api from '../utils/api'
+import apiClient from './api'
 
 export const createSharedMembership = async (membershipId, data) => {
   try {
-    const response = await api.post('/membership/shared', {
+    const response = await apiClient.post('/membership/shared', {
       membershipId,
-      ...data
+      ...data,
     })
     return response.data
   } catch (error) {
@@ -13,9 +13,9 @@ export const createSharedMembership = async (membershipId, data) => {
   }
 }
 
-export const getSharedMembershipByMembershipId = async (membershipId) => {
+export const getSharedMembershipByMembershipId = async membershipId => {
   try {
-    const response = await api.get(`/membership/shared/${membershipId}`)
+    const response = await apiClient.get(`/membership/shared/${membershipId}`)
     return response.data
   } catch (error) {
     if (error.response?.status === 404) {
@@ -28,7 +28,7 @@ export const getSharedMembershipByMembershipId = async (membershipId) => {
 
 export const getMySharedMemberships = async () => {
   try {
-    const response = await api.get('/membership/shared')
+    const response = await apiClient.get('/membership/shared')
     return response.data
   } catch (error) {
     console.error('Error getting my shared memberships:', error)
@@ -38,7 +38,7 @@ export const getMySharedMemberships = async () => {
 
 export const updateSharedMembership = async (id, data) => {
   try {
-    const response = await api.put(`/membership/shared/${id}`, data)
+    const response = await apiClient.put(`/membership/shared/${id}`, data)
     return response.data
   } catch (error) {
     console.error('Error updating shared membership:', error)
@@ -46,9 +46,9 @@ export const updateSharedMembership = async (id, data) => {
   }
 }
 
-export const revokeSharedMembership = async (id) => {
+export const revokeSharedMembership = async id => {
   try {
-    const response = await api.delete(`/membership/shared/${id}`)
+    const response = await apiClient.delete(`/membership/shared/${id}`)
     return response.data
   } catch (error) {
     console.error('Error revoking shared membership:', error)

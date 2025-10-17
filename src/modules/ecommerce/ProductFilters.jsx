@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { getCategories } from '../../services/product'
-import './ProductFilters.css'
+import { Select } from '../../components/common'
 
 const ProductFilters = ({ onFilterChange }) => {
   const [categories, setCategories] = useState([])
@@ -27,10 +27,7 @@ const ProductFilters = ({ onFilterChange }) => {
           setCategories(data)
         }
       } catch (err) {
-        if (!abortController.signal.aborted) {
-          console.error('Error al cargar categorías:', err)
-          // Las categorías son opcionales, no bloqueamos la UI
-        }
+        // Error loading categories - non-blocking
       }
     }
 
@@ -54,7 +51,7 @@ const ProductFilters = ({ onFilterChange }) => {
       }
 
       onFilterChangeRef.current(filters)
-    }, 500) // Espera 500ms después del último cambio
+    }, 500)
 
     return () => clearTimeout(timeoutId)
   }, [selectedCategory, priceRange.min, priceRange.max, sortBy, showNewOnly])
@@ -79,62 +76,83 @@ const ProductFilters = ({ onFilterChange }) => {
     setSortBy(e.target.value)
   }, [])
 
+  const categoryOptions = [
+    { value: '', label: 'Todas' },
+    ...(categories || []).map(cat => ({ value: cat.id, label: cat.name }))
+  ]
+
+  const sortOptions = [
+    { value: 'created_at', label: 'Más recientes' },
+    { value: 'base_price', label: 'Precio: menor a mayor' },
+    { value: 'name', label: 'Nombre A-Z' },
+  ]
+
   return (
-    <div className="product-filters">
-      <h3>Filtros</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 sticky top-4">
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+        🎛️ Filtros
+      </h3>
 
-      <div className="filter-group">
-        <label>Categoría</label>
-        <select
-          value={selectedCategory}
-          onChange={handleCategoryChange}
-        >
-          <option value="">Todas</option>
-          {categories?.map(cat => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          )) || null}
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label>Precio</label>
-        <div className="price-inputs">
-          <input
-            type="number"
-            placeholder="Mín"
-            value={priceRange.min}
-            onChange={handleMinPriceChange}
-          />
-          <span>-</span>
-          <input
-            type="number"
-            placeholder="Máx"
-            value={priceRange.max}
-            onChange={handleMaxPriceChange}
+      <div className="space-y-6">
+        {/* Categoría */}
+        <div>
+          <Select
+            label="Categoría"
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            options={categoryOptions}
+            fullWidth
           />
         </div>
-      </div>
 
-      <div className="filter-group">
-        <label>
-          <input
-            type="checkbox"
-            checked={showNewOnly}
-            onChange={handleNewOnlyChange}
+        {/* Precio */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Rango de Precio
+          </label>
+          <div className="space-y-2">
+            <input
+              type="number"
+              placeholder="Precio mínimo"
+              value={priceRange.min}
+              onChange={handleMinPriceChange}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF1493] focus:border-transparent text-sm"
+            />
+            <input
+              type="number"
+              placeholder="Precio máximo"
+              value={priceRange.max}
+              onChange={handleMaxPriceChange}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF1493] focus:border-transparent text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Ordenar por */}
+        <div>
+          <Select
+            label="Ordenar por"
+            value={sortBy}
+            onChange={handleSortByChange}
+            options={sortOptions}
+            fullWidth
           />
-          Solo nuevos
-        </label>
-      </div>
+        </div>
 
-      <div className="filter-group">
-        <label>Ordenar por</label>
-        <select value={sortBy} onChange={handleSortByChange}>
-          <option value="created_at">Más recientes</option>
-          <option value="base_price">Precio: menor a mayor</option>
-          <option value="name">Nombre A-Z</option>
-        </select>
+        {/* Solo nuevos */}
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors">
+            <input
+              type="checkbox"
+              checked={showNewOnly}
+              onChange={handleNewOnlyChange}
+              className="w-5 h-5 text-[#FF1493] rounded border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#FF1493] cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              Solo productos nuevos
+            </span>
+          </label>
+        </div>
       </div>
     </div>
   )

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAuditLogs, getAuditStats } from '../../services/auditLog'
 import Card from '../../components/common/Card'
-import './AuditLogDashboard.css'
 
 const AuditLogDashboard = () => {
   const [logs, setLogs] = useState([])

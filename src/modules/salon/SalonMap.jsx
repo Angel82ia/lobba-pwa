@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import PropTypes from 'prop-types'
-import './SalonMap.css'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -11,8 +9,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
-
-// Note: We avoid useMap() to reduce context issues; we re-key MapContainer instead
 
 function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
   const [mapCenter, setMapCenter] = useState(center || [40.416775, -3.703790])
@@ -27,14 +23,16 @@ function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
 
   if (!salons || salons.length === 0) {
     return (
-      <div className="salon-map-empty">
-        <p>No hay salones disponibles para mostrar en el mapa</p>
+      <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-900 rounded-lg">
+        <p className="text-gray-600 dark:text-gray-400">
+          No hay salones disponibles para mostrar en el mapa
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="salon-map-container">
+    <div className="w-full h-full rounded-lg overflow-hidden">
       <MapContainer 
         key={`map-${mapCenter[0]}-${mapCenter[1]}`}
         center={mapCenter}
@@ -63,27 +61,35 @@ function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
               }}
             >
               <Popup>
-                <div className="salon-map-popup">
-                  <h3>{salon.businessName}</h3>
-                  {salon.description && <p>{salon.description}</p>}
-                  <p className="salon-map-address">
-                    <strong>Dirección:</strong> {salon.address}, {salon.city}
-                  </p>
-                  {salon.distance && (
-                    <p className="salon-map-distance">
-                      <strong>Distancia:</strong> {salon.distance} km
+                <div className="p-2 min-w-[200px]">
+                  <h3 className="font-bold text-[#FF1493] text-lg mb-2">
+                    {salon.businessName}
+                  </h3>
+                  {salon.description && (
+                    <p className="text-sm text-gray-700 mb-2">
+                      {salon.description}
                     </p>
                   )}
-                  {salon.phone && (
-                    <p className="salon-map-phone">
-                      <strong>Teléfono:</strong> {salon.phone}
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p>
+                      <strong className="font-semibold">Dirección:</strong> {salon.address}, {salon.city}
                     </p>
-                  )}
-                  {salon.rating && (
-                    <p className="salon-map-rating">
-                      <strong>Rating:</strong> ⭐ {salon.rating}/5 ({salon.totalReviews} reseñas)
-                    </p>
-                  )}
+                    {salon.distance && (
+                      <p className="text-[#FF1493] font-semibold">
+                        📍 {salon.distance} km
+                      </p>
+                    )}
+                    {salon.phone && (
+                      <p>
+                        <strong className="font-semibold">Teléfono:</strong> {salon.phone}
+                      </p>
+                    )}
+                    {salon.rating && (
+                      <p>
+                        <strong className="font-semibold">Rating:</strong> ⭐ {salon.rating}/5 ({salon.totalReviews} reseñas)
+                      </p>
+                    )}
+                  </div>
                 </div>
               </Popup>
             </Marker>

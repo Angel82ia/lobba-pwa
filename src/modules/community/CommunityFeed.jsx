@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getFeed, getAllPosts } from '../../services/community'
 import PostCard from './PostCard'
 import PostComposer from './PostComposer'
-import Card from '../../components/common/Card'
-import './CommunityFeed.css'
+import { Card, Alert, Button } from '../../components/common'
 
 const CommunityFeed = () => {
   const [posts, setPosts] = useState([])
@@ -56,49 +55,75 @@ const CommunityFeed = () => {
   }
 
   return (
-    <div className="community-feed">
-      <Card>
-        <h1>Comunidad LOBBA</h1>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <Card padding="large" className="mb-8">
+        <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-6">
+          Comunidad LOBBA
+        </h1>
         
-        <div className="feed-filters">
+        {/* Filters */}
+        <div className="flex gap-3 mb-6">
           <button
-            className={filter === 'all' ? 'active' : ''}
+            className={`px-5 py-2.5 rounded-full font-medium transition-all duration-200 ${
+              filter === 'all'
+                ? 'bg-[#FF1493] text-white shadow-lg shadow-[#FF1493]/30'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
             onClick={() => handleFilterChange('all')}
           >
             Todos
           </button>
           <button
-            className={filter === 'following' ? 'active' : ''}
+            className={`px-5 py-2.5 rounded-full font-medium transition-all duration-200 ${
+              filter === 'following'
+                ? 'bg-[#FF1493] text-white shadow-lg shadow-[#FF1493]/30'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
             onClick={() => handleFilterChange('following')}
           >
             Siguiendo
           </button>
         </div>
 
+        {/* Post Composer */}
         <PostComposer onPostCreated={handlePostCreated} />
-
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="posts-list">
-          {posts.map(post => (
-            <PostCard key={post.id} post={post} onUpdate={fetchPosts} />
-          ))}
-        </div>
-
-        {loading && <div className="loading">Cargando posts...</div>}
-
-        {!loading && posts.length === 0 && (
-          <div className="empty-state">
-            <p>No hay posts para mostrar</p>
-          </div>
-        )}
-
-        {!loading && hasMore && posts.length > 0 && (
-          <button className="load-more" onClick={handleLoadMore}>
-            Cargar más
-          </button>
-        )}
       </Card>
+
+      {/* Error */}
+      {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+
+      {/* Posts */}
+      <div className="space-y-6">
+        {posts.map(post => (
+          <PostCard key={post.id} post={post} onUpdate={fetchPosts} />
+        ))}
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-8">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando posts...</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && posts.length === 0 && (
+        <Card className="text-center" padding="large">
+          <div className="text-6xl mb-4">📝</div>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            No hay posts para mostrar
+          </p>
+        </Card>
+      )}
+
+      {/* Load More */}
+      {!loading && hasMore && posts.length > 0 && (
+        <div className="text-center mt-8">
+          <Button variant="outline" onClick={handleLoadMore}>
+            Cargar más
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

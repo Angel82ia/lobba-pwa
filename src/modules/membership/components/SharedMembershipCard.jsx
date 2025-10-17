@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import Button from '../../../components/common/Button'
-import './SharedMembershipCard.css'
 
 const SharedMembershipCard = ({ sharedMembership, onEdit, onRevoke, loading = false }) => {
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false)

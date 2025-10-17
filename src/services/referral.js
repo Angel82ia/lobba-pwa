@@ -1,4 +1,4 @@
-import api from '../utils/api'
+import api from './api'
 
 export const getReferralCode = async () => {
   try {
@@ -20,7 +20,7 @@ export const createReferralCampaign = async () => {
   }
 }
 
-export const registerReferral = async (referralCode) => {
+export const registerReferral = async referralCode => {
   try {
     const response = await api.post('/referral/register', { referralCode })
     return response.data
@@ -30,7 +30,7 @@ export const registerReferral = async (referralCode) => {
   }
 }
 
-export const completeReferral = async (membershipType) => {
+export const completeReferral = async membershipType => {
   try {
     const response = await api.post('/referral/complete', { membershipType })
     return response.data

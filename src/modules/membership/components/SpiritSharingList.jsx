@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { getSharedMembershipByMembershipId, revokeSharedMembership, updateSharedMembership } from '../../../services/sharedMembership'
 import Card from '../../../components/common/Card'
-import './SpiritSharingList.css'
 
 const SpiritSharingList = ({ membershipId, onRevoke }) => {
   const [sharedMembership, setSharedMembership] = useState(null)

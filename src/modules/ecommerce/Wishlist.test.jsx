@@ -87,21 +87,27 @@ describe('Wishlist', () => {
     )
 
     await waitFor(() => {
+      expect(screen.getByText('Discounted Product')).toBeInTheDocument()
+      // Final price should be 100 - 20% = 80
       expect(screen.getByText('80.00€')).toBeInTheDocument()
-      expect(screen.getByText('-20%')).toBeInTheDocument()
+      // Original price with strikethrough
+      expect(screen.getByText('100.00€')).toBeInTheDocument()
     })
   })
 
   it('handles remove from wishlist', async () => {
-    wishlistService.getWishlist.mockResolvedValue([
+    const mockItems = [
       {
         product_id: '1',
         product_name: 'Test Product',
         base_price: '29.99',
+        discount_percentage: 0,
         slug: 'test-product',
       },
-    ])
-    wishlistService.removeFromWishlist.mockResolvedValue({})
+    ]
+
+    wishlistService.getWishlist.mockResolvedValue(mockItems)
+    wishlistService.removeFromWishlist.mockResolvedValue({ success: true })
 
     render(
       <BrowserRouter>
@@ -113,7 +119,8 @@ describe('Wishlist', () => {
       expect(screen.getByText('Test Product')).toBeInTheDocument()
     })
 
-    const removeButton = screen.getByText(/eliminar/i)
+    // Find remove button by text (❌ emoji)
+    const removeButton = screen.getByText('❌')
     fireEvent.click(removeButton)
 
     await waitFor(() => {
@@ -122,15 +129,18 @@ describe('Wishlist', () => {
   })
 
   it('handles add to cart', async () => {
-    wishlistService.getWishlist.mockResolvedValue([
+    const mockItems = [
       {
         product_id: '1',
         product_name: 'Test Product',
         base_price: '29.99',
+        discount_percentage: 0,
         slug: 'test-product',
       },
-    ])
-    cartService.addToCart.mockResolvedValue({})
+    ]
+
+    wishlistService.getWishlist.mockResolvedValue(mockItems)
+    cartService.addToCart.mockResolvedValue({ success: true })
 
     render(
       <BrowserRouter>
@@ -142,16 +152,16 @@ describe('Wishlist', () => {
       expect(screen.getByText('Test Product')).toBeInTheDocument()
     })
 
-    const addToCartButton = screen.getByText(/añadir al carrito/i)
+    const addToCartButton = screen.getByText(/Al Carrito/)
     fireEvent.click(addToCartButton)
 
     await waitFor(() => {
-      expect(cartService.addToCart).toHaveBeenCalledWith('1', 1)
+      expect(cartService.addToCart).toHaveBeenCalledWith('1', null, 1)
     })
   })
 
-  it('displays error message on fetch failure', async () => {
-    wishlistService.getWishlist.mockRejectedValue(new Error('Network error'))
+  it('handles errors gracefully', async () => {
+    wishlistService.getWishlist.mockRejectedValue(new Error('Failed to load'))
 
     render(
       <BrowserRouter>
@@ -160,7 +170,7 @@ describe('Wishlist', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/error al cargar la lista de deseos/i)).toBeInTheDocument()
+      expect(screen.getByText(/Error al cargar la lista de deseos/)).toBeInTheDocument()
     })
   })
 })

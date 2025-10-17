@@ -17,7 +17,7 @@ describe('NailsGenerator', () => {
     render(<NailsGenerator />)
 
     await waitFor(() => {
-      expect(screen.getByText('Generador de Diseños de Uñas')).toBeInTheDocument()
+      expect(screen.getByText(/Generador de Diseños de Uñas/)).toBeInTheDocument()
     })
   })
 
@@ -55,21 +55,21 @@ describe('NailsGenerator', () => {
     render(<NailsGenerator />)
 
     const textarea = await screen.findByLabelText('Describe tu diseño ideal')
-    const generateButton = screen.getByText('✨ Generar Diseño')
+    const generateButton = screen.getByText(/Generar Diseño/)
 
     fireEvent.change(textarea, { target: { value: 'Pink nails' } })
     fireEvent.click(generateButton)
 
     await waitFor(() => {
       expect(aiService.generateNailDesign).toHaveBeenCalledWith('Pink nails')
-      expect(screen.getByText('Tu diseño generado')).toBeInTheDocument()
+      expect(screen.getByText(/Tu diseño generado/)).toBeInTheDocument()
     })
   })
 
   it('should show error for empty prompt', async () => {
     render(<NailsGenerator />)
 
-    const generateButton = await screen.findByText('✨ Generar Diseño')
+    const generateButton = await screen.findByText(/Generar Diseño/)
     fireEvent.click(generateButton)
 
     await waitFor(() => {
@@ -85,7 +85,7 @@ describe('NailsGenerator', () => {
     render(<NailsGenerator />)
 
     const textarea = await screen.findByLabelText('Describe tu diseño ideal')
-    const generateButton = screen.getByText('✨ Generar Diseño')
+    const generateButton = screen.getByText(/Generar Diseño/)
 
     fireEvent.change(textarea, { target: { value: 'Pink nails' } })
     fireEvent.click(generateButton)

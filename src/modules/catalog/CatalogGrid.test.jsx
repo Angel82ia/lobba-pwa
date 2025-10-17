@@ -41,7 +41,7 @@ describe('CatalogGrid', () => {
     renderWithRouter(<CatalogGrid />)
 
     await waitFor(() => {
-      expect(screen.getByText('Catálogo Público')).toBeInTheDocument()
+      expect(screen.getByText(/Catálogo Público/)).toBeInTheDocument()
     })
   })
 
@@ -58,7 +58,7 @@ describe('CatalogGrid', () => {
     renderWithRouter(<CatalogGrid />)
 
     await waitFor(() => {
-      expect(screen.getByText('Tipo:')).toBeInTheDocument()
+      expect(screen.getByText('Tipo')).toBeInTheDocument()
     })
 
     const typeSelect = screen.getAllByRole('combobox')[0]
@@ -77,7 +77,7 @@ describe('CatalogGrid', () => {
     renderWithRouter(<CatalogGrid />)
 
     await waitFor(() => {
-      expect(screen.getByText('Ordenar:')).toBeInTheDocument()
+      expect(screen.getByText('Ordenar')).toBeInTheDocument()
     })
 
     const sortSelect = screen.getAllByRole('combobox')[1]

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { createSharedMembership } from '../../../services/sharedMembership'
 import Card from '../../../components/common/Card'
-import './SpiritSharingForm.css'
 
 const SpiritSharingForm = ({ membershipId, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({

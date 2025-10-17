@@ -45,7 +45,7 @@ describe('MyDesigns', () => {
     render(<MyDesigns />)
 
     await waitFor(() => {
-      expect(screen.getByText('Mis Diseños')).toBeInTheDocument()
+      expect(screen.getByText(/Mis Diseños/)).toBeInTheDocument()
     })
   })
 
@@ -73,10 +73,10 @@ describe('MyDesigns', () => {
     render(<MyDesigns />)
 
     await waitFor(() => {
-      expect(screen.getByText('Todos')).toBeInTheDocument()
+      expect(screen.getByText(/Todos/)).toBeInTheDocument()
     })
 
-    const favoritesTab = screen.getByText('❤️ Favoritos')
+    const favoritesTab = screen.getByText(/Favoritos/)
     fireEvent.click(favoritesTab)
 
     await waitFor(() => {
@@ -89,13 +89,14 @@ describe('MyDesigns', () => {
     aiService.toggleFavorite.mockResolvedValue({})
     aiService.getMyDesigns.mockResolvedValue(mockTwoDesigns)
 
-    const { container } = render(<MyDesigns />)
+    render(<MyDesigns />)
 
     await waitFor(() => {
       expect(screen.getByText('Pink Nails')).toBeInTheDocument()
     })
 
-    const favoriteButtons = container.querySelectorAll('.favorite-btn')
+    // Find favorite buttons by aria-label
+    const favoriteButtons = screen.getAllByLabelText('Toggle favorite')
     fireEvent.click(favoriteButtons[0])
 
     await waitFor(() => {
@@ -122,7 +123,7 @@ describe('MyDesigns', () => {
       expect(screen.getByText('Página 1')).toBeInTheDocument()
     })
 
-    const nextButton = screen.getByText('Siguiente')
+    const nextButton = screen.getByText(/Siguiente/)
     fireEvent.click(nextButton)
 
     await waitFor(() => {

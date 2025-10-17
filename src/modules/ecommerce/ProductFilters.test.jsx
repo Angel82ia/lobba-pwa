@@ -17,9 +17,9 @@ describe('ProductFilters Component', () => {
     render(<ProductFilters onFilterChange={mockOnFilterChange} />)
 
     await waitFor(() => {
-      expect(screen.getByText('Filtros')).toBeInTheDocument()
+      expect(screen.getByText('🎛️ Filtros')).toBeInTheDocument()
       expect(screen.getByText('Categoría')).toBeInTheDocument()
-      expect(screen.getByText('Precio')).toBeInTheDocument()
+      expect(screen.getByText('Rango de Precio')).toBeInTheDocument()
     })
   })
 

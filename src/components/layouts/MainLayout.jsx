@@ -4,41 +4,75 @@ import BannerDisplay from '../../modules/banners/BannerDisplay'
 import ChatbotWidget from '../../modules/chatbot/ChatbotWidget'
 import ThemeToggle from '../common/ThemeToggle'
 import UserMenu from '../../modules/user-menu/UserMenu'
-import './MainLayout.css'
 
 const MainLayout = () => {
   const { auth } = useStore()
   
   return (
-    <div className="main-layout">
-      <header className="main-header">
-        <div className="header-content">
-          <Link to="/" className="logo">LOBBA</Link>
-          <nav className="main-nav">
-            <Link to="/">Inicio</Link>
-            <Link to="/salones">Salones</Link>
-            <Link to="/tienda">Tienda</Link>
-            <Link to="/comunidad">Comunidad</Link>
+    <div className="flex flex-col min-h-screen font-secondary">
+      {/* Header */}
+      <header className="sticky top-0 z-[1020] h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className=" mx-auto h-full px-6 flex items-center justify-between">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="text-2xl font-bold text-[#FF1493] hover:text-[#C71585] transition-colors no-underline font-primary"
+          >
+            LOBBA
+          </Link>
+          
+          {/* Navigation */}
+          <nav className="hidden md:flex gap-8 font-primary">
+            <Link 
+              to="/" 
+              className="font-medium text-gray-900 dark:text-white hover:text-[#FF1493] transition-colors no-underline"
+            >
+              Inicio
+            </Link>
+            <Link 
+              to="/salones" 
+              className="font-medium text-gray-900 dark:text-white hover:text-[#FF1493] transition-colors no-underline"
+            >
+              Salones
+            </Link>
+            <Link 
+              to="/tienda" 
+              className="font-medium text-gray-900 dark:text-white hover:text-[#FF1493] transition-colors no-underline"
+            >
+              Tienda
+            </Link>
+            <Link 
+              to="/comunidad" 
+              className="font-medium text-gray-900 dark:text-white hover:text-[#FF1493] transition-colors no-underline"
+            >
+              Comunidad
+            </Link>
           </nav>
-          <div className="header-actions">
+          
+          {/* Header Actions */}
+          <div className="flex items-center gap-4">
             <ThemeToggle />
             <UserMenu />
           </div>
         </div>
       </header>
       
+      {/* Banner */}
       <BannerDisplay />
       
-      <main className="main-content">
+      {/* Main Content */}
+      <main className="flex-1 w-full  mx-auto">
         <Outlet />
       </main>
       
-      <footer className="main-footer">
-        <div className="footer-content">
+      {/* Footer */}
+      <footer className="h-20 bg-gray-900 dark:bg-black text-white flex items-center justify-center">
+        <div className=" w-full px-6 text-center">
           <p>&copy; 2024 LOBBA. Todos los derechos reservados.</p>
         </div>
       </footer>
       
+      {/* Chatbot */}
       {auth.isAuthenticated && <ChatbotWidget />}
     </div>
   )

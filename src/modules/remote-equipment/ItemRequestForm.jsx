@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { getAllItems, checkStock } from '../../services/item'
 import { requestItemPermission } from '../../services/permission'
-import Card from '../../components/common/Card'
-import Button from '../../components/common/Button'
-import './ItemRequestForm.css'
+import { Card, Button, Input, Alert } from '../../components/common'
 
 const ItemRequestForm = () => {
   const [items, setItems] = useState([])
@@ -59,35 +57,79 @@ const ItemRequestForm = () => {
     }
   }
 
+  if (success) {
+    return (
+      <div className="max-w-2xl mx-auto py-8 px-4">
+        <Card padding="large" className="text-center">
+          <div className="text-6xl mb-4">✅</div>
+          <h3 className="text-2xl font-bold text-green-600 dark:text-green-400 mb-4">
+            ¡Permiso creado exitosamente!
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            Muestra este código en el dispositivo:
+          </p>
+          <div className="bg-gray-100 dark:bg-gray-900 rounded-xl p-6 mb-6 border-2 border-dashed border-[#FF1493]">
+            <p className="text-3xl font-mono font-bold text-[#FF1493] tracking-wider">
+              {success.token}
+            </p>
+          </div>
+          <Button onClick={() => setSuccess(null)} fullWidth>
+            Solicitar Otro Artículo
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="item-request-form">
-      <Card>
-        <h2>Solicitar Artículo Gratis</h2>
-        <p className="description">
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <Card padding="large">
+        <h2 className="font-primary text-3xl font-bold text-[#FF1493] mb-4">
+          🎁 Solicitar Artículo Gratis
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Selecciona un artículo y el dispositivo donde lo quieres recoger
         </p>
 
         {!items.length && !loading && (
-          <Button onClick={fetchItems}>Ver Artículos Disponibles</Button>
+          <div className="text-center py-8">
+            <Button onClick={fetchItems} size="large">
+              Ver Artículos Disponibles
+            </Button>
+          </div>
         )}
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <Alert variant="error" className="mb-6">{error}</Alert>}
 
         {items.length > 0 && (
-          <div className="items-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
             {items.map(item => (
               <div
                 key={item.id}
-                className={`item-card ${selectedItem?.id === item.id ? 'selected' : ''}`}
+                className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
+                  selectedItem?.id === item.id
+                    ? 'border-[#FF1493] bg-[#FFE6F5] dark:bg-[#4A1135] shadow-lg scale-105'
+                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-[#FF1493] hover:shadow-md'
+                }`}
                 onClick={() => handleItemSelect(item)}
               >
                 {item.image_url && (
-                  <img src={item.image_url} alt={item.name} />
+                  <img 
+                    src={item.image_url} 
+                    alt={item.name}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
                 )}
-                <h3>{item.name}</h3>
-                <p className="category">{item.category}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  {item.name}
+                </h3>
+                <p className="text-xs font-medium text-[#FF1493] uppercase tracking-wider mb-2">
+                  {item.category}
+                </p>
                 {item.description && (
-                  <p className="description">{item.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {item.description}
+                  </p>
                 )}
               </div>
             ))}
@@ -95,23 +137,23 @@ const ItemRequestForm = () => {
         )}
 
         {selectedItem && (
-          <form onSubmit={handleSubmit} className="request-form">
-            <h3>Artículo seleccionado: {selectedItem.name}</h3>
+          <form onSubmit={handleSubmit} className="space-y-6 bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              📦 Artículo seleccionado: {selectedItem.name}
+            </h3>
             
-            <div className="form-group">
-              <label htmlFor="deviceId">ID del Dispositivo</label>
-              <input
-                type="text"
-                id="deviceId"
-                value={deviceId}
-                onChange={(e) => setDeviceId(e.target.value)}
-                placeholder="Escanea o ingresa el ID del dispositivo"
-                required
-              />
-            </div>
+            <Input
+              label="ID del Dispositivo"
+              id="deviceId"
+              value={deviceId}
+              onChange={(e) => setDeviceId(e.target.value)}
+              placeholder="Escanea o ingresa el ID del dispositivo"
+              required
+              fullWidth
+            />
 
-            <div className="form-actions">
-              <Button type="button" onClick={() => setSelectedItem(null)}>
+            <div className="flex gap-4 justify-end">
+              <Button type="button" variant="outline" onClick={() => setSelectedItem(null)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={loading}>
@@ -121,18 +163,11 @@ const ItemRequestForm = () => {
           </form>
         )}
 
-        {success && (
-          <div className="success-message">
-            <h3>¡Permiso creado exitosamente!</h3>
-            <p>Muestra este código QR en el dispositivo:</p>
-            <div className="qr-code">
-              <p className="token">{success.token}</p>
-            </div>
-            <Button onClick={() => setSuccess(null)}>Solicitar Otro</Button>
+        {loading && (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 border-4 border-[#FF1493] border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
         )}
-
-        {loading && <div className="loading">Cargando...</div>}
       </Card>
     </div>
   )

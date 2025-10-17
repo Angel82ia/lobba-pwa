@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getPublicCatalog } from '../../services/catalog'
 import DesignCard from './DesignCard'
-import Card from '../../components/common/Card'
-import './CatalogGrid.css'
+import { Card, Button, Select, Alert } from '../../components/common'
 
 const CatalogGrid = () => {
   const [designs, setDesigns] = useState([])
@@ -45,70 +44,86 @@ const CatalogGrid = () => {
     navigate(`/catalogo/${designId}`)
   }
 
-  return (
-    <div className="catalog-page">
-      <Card>
-        <h1>Catálogo Público</h1>
-        
-        <div className="catalog-filters">
-          <div className="filter-group">
-            <label>Tipo:</label>
-            <select 
-              value={filters.type}
-              onChange={(e) => handleFilterChange('type', e.target.value)}
-            >
-              <option value="">Todos</option>
-              <option value="nails">Uñas</option>
-              <option value="hairstyle">Peinados</option>
-            </select>
-          </div>
+  const typeOptions = [
+    { value: '', label: 'Todos' },
+    { value: 'nails', label: '💅 Uñas' },
+    { value: 'hairstyle', label: '💇 Peinados' },
+  ]
 
-          <div className="filter-group">
-            <label>Ordenar:</label>
-            <select 
-              value={filters.sortBy}
-              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            >
-              <option value="recent">Más recientes</option>
-              <option value="popular">Más populares</option>
-              <option value="top_rated">Mejor valorados</option>
-            </select>
+  const sortOptions = [
+    { value: 'recent', label: 'Más recientes' },
+    { value: 'popular', label: 'Más populares' },
+    { value: 'top_rated', label: 'Mejor valorados' },
+  ]
+
+  return (
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <h1 className="font-primary text-4xl font-bold text-[#FF1493] mb-8 text-center">
+        🎨 Catálogo Público de Diseños
+      </h1>
+      
+      {/* Filters */}
+      <Card className="mb-8" padding="medium">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Select
+            label="Tipo"
+            value={filters.type}
+            onChange={(e) => handleFilterChange('type', e.target.value)}
+            options={typeOptions}
+            fullWidth
+          />
+
+          <Select
+            label="Ordenar"
+            value={filters.sortBy}
+            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+            options={sortOptions}
+            fullWidth
+          />
+        </div>
+      </Card>
+
+      {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+
+      {loading && page === 1 ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#FF1493] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Cargando diseños...</p>
           </div>
         </div>
+      ) : designs.length === 0 ? (
+        <Card className="text-center" padding="large">
+          <div className="text-6xl mb-4">🎨</div>
+          <p className="text-xl text-gray-600 dark:text-gray-400">
+            No hay diseños disponibles
+          </p>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {designs.map(design => (
+              <DesignCard 
+                key={design.id} 
+                design={design} 
+                onClick={() => handleDesignClick(design.id)} 
+              />
+            ))}
+          </div>
 
-        {error && <div className="error-message">{error}</div>}
-
-        {loading && page === 1 ? (
-          <div className="loading">Cargando diseños...</div>
-        ) : designs.length === 0 ? (
-          <div className="empty-state">No hay diseños para mostrar</div>
-        ) : (
-          <>
-            <div className="designs-grid">
-              {designs.map(design => (
-                <DesignCard 
-                  key={design.id} 
-                  design={design}
-                  onClick={() => handleDesignClick(design.id)}
-                />
-              ))}
-            </div>
-
-            {loading && page > 1 && (
-              <div className="loading">Cargando más...</div>
-            )}
-
-            {!loading && designs.length >= 20 && (
-              <button 
-                className="load-more"
-                onClick={() => setPage(prev => prev + 1)}
+          {designs.length > 0 && designs.length % 20 === 0 && (
+            <div className="text-center mt-8">
+              <Button 
+                onClick={() => setPage(p => p + 1)} 
+                disabled={loading}
+                variant="outline"
               >
-                Cargar más
-              </button>
-            )}
-          </>
-        )}
-      </Card>
+                {loading ? 'Cargando...' : 'Cargar más'}
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

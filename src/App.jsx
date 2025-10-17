@@ -38,7 +38,11 @@ import DeviceManagement from './modules/admin/DeviceManagement'
 import InventoryManagement from './modules/admin/InventoryManagement'
 import KioskMode from './modules/kiosk/KioskMode'
 import AuditLogDashboard from './modules/admin/AuditLogDashboard'
-import './App.css'
+import Membership from './pages/Membership'
+import ShareMembership from './pages/ShareMembership'
+import MembershipDashboard from './modules/membership/components/MembershipDashboard'
+import MembershipPlans from './modules/membership/MembershipPlans'
+import ReferralDashboard from './modules/referral/ReferralDashboard'
 
 function App() {
   return (
@@ -108,6 +112,15 @@ function App() {
           
           <Route
             path="reservations/new/:salonId"
+            element={
+              <ProtectedRoute>
+                <ReservationCalendar />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="salon/:salonId/reserve"
             element={
               <ProtectedRoute>
                 <ReservationCalendar />
@@ -304,6 +317,46 @@ function App() {
           />
 
           <Route path="kiosk" element={<KioskMode />} />
+
+          {/* Membership Routes */}
+          <Route path="membership/plans" element={<MembershipPlans />} />
+          
+          <Route
+            path="membership"
+            element={
+              <ProtectedRoute>
+                <Membership />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="membership/dashboard"
+            element={
+              <ProtectedRoute>
+                <MembershipDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="membership/share"
+            element={
+              <ProtectedRoute>
+                <ShareMembership />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Referral Routes */}
+          <Route
+            path="referidos"
+            element={
+              <ProtectedRoute>
+                <ReferralDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

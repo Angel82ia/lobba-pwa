@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { sendNotification } from '../../services/notification'
-import Card from '../../components/common/Card'
-import Button from '../../components/common/Button'
-import Input from '../../components/common/Input'
-import './NotificationComposer.css'
+import { Card, Button, Input, Textarea, Select, Alert } from '../../components/common'
 
 const NotificationComposer = () => {
   const [loading, setLoading] = useState(false)
@@ -57,96 +54,105 @@ const NotificationComposer = () => {
   }
 
   return (
-    <div className="notification-composer-page">
-      <Card>
-        <h1>Enviar Notificación</h1>
+    <div className="max-w-3xl mx-auto py-8 px-4">
+      <Card padding="large">
+        <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-6">
+          Enviar Notificación
+        </h1>
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+        {success && <Alert variant="success" className="mb-6">{success}</Alert>}
 
-        <form onSubmit={handleSubmit} className="composer-form">
-          <div className="form-group">
-            <label htmlFor="title">Título</label>
-            <Input
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Ej: ¡Oferta especial!"
-              maxLength={100}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="Título"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            placeholder="Ej: ¡Oferta especial!"
+            maxLength={100}
+            required
+            fullWidth
+          />
 
-          <div className="form-group">
-            <label htmlFor="body">Mensaje</label>
-            <textarea
-              id="body"
-              name="body"
-              value={formData.body}
-              onChange={handleChange}
-              placeholder="Describe tu oferta o evento..."
-              rows={4}
-              maxLength={500}
-              className="textarea-input"
-            />
-          </div>
+          <Textarea
+            label="Mensaje"
+            name="body"
+            value={formData.body}
+            onChange={handleChange}
+            placeholder="Escribe el contenido de la notificación..."
+            rows={5}
+            maxLength={500}
+            required
+            fullWidth
+          />
 
-          <div className="form-group">
-            <label htmlFor="type">Tipo</label>
-            <select
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="select-input"
-            >
-              <option value="oferta">Oferta</option>
-              <option value="evento">Evento</option>
-              <option value="descuento">Descuento</option>
-              <option value="noticia">Noticia</option>
-            </select>
-          </div>
+          <Select
+            label="Tipo de Notificación"
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            fullWidth
+          >
+            <option value="oferta">Oferta</option>
+            <option value="evento">Evento</option>
+            <option value="recordatorio">Recordatorio</option>
+            <option value="info">Información</option>
+          </Select>
 
-          <div className="form-group">
-            <label htmlFor="targetingType">Destinatarios</label>
-            <select
-              id="targetingType"
-              name="targetingType"
-              value={formData.targetingType}
-              onChange={handleChange}
-              className="select-input"
-            >
-              <option value="geographic">Por ubicación geográfica</option>
-              <option value="own_clients">Mis clientes</option>
-            </select>
-          </div>
+          <Select
+            label="Tipo de Segmentación"
+            name="targetingType"
+            value={formData.targetingType}
+            onChange={handleChange}
+            fullWidth
+          >
+            <option value="all">Todos los usuarios</option>
+            <option value="active_members">Solo Socias Activas</option>
+            <option value="geographic">Geográfica (basada en ubicación)</option>
+          </Select>
 
           {formData.targetingType === 'geographic' && (
-            <div className="form-group">
-              <label htmlFor="radiusKm">Radio de alcance</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Radio (kilómetros): {formData.radiusKm} km
+              </label>
               <input
                 type="range"
-                id="radiusKm"
-                name="radiusKm"
                 min="1"
                 max="50"
                 value={formData.radiusKm}
                 onChange={handleRadiusChange}
-                className="range-input"
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#FF1493]"
               />
-              <span className="radius-value">{formData.radiusKm} km</span>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                La notificación se enviará a usuarios dentro de {formData.radiusKm} km del salón.
+              </p>
             </div>
           )}
 
-          <div className="preview-section">
-            <h3>Vista previa</h3>
-            <div className="notification-preview">
-              <div className="preview-title">{formData.title || 'Título de la notificación'}</div>
-              <div className="preview-body">{formData.body || 'Contenido del mensaje...'}</div>
+          {/* Preview */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mt-6">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              Vista Previa
+            </h3>
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <p className="text-base font-bold text-gray-900 dark:text-white mb-2">
+                {formData.title || 'Título de la notificación'}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                {formData.body || 'Contenido de la notificación aparecerá aquí...'}
+              </p>
             </div>
           </div>
 
-          <Button type="submit" disabled={loading}>
+          <Button 
+            type="submit" 
+            loading={loading} 
+            fullWidth 
+            size="large"
+            className="mt-8"
+          >
             {loading ? 'Enviando...' : 'Enviar Notificación'}
           </Button>
         </form>

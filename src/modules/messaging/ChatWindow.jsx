@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { getMessages } from '../../services/message'
 import { connectSocket, joinConversation, onMessageReceived } from '../../services/socket'
 import useStore from '../../store'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
-import Card from '../../components/common/Card'
-import './ChatWindow.css'
+import { Card, Alert } from '../../components/common'
 
 const ChatWindow = () => {
   const { conversationId } = useParams()
@@ -79,27 +78,47 @@ const ChatWindow = () => {
 
   if (!conversationId) {
     return (
-      <div className="chat-window">
-        <Card>
-          <p>Selecciona una conversación para comenzar</p>
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <Card className="text-center" padding="large">
+          <p className="text-gray-600 dark:text-gray-400">
+            Selecciona una conversación para comenzar
+          </p>
         </Card>
       </div>
     )
   }
 
-  if (loading) return <div className="loading">Cargando mensajes...</div>
-  if (error) return <div className="error">{error}</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando mensajes...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <Alert variant="error">{error}</Alert>
+      </div>
+    )
+  }
 
   return (
-    <div className="chat-window">
-      <Card className="chat-card">
-        <div className="chat-header">
-          <h2>Mensajes</h2>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <Card className="flex flex-col h-[calc(100vh-12rem)]" padding="none">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <h2 className="font-primary text-xl font-bold text-gray-900 dark:text-white">
+            Mensajes
+          </h2>
         </div>
         
+        {/* Messages */}
         <MessageList messages={messages} currentUserId={auth.user.id} />
         <div ref={messagesEndRef} />
         
+        {/* Input */}
         <MessageInput onSendMessage={handleSendMessage} />
       </Card>
     </div>

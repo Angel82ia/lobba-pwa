@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getClientProfile, updateClientProfile } from '../../services/profile'
-import Button from '../../components/common/Button'
-import Card from '../../components/common/Card'
-import Input from '../../components/common/Input'
+import { Button, Card, Input, Textarea, Alert } from '../../components/common'
 import useStore from '../../store'
-import './EditProfile.css'
 
 const EditProfile = () => {
   const navigate = useNavigate()
@@ -69,22 +66,29 @@ const EditProfile = () => {
     navigate('/profile')
   }
 
-  if (loading) return <div className="loading">Cargando...</div>
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando...</p>
+    </div>
+  )
 
   return (
-    <div className="edit-profile">
-      <Card>
-        <h1>Editar Perfil</h1>
+    <div className="max-w-2xl mx-auto py-8 px-4">
+      <Card padding="large">
+        <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-6">
+          Editar Perfil
+        </h1>
         
-        {error && <div className="error">{error}</div>}
+        {error && <Alert variant="error" className="mb-6">{error}</Alert>}
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="Nombre"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
             required
+            fullWidth
           />
           
           <Input
@@ -93,6 +97,7 @@ const EditProfile = () => {
             value={formData.lastName}
             onChange={handleChange}
             required
+            fullWidth
           />
           
           <Input
@@ -101,25 +106,32 @@ const EditProfile = () => {
             type="url"
             value={formData.avatar}
             onChange={handleChange}
+            fullWidth
           />
           
-          <div className="form-group">
-            <label htmlFor="bio">Biografía</label>
-            <textarea
-              id="bio"
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              rows="4"
-              className="textarea"
-            />
-          </div>
+          <Textarea
+            label="Biografía"
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+            rows={4}
+            fullWidth
+          />
           
-          <div className="form-actions">
-            <Button type="button" variant="outline" onClick={handleCancel}>
+          <div className="flex gap-4 mt-8">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCancel}
+              className="flex-1"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button 
+              type="submit" 
+              disabled={saving}
+              className="flex-1"
+            >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>

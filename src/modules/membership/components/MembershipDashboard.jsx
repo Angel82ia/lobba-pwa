@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { getMembershipDashboard } from '../../../services/courtesy'
 import Card from '../../../components/common/Card'
 import Button from '../../../components/common/Button'
-import './MembershipDashboard.css'
 
 const MembershipDashboard = () => {
   const [dashboard, setDashboard] = useState(null)
