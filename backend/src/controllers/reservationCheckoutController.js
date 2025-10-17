@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import { applyAutoConfirmation } from '../services/autoConfirmationService.js'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -174,6 +175,7 @@ export const processReservationCheckout = async (req, res) => {
 
 /**
  * Confirmar reserva tras pago exitoso
+ * Aplica autoconfirmación inteligente (9 checks)
  */
 export const confirmReservation = async (req, res) => {
   try {
@@ -194,9 +196,22 @@ export const confirmReservation = async (req, res) => {
       return res.status(404).json({ error: 'Reservation not found' })
     }
 
+    const reservation = reservationResult.rows[0]
+
+    const autoConfirmResult = await applyAutoConfirmation(reservation.id)
+
     return res.status(200).json({
       success: true,
-      reservation: reservationResult.rows[0]
+      reservation: {
+        ...reservation,
+        status: autoConfirmResult.autoConfirmed ? 'confirmed' : 'pending',
+        auto_confirmed: autoConfirmResult.autoConfirmed
+      },
+      autoConfirmation: {
+        applied: autoConfirmResult.autoConfirmed,
+        reason: autoConfirmResult.reason,
+        checks: autoConfirmResult.checks
+      }
     })
 
   } catch (error) {
