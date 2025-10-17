@@ -7,7 +7,39 @@ import { requireAuth, requireRole } from '../middleware/auth.js'
 const router = express.Router()
 
 router.get('/dashboard', requireAuth, dashboardController.getDashboard)
-router.post('/emergency/use', requireAuth, dashboardController.useEmergency)
+
+router.get('/limits/current-month', requireAuth, dashboardController.getCurrentLimits)
+
+router.post(
+  '/emergency/use',
+  requireAuth,
+  [
+    body('articleType').isIn(['pad', 'tampon']).withMessage('Invalid article type'),
+    body('commerceId').notEmpty().withMessage('Commerce ID required'),
+    body('commerceName').notEmpty().withMessage('Commerce name required'),
+  ],
+  dashboardController.requestEmergencyArticle
+)
+
+router.get('/powerbanks/active', requireAuth, dashboardController.getActivePowerbank)
+
+router.post(
+  '/powerbanks/loan',
+  requireAuth,
+  [
+    body('powerbankId').notEmpty().withMessage('Powerbank ID required'),
+    body('commerceId').notEmpty().withMessage('Commerce ID required'),
+    body('commerceName').notEmpty().withMessage('Commerce name required'),
+  ],
+  dashboardController.requestPowerbankLoan
+)
+
+router.post(
+  '/powerbanks/:loanId/return',
+  requireAuth,
+  [param('loanId').isUUID().withMessage('Invalid loan ID')],
+  dashboardController.completePowerbankReturn
+)
 
 router.post(
   '/share',
