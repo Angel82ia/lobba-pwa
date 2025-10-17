@@ -41,3 +41,8 @@ export const completeReservation = async (id, status) => {
   const response = await apiClient.put(`/reservations/${id}/complete`, { status })
   return response.data
 }
+
+export const rejectReservation = async (id, reason) => {
+  const response = await apiClient.put(`/reservations/${id}/reject`, { reason })
+  return response.data
+}
