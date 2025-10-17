@@ -14,8 +14,9 @@
 }
 
 .product-grid-container .error-message {
-  background: #fee;
-  color: #c33;
+  background: var(--color-error);
+  color: var(--color-background);
+  opacity: 0.9;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -38,26 +39,32 @@
   text-align: center;
   padding: 48px;
   font-size: 18px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .no-products {
   grid-column: 1 / -1;
   text-align: center;
   padding: 48px;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .filtering-indicator {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-background);
+  border: 1px solid var(--color-gray-200);
   padding: 12px 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   animation: slideIn 0.3s ease-out;
+}
+
+[data-theme="dark"] .filtering-indicator {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-300);
 }
 
 .filtering-indicator span {
@@ -66,7 +73,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-primary, #FF1493);
+  color: var(--color-primary);
 }
 
 .product-grid.filtering {
