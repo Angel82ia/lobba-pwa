@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -98,6 +99,17 @@ export const processReservationCheckout = async (req, res) => {
       return res.status(400).json({ 
         error: 'This salon has not configured payment reception yet. Please contact the salon.' 
       })
+    }
+
+    const isBlocked = await AvailabilityBlock.isSlotBlocked(
+      service.salon_profile_id,
+      startTime,
+      endTime
+    )
+
+    if (isBlocked) {
+      await client.query('ROLLBACK')
+      return res.status(409).json({ error: 'This time slot is blocked by the salon' })
     }
 
     const overlappingReservations = await client.query(
