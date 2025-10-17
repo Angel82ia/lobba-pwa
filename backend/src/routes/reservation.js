@@ -11,6 +11,7 @@ import {
   cancelReservation,
   completeReservation,
 } from '../controllers/reservationController.js'
+import { modifyReservation, getReservationHistory } from '../controllers/reservationModificationController.js'
 import { auditUserAction } from '../middleware/audit.js'
 
 const router = express.Router()
@@ -31,6 +32,8 @@ router.post(
   createReservation
 )
 router.get('/:id', requireAuth, getReservation)
+router.get('/:id/history', requireAuth, getReservationHistory)
+router.put('/:id', requireAuth, auditUserAction, modifyReservation)
 router.put('/:id/confirm', requireAuth, auditUserAction, confirmReservation)
 router.put(
   '/:id/cancel',
