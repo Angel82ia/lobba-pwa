@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Button from '../../components/common/Button'
-import Input from '../../components/common/Input'
+import { Button, Input, Alert, Card } from '../../components/common'
 import { login } from '../../services/auth'
 import useStore from '../../store'
-import './LoginForm.css'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('')
@@ -65,35 +63,39 @@ const LoginForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="login-form">
-      <h2>Iniciar Sesión</h2>
-      
-      {error && <div className="error-message">{error}</div>}
-      
-      <Input
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="tu@email.com"
-        required
-        fullWidth
-      />
-      
-      <Input
-        label="Contraseña"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••••"
-        required
-        fullWidth
-      />
-      
-      <Button type="submit" loading={loading} fullWidth size="large">
+    <Card className="max-w-md w-full mx-auto" padding="large">
+      <h2 className="font-primary text-2xl font-bold text-[#FF1493] mb-6 text-center">
         Iniciar Sesión
-      </Button>
-    </form>
+      </h2>
+      
+      {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="tu@email.com"
+          required
+          fullWidth
+        />
+        
+        <Input
+          label="Contraseña"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+          fullWidth
+        />
+        
+        <Button type="submit" loading={loading} fullWidth size="large" className="mt-6">
+          Iniciar Sesión
+        </Button>
+      </form>
+    </Card>
   )
 }
 

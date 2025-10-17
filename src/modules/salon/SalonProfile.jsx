@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getSalonProfile, getSalonServices } from '../../services/profile'
-import Button from '../../components/common/Button'
-import Card from '../../components/common/Card'
+import { Button, Card, Alert } from '../../components/common'
 import useStore from '../../store'
-import './SalonProfile.css'
 
 const SalonProfile = () => {
   const { id } = useParams()
@@ -49,11 +47,30 @@ const SalonProfile = () => {
     }
   }, [id])
 
-  if (loading) return <div className="loading">Cargando salón...</div>
-  if (error) return <div className="error">{error}</div>
-  if (!salon) return <div className="not-found">Salón no encontrado</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando salón...</p>
+      </div>
+    )
+  }
 
-  // Defensive coercion for rating and reviews to avoid runtime errors
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <Alert variant="error">{error}</Alert>
+      </div>
+    )
+  }
+
+  if (!salon) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <Alert variant="info">Salón no encontrado</Alert>
+      </div>
+    )
+  }
+
   const ratingNum = parseFloat(salon.rating)
   const safeRating = Number.isNaN(ratingNum) ? 0 : ratingNum
   const starsCount = Math.round(safeRating)
@@ -61,109 +78,204 @@ const SalonProfile = () => {
   const reviewsCount = Number.isFinite(Number(salon.totalReviews)) ? Number(salon.totalReviews) : 0
 
   return (
-    <div className="salon-profile">
-      <div className="salon-gallery">
-        {salon.gallery && salon.gallery.length > 0 ? (
-          <div className="gallery-grid">
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      {/* Gallery */}
+      {salon.gallery && salon.gallery.length > 0 && (
+        <div className="mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {salon.gallery.map((image) => (
               <img 
                 key={image.id} 
                 src={image.cloudinaryUrl} 
                 alt={image.title || salon.businessName}
+                className="w-full h-48 object-cover rounded-lg"
               />
             ))}
           </div>
-        ) : (
-          <div className="no-gallery">Sin imágenes</div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="salon-info-container">
-        <div className="salon-main-info">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Info */}
+        <div className="lg:col-span-2 space-y-6">
           <Card>
-            <div className="salon-header">
-              <h1>{salon.businessName}</h1>
-              <div className="salon-rating">
-                <span className="rating-stars">{'★'.repeat(starsCount)}</span>
-                <span className="rating-value">{formattedRating}</span>
-                <span className="rating-count">({reviewsCount} reseñas)</span>
+            <div className="mb-6">
+              <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-3">
+                {salon.businessName}
+              </h1>
+              <div className="flex items-center gap-3">
+                <span className="text-[#FF1493] text-2xl">
+                  {'★'.repeat(starsCount)}
+                </span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {formattedRating}
+                </span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  ({reviewsCount} reseñas)
+                </span>
               </div>
             </div>
 
             {salon.description && (
-              <div className="salon-description">
-                <p>{salon.description}</p>
+              <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {salon.description}
+                </p>
               </div>
             )}
 
-            <div className="salon-contact">
-              <h3>Contacto</h3>
-              <p><strong>Dirección:</strong> {salon.address}, {salon.city}</p>
-              {salon.phone && <p><strong>Teléfono:</strong> {salon.phone}</p>}
-              {salon.website && <p><strong>Web:</strong> <a href={salon.website} target="_blank" rel="noopener noreferrer">{salon.website}</a></p>}
+            {/* Contact Info */}
+            <div className="mb-6">
+              <h3 className="font-primary text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Contacto
+              </h3>
+              <div className="space-y-2 text-gray-600 dark:text-gray-400">
+                <p>
+                  <strong className="text-gray-900 dark:text-white">Dirección:</strong>{' '}
+                  {salon.address}, {salon.city}
+                </p>
+                {salon.phone && (
+                  <p>
+                    <strong className="text-gray-900 dark:text-white">Teléfono:</strong>{' '}
+                    <a href={`tel:${salon.phone}`} className="text-[#FF1493] hover:underline">
+                      {salon.phone}
+                    </a>
+                  </p>
+                )}
+                {salon.website && (
+                  <p>
+                    <strong className="text-gray-900 dark:text-white">Web:</strong>{' '}
+                    <a 
+                      href={salon.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[#FF1493] hover:underline"
+                    >
+                      {salon.website}
+                    </a>
+                  </p>
+                )}
+              </div>
             </div>
 
+            {/* Business Hours */}
             {salon.businessHours && (
-              <div className="salon-hours">
-                <h3>Horario</h3>
-                {Object.entries(salon.businessHours).map(([day, hours]) => (
-                  <div key={day} className="hours-row">
-                    <span className="day">{day}</span>
-                    <span className="hours">
-                      {hours ? `${hours.open} - ${hours.close}` : 'Cerrado'}
-                    </span>
-                  </div>
-                ))}
+              <div className="mb-6">
+                <h3 className="font-primary text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Horario
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(salon.businessHours).map(([day, hours]) => (
+                    <div key={day} className="flex justify-between text-gray-600 dark:text-gray-400">
+                      <span className="font-medium capitalize">{day}</span>
+                      <span>
+                        {hours ? `${hours.open} - ${hours.close}` : 'Cerrado'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Categories */}
             {salon.categories && salon.categories.length > 0 && (
-              <div className="salon-categories">
-                {salon.categories.map((cat) => (
-                  <span key={cat.id} className="category-badge">{cat.name}</span>
-                ))}
-              </div>
-            )}
-
-            {isOwner && (
-              <div className="owner-actions">
-                <Link to={`/salon/${id}/edit`}>
-                  <Button>Editar Perfil</Button>
-                </Link>
+              <div>
+                <h3 className="font-primary text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Categorías
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {salon.categories.map((category, index) => (
+                    <span 
+                      key={index}
+                      className="px-3 py-1 bg-[#FFE6F5] text-[#C71585] rounded-full text-sm font-medium"
+                    >
+                      {typeof category === 'string' ? category : category.name}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </Card>
+
+          {/* Services */}
+          {services.length > 0 && (
+            <Card>
+              <h2 className="font-primary text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Servicios
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {services.map((service) => (
+                  <div 
+                    key={service.id}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-[#FF1493] transition-colors"
+                  >
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      {service.name}
+                    </h3>
+                    {service.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        {service.description}
+                      </p>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-[#FF1493] font-bold">
+                        {service.price}€
+                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {service.duration} min
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
 
-        <div className="salon-services">
-          <h2>Servicios</h2>
-          {services.length > 0 ? (
-            <div className="services-list">
-              {services.map((service) => (
-                <Card key={service.id} className="service-card">
-                  <div className="service-header">
-                    <h3>{service.name}</h3>
-                    {service.discountPercentage > 0 && (
-                      <span className="discount-badge">-{service.discountPercentage}%</span>
-                    )}
-                  </div>
-                  {service.description && <p className="service-description">{service.description}</p>}
-                  <div className="service-details">
-                    <span className="service-duration">{service.durationMinutes} min</span>
-                    <span className="service-price">{service.price}€</span>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="small"
-                    onClick={() => navigate(`/reservations/new/${id}`)}
-                  >
-                    Reservar
-                  </Button>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p>No hay servicios disponibles</p>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            {isOwner ? (
+              <div className="space-y-3">
+                <Link to={`/salon/${id}/edit`}>
+                  <Button fullWidth>Editar Perfil</Button>
+                </Link>
+                <Button 
+                  fullWidth
+                  variant="outline"
+                  onClick={() => navigate('/salon/services')}
+                >
+                  Gestionar Servicios
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Button 
+                  fullWidth
+                  onClick={() => navigate(`/salon/${id}/reserve`)}
+                >
+                  Reservar Cita
+                </Button>
+                <Button fullWidth variant="outline">
+                  Ver Reseñas
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          {/* Location Card */}
+          {salon.location && (
+            <Card>
+              <h3 className="font-primary text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                Ubicación
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                {salon.address}, {salon.city}
+              </p>
+              <Button fullWidth variant="outline" size="small">
+                Ver en Mapa
+              </Button>
+            </Card>
           )}
         </div>
       </div>

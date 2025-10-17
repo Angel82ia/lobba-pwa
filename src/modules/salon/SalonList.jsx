@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getAllSalons, getSalonsNearby } from '../../services/salon'
-import Card from '../../components/common/Card'
-import Button from '../../components/common/Button'
+import { Card, Button, Input, Select, Alert } from '../../components/common'
 import SalonMap from './SalonMap'
 import useGeolocation from '../../hooks/useGeolocation'
-import './SalonList.css'
 
 const SalonList = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -101,77 +99,107 @@ const SalonList = () => {
     navigate(`/salon/${salonId}`)
   }
 
-  if (loading) return <div className="loading">Cargando salones...</div>
-  if (error) return <div className="error-message">{error}</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando salones...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <Alert variant="error">{error}</Alert>
+      </div>
+    )
+  }
 
   return (
-    <div className={`salon-list-page ${isInitialLoad ? 'initial-load' : ''}`}>
-      <Card className="salon-list-header">
-        <h1>Salones LOBBA</h1>
-        <p className="subtitle">Encuentra los mejores salones de belleza cerca de ti</p>
+    <div className={`max-w-7xl mx-auto py-8 px-4 ${isInitialLoad ? 'opacity-0 animate-fadeIn' : ''}`}>
+      {/* Header Card */}
+      <Card className="mb-8" padding="large">
+        <h1 className="font-primary text-4xl font-bold text-[#FF1493] mb-4 text-center">
+          Salones LOBBA
+        </h1>
+        <p className="text-center text-gray-600 dark:text-gray-400 mb-6 text-lg">
+          Encuentra los mejores salones de belleza cerca de ti
+        </p>
         
-        <div className="view-controls">
+        {/* View Mode Buttons */}
+        <div className="flex justify-center gap-4 mb-6">
           <Button 
             variant={viewMode === 'list' ? 'primary' : 'outline'}
-            size="small"
+            size="medium"
             onClick={() => handleViewModeChange('list')}
           >
             📋 Lista
           </Button>
           <Button 
             variant={viewMode === 'map' ? 'primary' : 'outline'}
-            size="small"
+            size="medium"
             onClick={() => handleViewModeChange('map')}
           >
             🗺️ Mapa
           </Button>
         </div>
 
-        <div className="location-controls">
-          <label className="location-toggle">
+        {/* Location Controls */}
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 mb-6">
+          <label className="flex items-center gap-3 cursor-pointer mb-4">
             <input
               type="checkbox"
               checked={useNearby}
               onChange={(e) => setUseNearby(e.target.checked)}
               disabled={geoLoading || (geoError && !location)}
+              className="w-5 h-5 text-[#FF1493] rounded border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#FF1493] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <span>Buscar cerca de mi ubicación</span>
+            <span className="text-gray-900 dark:text-white font-medium">
+              Buscar cerca de mi ubicación
+            </span>
           </label>
           
           {useNearby && location && (
-            <div className="radius-control">
-              <label>Radio: {tempRadius} km</label>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Radio: {tempRadius} km
+              </label>
               <input
                 type="range"
                 min="1"
                 max="50"
                 value={tempRadius}
                 onChange={(e) => setTempRadius(Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#FF1493]"
               />
             </div>
           )}
           
           {geoError && (
-            <p className="geo-error-text">⚠️ No se pudo obtener tu ubicación</p>
+            <p className="text-sm text-[#EF4444] mt-2">
+              ⚠️ No se pudo obtener tu ubicación
+            </p>
           )}
         </div>
         
+        {/* Filters (only when not using nearby) */}
         {!useNearby && (
-          <div className="salon-filters">
-            <div className="filter-group">
-              <label>Ciudad:</label>
-              <input
-                type="text"
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                label="Ciudad"
                 placeholder="Buscar por ciudad..."
                 value={filters.city}
                 onChange={(e) => handleFilterChange('city', e.target.value)}
+                fullWidth
               />
             </div>
-            <div className="filter-group">
-              <label>Categoría:</label>
-              <select
+            <div className="flex-1">
+              <Select
+                label="Categoría"
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
+                fullWidth
               >
                 <option value="">Todas</option>
                 <option value="belleza">Belleza</option>
@@ -183,18 +211,24 @@ const SalonList = () => {
                 <option value="maquillaje">Maquillaje</option>
                 <option value="depilacion">Depilación</option>
                 <option value="tatuajes-piercings">Tatuajes y Piercings</option>
-              </select>
+              </Select>
             </div>
           </div>
         )}
       </Card>
 
+      {/* Empty State */}
       {salons.length === 0 ? (
-        <div className="empty-state">No se encontraron salones</div>
+        <div className="text-center py-16">
+          <p className="text-gray-500 dark:text-gray-400 text-lg">
+            No se encontraron salones
+          </p>
+        </div>
       ) : (
         <>
+          {/* Map View */}
           {viewMode === 'map' && (
-            <Card className="map-view">
+            <Card className="p-0 overflow-hidden">
               <SalonMap 
                 salons={salons}
                 center={location ? [location.latitude, location.longitude] : null}
@@ -203,23 +237,48 @@ const SalonList = () => {
             </Card>
           )}
           
+          {/* List View */}
           {viewMode === 'list' && (
-            <div className="salons-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {salons.map((salon) => (
-                <Card key={salon.id} className="salon-card" onClick={() => handleSalonClick(salon.id)}>
-                  <h3>{salon.businessName}</h3>
-                  <p className="salon-city">{salon.city}</p>
-                  <div className="salon-rating">
-                    <span className="rating-stars">{'★'.repeat(Math.round(parseFloat(salon.rating) || 5))}</span>
-                    <span className="rating-value">{(parseFloat(salon.rating) || 5).toFixed(1)}</span>
+                <Card 
+                  key={salon.id} 
+                  hover
+                  onClick={() => handleSalonClick(salon.id)}
+                  className="cursor-pointer h-full flex flex-col"
+                >
+                  <h3 className="font-primary text-xl font-semibold text-[#FF1493] mb-2">
+                    {salon.businessName}
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    📍 {salon.city}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-[#FF1493] text-lg">
+                      {'★'.repeat(Math.round(parseFloat(salon.rating) || 5))}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {(parseFloat(salon.rating) || 5).toFixed(1)}
+                    </span>
                   </div>
+                  
                   {salon.description && (
-                    <p className="salon-description">{salon.description.substring(0, 100)}...</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 flex-1">
+                      {salon.description}
+                    </p>
                   )}
+                  
                   {salon.distance && (
-                    <p className="salon-distance">📍 {salon.distance} km</p>
+                    <p className="text-sm font-semibold text-[#FF1493] mb-4">
+                      📍 {salon.distance} km de distancia
+                    </p>
                   )}
-                  <Button variant="outline" size="small">Ver Perfil</Button>
+                  
+                  <Button variant="outline" size="small" fullWidth>
+                    Ver Perfil
+                  </Button>
                 </Card>
               ))}
             </div>

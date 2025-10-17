@@ -1,19 +1,21 @@
 import { Link } from 'react-router-dom'
-import Card from '../components/common/Card'
 import RegisterForm from '../modules/auth/RegisterForm'
-import './Register.css'
 
 const Register = () => {
   return (
-    <div className="register-page">
-
-        <RegisterForm />
-        <div className="register-footer">
-          <p>
-            ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-          </p>
-        </div>
-
+    <div className="min-h-[calc(100vh-20rem)] flex flex-col items-center justify-center py-12 px-4">
+      <RegisterForm />
+      <div className="mt-6 text-center">
+        <p className="text-gray-600 dark:text-gray-400">
+          ¿Ya tienes cuenta?{' '}
+          <Link 
+            to="/login" 
+            className="text-[#FF1493] font-semibold hover:text-[#C71585] hover:underline transition-colors"
+          >
+            Inicia sesión
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

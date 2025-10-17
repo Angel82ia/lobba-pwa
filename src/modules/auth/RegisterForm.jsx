@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Button from '../../components/common/Button'
-import Input from '../../components/common/Input'
+import { Button, Input, Alert, Card } from '../../components/common'
 import { register } from '../../services/auth'
 import useStore from '../../store'
-import './RegisterForm.css'
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -72,54 +70,58 @@ const RegisterForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="register-form">
-      <h2>Crear Cuenta</h2>
+    <Card className="max-w-md w-full mx-auto" padding="large">
+      <h2 className="font-primary text-2xl font-bold text-[#FF1493] mb-6 text-center">
+        Crear Cuenta
+      </h2>
       
-      {error && <div className="error-message">{error}</div>}
+      {error && <Alert variant="error" className="mb-4">{error}</Alert>}
       
-      <Input
-        label="Nombre"
-        name="firstName"
-        value={formData.firstName}
-        onChange={handleChange}
-        required
-        fullWidth
-      />
-      
-      <Input
-        label="Apellido"
-        name="lastName"
-        value={formData.lastName}
-        onChange={handleChange}
-        required
-        fullWidth
-      />
-      
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        value={formData.email}
-        onChange={handleChange}
-        required
-        fullWidth
-      />
-      
-      <Input
-        label="Contraseña"
-        name="password"
-        type="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="Mínimo 8 caracteres"
-        required
-        fullWidth
-      />
-      
-      <Button type="submit" loading={loading} fullWidth size="large">
-        Registrarse
-      </Button>
-    </form>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Nombre"
+          name="firstName"
+          value={formData.firstName}
+          onChange={handleChange}
+          required
+          fullWidth
+        />
+        
+        <Input
+          label="Apellido"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleChange}
+          required
+          fullWidth
+        />
+        
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          fullWidth
+        />
+        
+        <Input
+          label="Contraseña"
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Mínimo 8 caracteres"
+          required
+          fullWidth
+        />
+        
+        <Button type="submit" loading={loading} fullWidth size="large" className="mt-6">
+          Registrarse
+        </Button>
+      </form>
+    </Card>
   )
 }
 

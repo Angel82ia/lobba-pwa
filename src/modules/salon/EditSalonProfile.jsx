@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getSalonProfile, updateSalonProfile } from '../../services/profile'
-import Button from '../../components/common/Button'
-import Card from '../../components/common/Card'
-import Input from '../../components/common/Input'
+import { Button, Card, Input, Textarea, Alert } from '../../components/common'
 import useStore from '../../store'
-import './EditSalonProfile.css'
 
 const EditSalonProfile = () => {
   const navigate = useNavigate()
@@ -96,36 +93,51 @@ const EditSalonProfile = () => {
     navigate(`/salon/${id}`)
   }
 
-  if (loading) return <div className="loading">Cargando...</div>
-  if (unauthorized) return <div className="error">No autorizado para editar este perfil</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="max-w-2xl mx-auto py-8 px-4">
+        <Alert variant="error">
+          No autorizado para editar este perfil
+        </Alert>
+      </div>
+    )
+  }
 
   return (
-    <div className="edit-salon-profile">
-      <Card>
-        <h1>Editar Perfil del Salón</h1>
+    <div className="max-w-2xl mx-auto py-8 px-4">
+      <Card padding="large">
+        <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-6">
+          Editar Perfil del Salón
+        </h1>
         
-        {error && <div className="error">{error}</div>}
+        {error && <Alert variant="error" className="mb-6">{error}</Alert>}
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="Nombre del Negocio"
             name="businessName"
             value={formData.businessName}
             onChange={handleChange}
             required
+            fullWidth
           />
           
-          <div className="form-group">
-            <label htmlFor="description">Descripción</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className="textarea"
-            />
-          </div>
+          <Textarea
+            label="Descripción"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
+            fullWidth
+          />
           
           <Input
             label="Dirección"
@@ -133,6 +145,7 @@ const EditSalonProfile = () => {
             value={formData.address}
             onChange={handleChange}
             required
+            fullWidth
           />
           
           <Input
@@ -141,6 +154,7 @@ const EditSalonProfile = () => {
             value={formData.city}
             onChange={handleChange}
             required
+            fullWidth
           />
           
           <Input
@@ -148,6 +162,7 @@ const EditSalonProfile = () => {
             name="postalCode"
             value={formData.postalCode}
             onChange={handleChange}
+            fullWidth
           />
           
           <Input
@@ -156,6 +171,7 @@ const EditSalonProfile = () => {
             type="tel"
             value={formData.phone}
             onChange={handleChange}
+            fullWidth
           />
           
           <Input
@@ -164,13 +180,23 @@ const EditSalonProfile = () => {
             type="url"
             value={formData.website}
             onChange={handleChange}
+            fullWidth
           />
           
-          <div className="form-actions">
-            <Button type="button" variant="outline" onClick={handleCancel}>
+          <div className="flex gap-4 mt-8">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCancel}
+              className="flex-1"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button 
+              type="submit" 
+              disabled={saving}
+              className="flex-1"
+            >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>

@@ -4,7 +4,6 @@ import { getDeviceStats, getRecentErrors } from '../../services/deviceEvent'
 import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
 import useStore from '../../store'
-import './DeviceManagement.css'
 
 const DeviceManagement = () => {
   const { auth } = useStore()

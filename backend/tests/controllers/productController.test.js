@@ -12,6 +12,9 @@ describe('Product Controller', () => {
   let req, res
 
   beforeEach(() => {
+    // Limpiar todos los mocks antes de cada test
+    vi.clearAllMocks()
+
     req = {
       query: {},
       params: {},
@@ -38,9 +41,11 @@ describe('Product Controller', () => {
   })
 
   describe('getProductById', () => {
-    it('should return product by id', async () => {
-      req.params.id = '1'
-      const mockProduct = { id: '1', name: 'Test Product' }
+    it('should return product by id (UUID)', async () => {
+      // Usar un UUID válido
+      const productId = '123e4567-e89b-12d3-a456-426614174000'
+      req.params.id = productId
+      const mockProduct = { id: productId, name: 'Test Product' }
       Product.findProductById.mockResolvedValue(mockProduct)
       ProductImage.findImagesByProductId.mockResolvedValue([])
       ProductVariant.findVariantsByProductId.mockResolvedValue([])
@@ -50,8 +55,25 @@ describe('Product Controller', () => {
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining(mockProduct))
     })
 
+    it('should return product by slug', async () => {
+      req.params.id = 'test-product-slug'
+      const mockProduct = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        slug: 'test-product-slug',
+        name: 'Test Product',
+      }
+      Product.findProductBySlug.mockResolvedValue(mockProduct)
+      ProductImage.findImagesByProductId.mockResolvedValue([])
+      ProductVariant.findVariantsByProductId.mockResolvedValue([])
+
+      await productController.getProductById(req, res)
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining(mockProduct))
+    })
+
     it('should return 404 if product not found', async () => {
-      req.params.id = '1'
+      const productId = '123e4567-e89b-12d3-a456-426614174000'
+      req.params.id = productId
       Product.findProductById.mockResolvedValue(null)
 
       await productController.getProductById(req, res)

@@ -11,7 +11,21 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement
-    root.setAttribute('data-theme', theme)
+    const body = document.body
+    
+    // Añadir la clase 'dark' al root para que funcione con Tailwind
+    if (theme === 'dark') {
+      root.classList.add('dark')
+      // Aplicar estilos dark directamente al body
+      body.className = 'min-h-screen bg-gray-900 text-white transition-colors duration-200'
+    } else {
+      root.classList.remove('dark')
+      // Aplicar estilos light directamente al body
+      body.className = 'min-h-screen bg-white text-gray-900 transition-colors duration-200'
+    }
+    
+    body.style.fontFamily = "'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    
     localStorage.setItem('lobba-theme', theme)
   }, [theme])
 

@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { createPost } from '../../services/community'
-import Button from '../../components/common/Button'
-import './PostComposer.css'
+import { Button, Textarea, Input, Alert } from '../../components/common'
 
 const PostComposer = ({ onPostCreated }) => {
   const [content, setContent] = useState('')
@@ -35,35 +34,51 @@ const PostComposer = ({ onPostCreated }) => {
   }
 
   return (
-    <div className="post-composer">
-      <form onSubmit={handleSubmit}>
-        <textarea
+    <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Textarea
           placeholder="¿Qué estás pensando?"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          rows="4"
+          rows={4}
           disabled={loading}
+          maxLength={1000}
+          fullWidth
         />
         
-        <input
+        <Input
           type="url"
           placeholder="URL de imagen (opcional)"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           disabled={loading}
+          fullWidth
         />
 
         {imageUrl && (
-          <div className="image-preview">
-            <img src={imageUrl} alt="Preview" />
+          <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <img 
+              src={imageUrl} 
+              alt="Preview" 
+              className="w-full h-auto max-h-64 object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none'
+                setError('URL de imagen inválida')
+              }}
+            />
           </div>
         )}
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <Alert variant="error">{error}</Alert>}
 
-        <Button type="submit" disabled={loading || !content.trim()}>
-          {loading ? 'Publicando...' : 'Publicar'}
-        </Button>
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            disabled={loading || !content.trim()}
+          >
+            {loading ? 'Publicando...' : 'Publicar'}
+          </Button>
+        </div>
       </form>
     </div>
   )

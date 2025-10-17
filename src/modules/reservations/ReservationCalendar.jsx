@@ -2,10 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getSalonProfile, getSalonServices } from '../../services/profile'
 import { getAvailableSlots, createReservation } from '../../services/reservation'
-import Button from '../../components/common/Button'
-import Card from '../../components/common/Card'
-import Input from '../../components/common/Input'
-import './ReservationCalendar.css'
+import { Button, Card, Input, Textarea, Alert } from '../../components/common'
 
 const ReservationCalendar = () => {
   const { salonId } = useParams()
@@ -94,34 +91,65 @@ const ReservationCalendar = () => {
     }
   }
 
-  if (loading) return <div className="loading">Cargando...</div>
-  if (error) return <div className="error">{error}</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600 dark:text-gray-400 text-lg">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (error && !salon) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <Alert variant="error">{error}</Alert>
+      </div>
+    )
+  }
 
   return (
-    <div className="reservation-calendar">
-      <Card>
-        <h1>Nueva Reserva en {salon?.businessName}</h1>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <Card padding="large">
+        <h1 className="font-primary text-3xl font-bold text-[#FF1493] mb-8">
+          Nueva Reserva en {salon?.businessName}
+        </h1>
         
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Selecciona un Servicio</label>
-            <div className="services-grid">
+        {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+        
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Servicios */}
+          <div>
+            <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Selecciona un Servicio
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`service-option ${selectedService?.id === service.id ? 'selected' : ''}`}
+                  className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    selectedService?.id === service.id
+                      ? 'border-[#FF1493] bg-[#FFE6F5] dark:bg-[#4A1135] shadow-lg'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-[#FF1493] hover:shadow-md'
+                  }`}
                   onClick={() => setSelectedService(service)}
                 >
-                  <h3>{service.name}</h3>
-                  <p>{service.durationMinutes} min - {service.price}€</p>
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
+                    {service.name}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    {service.durationMinutes} min • <span className="font-bold text-[#FF1493]">{service.price}€</span>
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Fecha */}
           {selectedService && (
-            <div className="form-group">
-              <label htmlFor="date">Selecciona una Fecha</label>
+            <div>
+              <label htmlFor="date" className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Selecciona una Fecha
+              </label>
               <input
                 type="date"
                 id="date"
@@ -129,22 +157,32 @@ const ReservationCalendar = () => {
                 onChange={(e) => setSelectedDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 required
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF1493] focus:border-transparent transition-all"
               />
             </div>
           )}
 
+          {/* Horarios */}
           {selectedService && selectedDate && (
-            <div className="form-group">
-              <label>Selecciona una Hora</label>
+            <div>
+              <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Selecciona una Hora
+              </label>
               {loadingSlots ? (
-                <p>Cargando horarios...</p>
+                <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+                  ⏳ Cargando horarios disponibles...
+                </p>
               ) : availableSlots.length > 0 ? (
-                <div className="slots-grid">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {availableSlots.map((slot) => (
                     <button
                       key={slot}
                       type="button"
-                      className={`slot-button ${selectedSlot === slot ? 'selected' : ''}`}
+                      className={`px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                        selectedSlot === slot
+                          ? 'bg-[#FF1493] text-white shadow-lg shadow-[#FF1493]/30 scale-105'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-105'
+                      }`}
                       onClick={() => setSelectedSlot(slot)}
                     >
                       {slot}
@@ -152,22 +190,30 @@ const ReservationCalendar = () => {
                   ))}
                 </div>
               ) : (
-                <p>No hay horarios disponibles para esta fecha</p>
+                <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">
+                    😔 No hay horarios disponibles para esta fecha
+                  </p>
+                  <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
+                    Intenta con otra fecha
+                  </p>
+                </div>
               )}
             </div>
           )}
 
+          {/* Detalles adicionales */}
           {selectedSlot && (
             <>
-              <div className="form-group">
-                <label>Notas (opcional)</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Añade cualquier comentario o preferencia..."
-                />
-              </div>
+              <Textarea
+                label="Notas (opcional)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                placeholder="Añade cualquier comentario o preferencia..."
+                maxLength={500}
+                fullWidth
+              />
 
               <Input
                 label="Teléfono de Contacto"
@@ -175,11 +221,34 @@ const ReservationCalendar = () => {
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
                 placeholder="+34 123 456 789"
+                fullWidth
               />
 
-              <div className="form-actions">
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Reservando...' : 'Confirmar Reserva'}
+              {/* Resumen */}
+              <Card className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" padding="medium">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-3">
+                  📋 Resumen de tu Reserva
+                </h3>
+                <div className="space-y-2 text-gray-700 dark:text-gray-300">
+                  <p><strong>Servicio:</strong> {selectedService.name}</p>
+                  <p><strong>Fecha:</strong> {new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <p><strong>Hora:</strong> {selectedSlot}</p>
+                  <p><strong>Duración:</strong> {selectedService.durationMinutes} minutos</p>
+                  <p className="text-xl font-bold text-[#FF1493] mt-3">
+                    Total: {selectedService.price}€
+                  </p>
+                </div>
+              </Card>
+
+              {/* Botón de confirmación */}
+              <div className="pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={submitting}
+                  fullWidth
+                  size="large"
+                >
+                  {submitting ? 'Reservando...' : '✓ Confirmar Reserva'}
                 </Button>
               </div>
             </>

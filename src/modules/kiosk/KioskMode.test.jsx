@@ -50,7 +50,7 @@ describe('KioskMode', () => {
     const input = screen.getByPlaceholderText('Token o código QR')
     fireEvent.change(input, { target: { value: 'valid-token' } })
 
-    const validateButton = screen.getByText('Validar')
+    const validateButton = screen.getByText(/Validar/)
     fireEvent.click(validateButton)
 
     await waitFor(() => {
@@ -68,7 +68,7 @@ describe('KioskMode', () => {
     const input = screen.getByPlaceholderText('Token o código QR')
     fireEvent.change(input, { target: { value: 'invalid-token' } })
 
-    const validateButton = screen.getByText('Validar')
+    const validateButton = screen.getByText(/Validar/)
     fireEvent.click(validateButton)
 
     await waitFor(() => {
@@ -94,12 +94,12 @@ describe('KioskMode', () => {
     const input = screen.getByPlaceholderText('Token o código QR')
     fireEvent.change(input, { target: { value: 'valid-token' } })
 
-    const validateButton = screen.getByText('Validar')
+    const validateButton = screen.getByText(/Validar/)
     fireEvent.click(validateButton)
 
     await waitFor(() => {
       expect(screen.getByText('Acción:')).toBeInTheDocument()
-      expect(screen.getByText('dispense')).toBeInTheDocument()
+      expect(screen.getByText('dispense', { exact: false })).toBeInTheDocument()
     })
   })
 })

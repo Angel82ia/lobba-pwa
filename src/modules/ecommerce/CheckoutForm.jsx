@@ -7,7 +7,6 @@ import { createPaymentIntent, confirmPayment } from '../../services/checkout'
 import Button from '../../components/common/Button'
 import Card from '../../components/common/Card'
 import Input from '../../components/common/Input'
-import './CheckoutForm.css'
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder')
 

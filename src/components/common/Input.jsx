@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import PropTypes from 'prop-types'
-import './Input.css'
 
 const Input = ({
   label,
@@ -20,21 +19,33 @@ const Input = ({
     [props.id]
   )
 
-  const classNames = [
-    'input-wrapper',
-    fullWidth && 'input-full-width',
-    error && 'input-error',
+  const containerClasses = [
+    fullWidth ? 'w-full' : 'w-auto',
     className,
   ]
     .filter(Boolean)
     .join(' ')
 
+  const inputBaseClasses = 'w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-200'
+  
+  const inputClasses = [
+    inputBaseClasses,
+    error 
+      ? 'border-[#EF4444] focus:ring-[#EF4444]' 
+      : 'border-gray-300 dark:border-gray-600 focus:ring-[#FF1493]',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={classNames}>
+    <div className={containerClasses}>
       {label && (
-        <label htmlFor={inputId} className="input-label">
+        <label 
+          htmlFor={inputId} 
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+        >
           {label}
-          {required && <span className="input-required">*</span>}
+          {required && <span className="text-[#EF4444] ml-1">*</span>}
         </label>
       )}
       <input
@@ -45,10 +56,14 @@ const Input = ({
         placeholder={placeholder}
         disabled={disabled}
         required={required}
-        className="input-field"
+        className={inputClasses}
         {...props}
       />
-      {error && <span className="input-error-message">{error}</span>}
+      {error && (
+        <p className="mt-1.5 text-sm text-[#EF4444]">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

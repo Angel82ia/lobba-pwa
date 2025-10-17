@@ -13,7 +13,7 @@ describe('NotificationComposer', () => {
   it('should render notification composer form', () => {
     render(<NotificationComposer />)
 
-    expect(screen.getByRole('heading', { name: 'Enviar Notificación' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Enviar Notificación/ })).toBeInTheDocument()
     expect(screen.getByLabelText('Título')).toBeInTheDocument()
     expect(screen.getByLabelText('Mensaje')).toBeInTheDocument()
     expect(screen.getByLabelText('Tipo')).toBeInTheDocument()
@@ -38,8 +38,9 @@ describe('NotificationComposer', () => {
     fireEvent.change(bodyInput, { target: { value: 'Descuento del 20%' } })
 
     expect(screen.getByText('Vista previa')).toBeInTheDocument()
-    const previewSection = screen.getByText('Oferta Especial').closest('.notification-preview')
-    expect(previewSection).toBeInTheDocument()
+    // Verify preview content is visible (text appears twice - in input and preview)
+    expect(screen.getAllByText('Oferta Especial').length).toBeGreaterThan(1)
+    expect(screen.getByText('Descuento del 20%')).toBeInTheDocument()
   })
 
   it('should send notification successfully', async () => {
@@ -51,7 +52,7 @@ describe('NotificationComposer', () => {
 
     const titleInput = screen.getByLabelText('Título')
     const bodyInput = screen.getByLabelText('Mensaje')
-    const submitButton = screen.getByRole('button', { name: 'Enviar Notificación' })
+    const submitButton = screen.getByRole('button', { name: /Enviar Notificación/ })
 
     fireEvent.change(titleInput, { target: { value: 'Test Title' } })
     fireEvent.change(bodyInput, { target: { value: 'Test Body' } })
@@ -66,7 +67,7 @@ describe('NotificationComposer', () => {
   it('should show error for missing fields', async () => {
     render(<NotificationComposer />)
 
-    const submitButton = screen.getByRole('button', { name: 'Enviar Notificación' })
+    const submitButton = screen.getByRole('button', { name: /Enviar Notificación/ })
     fireEvent.click(submitButton)
 
     await waitFor(() => {
@@ -83,7 +84,7 @@ describe('NotificationComposer', () => {
 
     const titleInput = screen.getByLabelText('Título')
     const bodyInput = screen.getByLabelText('Mensaje')
-    const submitButton = screen.getByRole('button', { name: 'Enviar Notificación' })
+    const submitButton = screen.getByRole('button', { name: /Enviar Notificación/ })
 
     fireEvent.change(titleInput, { target: { value: 'Test' } })
     fireEvent.change(bodyInput, { target: { value: 'Test' } })
