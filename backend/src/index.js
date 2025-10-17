@@ -86,15 +86,32 @@ const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:5173']
 
+// Función para validar si un origen es seguro
+const isAllowedOrigin = origin => {
+  if (!origin) return true // Permitir requests sin origin (mobile apps, curl)
+
+  // Verificar si está en la lista de orígenes permitidos
+  if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+    return true
+  }
+
+  // Permitir preview deployments de Vercel de forma segura
+  // Patrón específico: https://lobba-pwa-vite-*.vercel.app
+  const vercelPattern = /^https:\/\/lobba-pwa-vite-[a-zA-Z0-9-]+\.vercel\.app$/
+  if (vercelPattern.test(origin)) {
+    return true
+  }
+
+  return false
+}
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permitir requests sin origin (como mobile apps o curl)
-      if (!origin) return callback(null, true)
-
-      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true)
       } else {
+        logger.warn(`CORS blocked origin: ${origin}`)
         callback(new Error('Not allowed by CORS'))
       }
     },
