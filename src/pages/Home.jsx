@@ -26,10 +26,10 @@ const Home = () => {
         />
         
         {/* Content */}
-        <h1 className="relative z-10 font-primary text-4xl font-bold text-[#FF1493] mb-6">
+        <h1 className="relative z-10 font-primary text-4xl md:text-5xl font-bold text-[#FF1493] mb-6">
           Bienvenida a LOBBA
         </h1>
-        <p className="relative z-10 font-secondary text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-[600px] mx-auto">
+        <p className="relative z-10 font-secondary text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-[600px] mx-auto">
           Tu plataforma integral para servicios de belleza, reservas y e-commerce
         </p>
         <div className="relative z-10 flex gap-6 justify-center flex-wrap">

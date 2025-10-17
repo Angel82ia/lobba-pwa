@@ -9,21 +9,20 @@ const MainLayout = () => {
   const { auth } = useStore()
   
   return (
-    <div className="flex flex-col min-h-screen" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+    <div className="flex flex-col min-h-screen font-secondary">
       {/* Header */}
       <header className="sticky top-0 z-[1020] h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         <div className=" mx-auto h-full px-6 flex items-center justify-between">
           {/* Logo */}
           <Link 
             to="/" 
-            className="text-2xl font-bold text-[#FF1493] hover:text-[#C71585] transition-colors no-underline"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
+            className="text-2xl font-bold text-[#FF1493] hover:text-[#C71585] transition-colors no-underline font-primary"
           >
             LOBBA
           </Link>
           
           {/* Navigation */}
-          <nav className="hidden md:flex gap-8" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+          <nav className="hidden md:flex gap-8 font-primary">
             <Link 
               to="/" 
               className="font-medium text-gray-900 dark:text-white hover:text-[#FF1493] transition-colors no-underline"
