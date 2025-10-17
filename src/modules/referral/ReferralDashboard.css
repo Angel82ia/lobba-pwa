@@ -84,7 +84,7 @@
 .copy-button {
   padding: 0.75rem 1.5rem;
   background: var(--gradient-liquid-pink);
-  color: white;
+  color: var(--color-background);
   border: none;
   border-radius: var(--radius-md);
   font-family: var(--font-body);
@@ -130,23 +130,22 @@
 .stat-number {
   font-size: 3.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-background);
   line-height: 1;
 }
 
 .stat-label {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-background);
+  opacity: 0.9;
   margin-top: 0.5rem;
 }
 
 .progress-bar-container {
   width: 100%;
   height: 12px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-background);
+  opacity: 0.2;
   border-radius: var(--radius-full);
   overflow: hidden;
   margin-bottom: 1rem;
@@ -154,10 +153,11 @@
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+  background: var(--color-background);
   border-radius: var(--radius-full);
   transition: width var(--transition-slow);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px var(--color-background);
+  opacity: 0.8;
 }
 
 .remaining-text,
@@ -165,7 +165,8 @@
   text-align: center;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--color-background);
+  opacity: 0.95;
 }
 
 .success-text {
@@ -183,7 +184,8 @@
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-background);
+  opacity: 0.1;
   border-radius: var(--radius-md);
   backdrop-filter: blur(10px);
 }
@@ -191,12 +193,13 @@
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-background);
 }
 
 .stat-name {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-background);
+  opacity: 0.8;
   margin-top: 0.25rem;
 }
 
@@ -261,7 +264,7 @@
   flex-shrink: 0;
   padding: 0.5rem 1rem;
   background: var(--color-success);
-  color: white;
+  color: var(--color-background);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
@@ -335,17 +338,17 @@
 
 .membership-badge.essential {
   background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  color: white;
+  color: var(--color-background);
 }
 
 .membership-badge.spirit {
   background: var(--gradient-liquid-pink);
-  color: white;
+  color: var(--color-background);
 }
 
 .status-badge.completed {
   background: var(--color-success);
-  color: white;
+  color: var(--color-background);
 }
 
 .status-badge.pending,
@@ -416,7 +419,7 @@
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-background);
   border: none;
   border-radius: var(--radius-md);
   font-family: var(--font-body);

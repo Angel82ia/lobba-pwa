@@ -84,6 +84,7 @@
   /* Transiciones */
   --transition-fast: 150ms ease-in-out;
   --transition-base: 200ms ease-in-out;
+  --transition-normal: 200ms ease-in-out;
   --transition-slow: 300ms ease-in-out;
   
   /* Z-index */
@@ -117,6 +118,20 @@
   /* Text colors for theme support */
   --color-text-primary: #000000;
   --color-text-secondary: #666666;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  
+  /* Font aliases for compatibility */
+  --font-heading: var(--font-primary);
+  --font-body: var(--font-secondary);
+  
+  /* Border radius aliases for compatibility */
+  --radius-sm: var(--border-radius-sm);
+  --radius-md: var(--border-radius-md);
+  --radius-lg: var(--border-radius-lg);
+  --radius-xl: var(--border-radius-xl);
+  --radius-2xl: 1.5rem;
+  --radius-full: var(--border-radius-full);
   
   /* Additional variables */
   --border-radius-2xl: 1.5rem;
@@ -157,6 +172,8 @@
   --color-background: #000000;
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #CCCCCC;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
   
   /* Escala de Grises Invertida */
   --color-gray-50: #111827;
