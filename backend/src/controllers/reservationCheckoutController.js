@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import { setConfirmationDeadline } from '../services/reservationTimeoutService.js'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -142,7 +143,14 @@ export const processReservationCheckout = async (req, res) => {
 
     const paymentIntent = await createSplitPayment(updatedReservation)
 
+    await setConfirmationDeadline(reservation.id, 2)
+
     await client.query('COMMIT')
+
+    const deadlineResult = await pool.query(
+      'SELECT confirmation_deadline FROM reservations WHERE id = $1',
+      [reservation.id]
+    )
 
     return res.status(201).json({
       success: true,
@@ -155,11 +163,17 @@ export const processReservationCheckout = async (req, res) => {
         endTime,
         totalPrice,
         commissionAmount: updatedReservation.commission_amount,
-        amountToCommerce: updatedReservation.amount_to_commerce
+        amountToCommerce: updatedReservation.amount_to_commerce,
+        confirmationDeadline: deadlineResult.rows[0].confirmation_deadline
       },
       paymentIntent: {
         clientSecret: paymentIntent.client_secret,
         id: paymentIntent.id
+      },
+      timeout: {
+        hours: 2,
+        deadline: deadlineResult.rows[0].confirmation_deadline,
+        message: 'Esta reserva debe confirmarse en 2 horas o será cancelada automáticamente con reembolso'
       }
     })
 
