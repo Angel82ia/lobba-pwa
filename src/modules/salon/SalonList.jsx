@@ -13,6 +13,7 @@ const SalonList = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [filters, setFilters] = useState({ city: '', category: '' })
+  const [tempFilters, setTempFilters] = useState({ city: '', category: '' })
   const [viewMode, setViewMode] = useState(searchParams.get('view') || 'list')
   const [useNearby, setUseNearby] = useState(false)
   const [radius, setRadius] = useState(5)
@@ -49,6 +50,16 @@ const SalonList = () => {
       clearTimeout(debounceTimer)
     }
   }, [tempRadius])
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setFilters(tempFilters)
+    }, 500)
+
+    return () => {
+      clearTimeout(debounceTimer)
+    }
+  }, [tempFilters])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -89,7 +100,7 @@ const SalonList = () => {
   }, [filters, useNearby, location, radius])
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+    setTempFilters(prev => ({ ...prev, [key]: value }))
   }
 
   const handleViewModeChange = (mode) => {
@@ -163,14 +174,14 @@ const SalonList = () => {
               <input
                 type="text"
                 placeholder="Buscar por ciudad..."
-                value={filters.city}
+                value={tempFilters.city}
                 onChange={(e) => handleFilterChange('city', e.target.value)}
               />
             </div>
             <div className="filter-group">
               <label>Categoría:</label>
               <select
-                value={filters.category}
+                value={tempFilters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
               >
                 <option value="">Todas</option>
