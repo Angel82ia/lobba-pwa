@@ -110,6 +110,10 @@ export const updateAccountStatus = async (salonProfileId, accountId) => {
 }
 
 /**
+ * @deprecated OBSOLETO - No usar. Payment Intent se crea directamente en reservationCheckoutController
+ * @see processReservationCheckout en reservationCheckoutController.js
+ * 
+ * Esta función se mantiene solo para compatibilidad temporal
  * Crear Split Payment (3% LOBBA, 97% Salón)
  */
 export const createSplitPayment = async (reservation) => {
