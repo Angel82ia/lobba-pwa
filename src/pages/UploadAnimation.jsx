@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import useStore from '../store'
 import { useNavigate } from 'react-router-dom'
 import './UploadAnimation.css'
 
 const UploadAnimation = () => {
-  const { user } = useAuth()
+  const user = useStore((state) => state.auth.user)
   const navigate = useNavigate()
   
   const [beforePhoto, setBeforePhoto] = useState(null)

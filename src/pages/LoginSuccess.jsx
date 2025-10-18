@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import useStore from '../store'
 import PersonalizedAnimation from '../components/PersonalizedAnimation'
 import { preloadUserAnimation } from '../services/animationPreloader'
 import './LoginSuccess.css'
 
 const LoginSuccess = () => {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const user = useStore((state) => state.auth.user)
 
   useEffect(() => {
     if (user?.id) {
