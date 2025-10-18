@@ -43,6 +43,8 @@ import ShareMembership from './pages/ShareMembership'
 import MembershipDashboard from './modules/membership/components/MembershipDashboard'
 import MembershipPlans from './modules/membership/MembershipPlans'
 import ReferralDashboard from './modules/referral/ReferralDashboard'
+import LoginSuccess from './pages/LoginSuccess'
+import UploadAnimation from './pages/UploadAnimation'
 
 function App() {
   return (
@@ -52,6 +54,15 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          
+          <Route
+            path="login-success"
+            element={
+              <ProtectedRoute>
+                <LoginSuccess />
+              </ProtectedRoute>
+            }
+          />
           
           <Route
             path="profile/:id?"
@@ -67,6 +78,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="profile/animation/upload"
+            element={
+              <ProtectedRoute>
+                <UploadAnimation />
               </ProtectedRoute>
             }
           />
