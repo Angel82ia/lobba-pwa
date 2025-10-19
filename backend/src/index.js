@@ -40,6 +40,7 @@ import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
 import { generalLimiter } from './middleware/rateLimits.js'
 import { initialize as initializeStorage } from './services/cloudStorageService.js'
+import { initialize as initializeGoogleSheets } from './services/googleSheetsService.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -176,6 +177,7 @@ if (process.env.NODE_ENV !== 'test') {
   httpServer.listen(PORT, '0.0.0.0', async () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
     await initializeStorage()
+    await initializeGoogleSheets()
   })
 }
 
