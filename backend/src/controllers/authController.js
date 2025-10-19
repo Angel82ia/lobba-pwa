@@ -19,6 +19,8 @@ import {
 } from '../utils/auth.js'
 import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
+import { findCodigoByValue } from '../models/CodigoInfluencer.js'
+import { enviarRegistroASheet } from '../services/googleSheetsService.js'
 
 export const register = async (req, res) => {
   try {
@@ -27,11 +29,24 @@ export const register = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { email, password, firstName, lastName, role = 'user' } = req.body
+    const { email, password, firstName, lastName, role = 'user', codigo_referido } = req.body
 
     const existingUser = await findUserByEmail(email)
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' })
+    }
+
+    let codigoReferidoValido = null
+    if (codigo_referido) {
+      const codigoTrimmed = codigo_referido.trim().toUpperCase()
+      if (codigoTrimmed) {
+        const codigoExistente = await findCodigoByValue(codigoTrimmed)
+        if (codigoExistente) {
+          codigoReferidoValido = codigoTrimmed
+        } else {
+          logger.warn(`Código de referido inválido intentado: ${codigoTrimmed}`)
+        }
+      }
     }
 
     const passwordHash = await hashPassword(password)
@@ -41,7 +56,16 @@ export const register = async (req, res) => {
       firstName,
       lastName,
       role,
+      codigoReferido: codigoReferidoValido,
     })
+
+    if (codigoReferidoValido) {
+      enviarRegistroASheet({
+        codigo: codigoReferidoValido,
+        nombre: `${firstName} ${lastName}`,
+        email: email,
+      }).catch(err => logger.error('Error enviando a Google Sheets (no crítico):', err))
+    }
 
     const accessToken = generateAccessToken(user)
     const refreshToken = generateRefreshToken(user)

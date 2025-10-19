@@ -8,11 +8,12 @@ export const createUser = async ({
   role,
   googleId,
   appleId,
+  codigoReferido,
 }) => {
   const result = await pool.query(
-    `INSERT INTO users (email, password_hash, first_name, last_name, role, google_id, apple_id, membership_active, membership_status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     RETURNING id, email, first_name, last_name, role, membership_active, membership_status, created_at`,
+    `INSERT INTO users (email, password_hash, first_name, last_name, role, google_id, apple_id, membership_active, membership_status, codigo_referido)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING id, email, first_name, last_name, role, membership_active, membership_status, codigo_referido, created_at`,
     [
       email,
       passwordHash,
@@ -23,6 +24,7 @@ export const createUser = async ({
       appleId,
       role === 'user',
       role === 'user' ? 'active' : 'expired',
+      codigoReferido || null,
     ]
   )
   return result.rows[0]
