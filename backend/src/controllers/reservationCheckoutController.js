@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import { applyAutoConfirmation } from '../services/autoConfirmationService.js'
 import { setConfirmationDeadline } from '../services/reservationTimeoutService.js'
 
 /**
