@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import PropTypes from 'prop-types'
 import api from '../../../services/api'
 
 /**
@@ -13,7 +14,7 @@ import api from '../../../services/api'
  * 6. Puede sincronizar manualmente
  * 7. Ve última sincronización
  */
-export default function GoogleCalendarIntegration({ salonId }) {
+function GoogleCalendarIntegration({ salonId }) {
   const [status, setStatus] = useState({
     connected: false,
     synced: false,
@@ -30,14 +31,6 @@ export default function GoogleCalendarIntegration({ salonId }) {
       const response = await api.get(`/salons/${salonId}`)
       const salon = response.data
       
-      // DEBUG: Ver qué campos llegan
-      console.log('📊 Salon data:', {
-        google_calendar_enabled: salon.google_calendar_enabled,
-        google_sync_enabled: salon.google_sync_enabled,
-        google_calendar_id: salon.google_calendar_id,
-        last_google_sync: salon.last_google_sync
-      })
-      
       const newStatus = {
         connected: salon.google_calendar_enabled || false,
         synced: salon.google_sync_enabled || false,
@@ -46,12 +39,10 @@ export default function GoogleCalendarIntegration({ salonId }) {
         loading: false,
       }
       
-      console.log('📊 Status calculado:', newStatus)
-      
       setStatus(newStatus)
       return salon
     } catch (error) {
-      console.error('Error checking status:', error)
+      // Error checking Google Calendar status
       setStatus(prev => ({ ...prev, loading: false }))
       return null
     }
@@ -62,7 +53,7 @@ export default function GoogleCalendarIntegration({ salonId }) {
       const response = await api.get(`/google-calendar/calendars/${salonId}`)
       setCalendars(response.data.calendars || [])
     } catch (error) {
-      console.error('Error loading calendars:', error)
+      // Error loading calendars
       alert('Error al cargar calendarios. Por favor, reconecta tu cuenta.')
     }
   }, [salonId])
@@ -89,7 +80,7 @@ export default function GoogleCalendarIntegration({ salonId }) {
       // Abrir en ventana actual (mejor UX que popup)
       window.location.href = authUrl
     } catch (error) {
-      console.error('Error connecting:', error)
+      // Error connecting to Google Calendar
       alert('Error al conectar con Google Calendar')
     }
   }
@@ -112,7 +103,7 @@ export default function GoogleCalendarIntegration({ salonId }) {
       // Hacer primera sincronización
       handleSync()
     } catch (error) {
-      console.error('Error selecting calendar:', error)
+      // Error selecting calendar
       alert('Error al seleccionar calendario')
     }
   }
@@ -146,7 +137,7 @@ export default function GoogleCalendarIntegration({ salonId }) {
         messages.join('\n')
       )
     } catch (error) {
-      console.error('Error syncing:', error)
+      // Error syncing with Google Calendar
       alert('❌ Error al sincronizar. Por favor, intenta de nuevo.')
     } finally {
       setSyncing(false)
@@ -172,7 +163,7 @@ export default function GoogleCalendarIntegration({ salonId }) {
       
       alert('Google Calendar desconectado')
     } catch (error) {
-      console.error('Error disconnecting:', error)
+      // Error disconnecting from Google Calendar
       alert('Error al desconectar')
     }
   }
@@ -356,3 +347,8 @@ export default function GoogleCalendarIntegration({ salonId }) {
   )
 }
 
+GoogleCalendarIntegration.propTypes = {
+  salonId: PropTypes.string.isRequired,
+}
+
+export default GoogleCalendarIntegration

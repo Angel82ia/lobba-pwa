@@ -207,8 +207,13 @@ const SalonProfile = () => {
                 {services.map((service) => (
                   <div 
                     key={service.id}
-                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-[#FF1493] transition-colors"
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-[#FF1493] transition-colors relative"
                   >
+                    {service.discountPercentage > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        -{service.discountPercentage}%
+                      </span>
+                    )}
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
                       {service.name}
                     </h3>
@@ -222,7 +227,7 @@ const SalonProfile = () => {
                         {service.price}€
                       </span>
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {service.duration} min
+                        {service.durationMinutes || service.duration} min
                       </span>
                     </div>
                   </div>
@@ -237,8 +242,11 @@ const SalonProfile = () => {
           <Card>
             {isOwner ? (
               <div className="space-y-3">
-                <Link to={`/salon/${id}/edit`}>
-                  <Button fullWidth>Editar Perfil</Button>
+                <Link 
+                  to={`/salon/${id}/edit`}
+                  className="inline-flex items-center justify-center rounded-3xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#FF1493] text-white hover:bg-[#C71585] focus:ring-[#FF1493] shadow-sm hover:shadow-md px-4 py-2.5 text-base w-full"
+                >
+                  Editar Perfil
                 </Link>
                 <Button 
                   fullWidth

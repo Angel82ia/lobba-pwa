@@ -53,7 +53,7 @@ describe('UserPermissionHistory', () => {
     renderWithRouter(<UserPermissionHistory />)
 
     await waitFor(() => {
-      expect(screen.getByText('Mi Historial de Permisos')).toBeInTheDocument()
+      expect(screen.getByText('📜 Mi Historial de Permisos')).toBeInTheDocument()
     })
   })
 
@@ -63,8 +63,8 @@ describe('UserPermissionHistory', () => {
     await waitFor(() => {
       expect(permissionService.getUserPermissions).toHaveBeenCalled()
       expect(deviceEventService.getUserEvents).toHaveBeenCalled()
-      expect(screen.getByText('Artículo Gratis')).toBeInTheDocument()
-      expect(screen.getByText('Equipo en Préstamo')).toBeInTheDocument()
+      expect(screen.getByText('🎁 Artículo Gratis')).toBeInTheDocument()
+      expect(screen.getByText('🔋 Equipo en Préstamo')).toBeInTheDocument()
     })
   })
 
@@ -88,7 +88,7 @@ describe('UserPermissionHistory', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Eventos Relacionados')).toBeInTheDocument()
-      expect(screen.getByText('Entrega Exitosa')).toBeInTheDocument()
+      expect(screen.getByText('✅ Entrega Exitosa')).toBeInTheDocument()
     })
   })
 })

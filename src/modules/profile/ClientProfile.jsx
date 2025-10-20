@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getClientProfile } from '../../services/profile'
-import { Button, Card, Alert } from '../../components/common'
+import { Card, Alert } from '../../components/common'
 import useStore from '../../store'
 
 const ClientProfile = () => {
@@ -97,8 +97,11 @@ const ClientProfile = () => {
         {/* Profile Actions */}
         {isOwnProfile && (
           <div className="mb-8">
-            <Link to="/profile/edit">
-              <Button>Editar Perfil</Button>
+            <Link 
+              to="/profile/edit"
+              className="inline-flex items-center justify-center rounded-3xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#FF1493] text-white hover:bg-[#C71585] focus:ring-[#FF1493] shadow-sm hover:shadow-md px-4 py-2.5 text-base"
+            >
+              Editar Perfil
             </Link>
           </div>
         )}
