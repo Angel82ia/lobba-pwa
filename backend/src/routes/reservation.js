@@ -11,6 +11,7 @@ import {
   cancelReservation,
   completeReservation,
 } from '../controllers/reservationController.js'
+import { getReservationTimeoutStatus } from '../controllers/reservationTimeoutController.js'
 import { auditUserAction } from '../middleware/audit.js'
 
 const router = express.Router()
@@ -31,6 +32,7 @@ router.post(
   createReservation
 )
 router.get('/:id', requireAuth, getReservation)
+router.get('/:id/timeout', requireAuth, getReservationTimeoutStatus)
 router.put('/:id/confirm', requireAuth, auditUserAction, confirmReservation)
 router.put(
   '/:id/cancel',
