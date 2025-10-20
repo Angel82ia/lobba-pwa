@@ -48,13 +48,13 @@ export const exchangeCodeForTokens = async code => {
     console.log('✅ [Google Calendar Service] Tokens obtained:', {
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
-      expiryDate: tokens.expiry_date
+      expiryDate: tokens.expiry_date,
     })
     return tokens
   } catch (error) {
     console.error('❌ [Google Calendar Service] Error exchanging code:', {
       message: error.message,
-      response: error.response?.data
+      response: error.response?.data,
     })
     throw error
   }
@@ -88,7 +88,7 @@ export const saveGoogleTokens = async (salonId, tokens) => {
     console.error('❌ [Google Calendar Service] Error saving tokens:', {
       salonId,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
     })
     throw error
   }

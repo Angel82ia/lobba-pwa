@@ -49,7 +49,7 @@ export const handleCallback = async (req, res) => {
 
     if (error) {
       console.error('❌ [Google Calendar] OAuth error from Google:', error)
-      const redirectUrl = salonId 
+      const redirectUrl = salonId
         ? `${process.env.FRONTEND_URL}/salon/${salonId}/settings?error=google_auth_failed&reason=${error}`
         : `${process.env.FRONTEND_URL}/?error=google_auth_failed&reason=${error}`
       return res.redirect(redirectUrl)
@@ -80,7 +80,7 @@ export const handleCallback = async (req, res) => {
       code: error.code,
       response: error.response?.data,
     })
-    const redirectUrl = salonId 
+    const redirectUrl = salonId
       ? `${process.env.FRONTEND_URL}/salon/${salonId}/settings?error=google_auth_failed`
       : `${process.env.FRONTEND_URL}/?error=google_auth_failed`
     return res.redirect(redirectUrl)
