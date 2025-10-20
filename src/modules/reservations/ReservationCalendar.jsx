@@ -68,8 +68,7 @@ const ReservationCalendar = () => {
       setSubmitting(true)
       const [hours, minutes] = selectedSlot.split(':')
       
-      // Crear fecha en zona horaria local (no UTC)
-      // Ejemplo: 2025-10-20 + 14:00 → 2025-10-20T14:00:00+02:00 (España)
+      // Crear fecha en zona horaria local
       const [year, month, day] = selectedDate.split('-')
       const startTime = new Date(
         parseInt(year),
@@ -83,6 +82,25 @@ const ReservationCalendar = () => {
       
       const endTime = new Date(startTime.getTime() + selectedService.durationMinutes * 60000)
 
+      // Formatear fechas manteniendo la zona horaria local con offset
+      // Formato: YYYY-MM-DDTHH:mm:ss+02:00 (con offset de zona horaria)
+      const formatLocalDateTime = (date) => {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        const seconds = String(date.getSeconds()).padStart(2, '0')
+        
+        // Obtener offset de zona horaria (ej: -120 para UTC+2)
+        const offset = -date.getTimezoneOffset()
+        const offsetHours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0')
+        const offsetMinutes = String(Math.abs(offset) % 60).padStart(2, '0')
+        const offsetSign = offset >= 0 ? '+' : '-'
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`
+      }
+
       // Redirigir al checkout de pago con los datos de la reserva
       navigate('/reservation-checkout', {
         state: {
@@ -91,8 +109,8 @@ const ReservationCalendar = () => {
             service: selectedService,
             selectedDate,
             selectedSlot,
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
+            startTime: formatLocalDateTime(startTime),
+            endTime: formatLocalDateTime(endTime),
             notes,
             clientPhone,
           }
