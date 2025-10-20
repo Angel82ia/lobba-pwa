@@ -42,7 +42,7 @@ const Maintenance = () => {
             <div className="relative text-center">
               <h1 className="
                 font-montserrat font-bold mb-4 sm:mb-6
-                text-3xl sm:text-4xl md:text-5xl lg:text-6xl
+                text-2xl sm:text-3xl md:text-4xl lg:text-5xl
                 leading-tight tracking-wide
                 text-white
               ">
@@ -57,7 +57,7 @@ const Maintenance = () => {
 
               <h2 className="
                 font-montserrat font-bold
-                text-2xl sm:text-3xl md:text-4xl lg:text-5xl
+                text-3xl sm:text-4xl md:text-5xl lg:text-6xl
                 leading-tight tracking-wide
               ">
                 <span className="text-white">
