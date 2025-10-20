@@ -184,6 +184,8 @@ export const setupWebhook = async (req, res) => {
     const { salonId } = req.params
     const userId = req.user?.id
 
+    console.log('🔔 [Webhook Setup] Starting for salon:', salonId)
+
     const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
       salonId,
     ])
@@ -197,14 +199,26 @@ export const setupWebhook = async (req, res) => {
     }
 
     const webhookUrl = `${process.env.BACKEND_URL}/api/google-calendar/webhook`
+    console.log('🔔 [Webhook Setup] URL:', webhookUrl)
+
     const webhook = await GoogleCalendar.setupWebhook(salonId, webhookUrl)
+
+    console.log('✅ [Webhook Setup] Success:', {
+      channelId: webhook.id,
+      resourceId: webhook.resourceId,
+      expiration: new Date(parseInt(webhook.expiration)),
+    })
 
     return res.status(200).json({
       success: true,
       webhook,
     })
   } catch (error) {
-    console.error('Error setting up webhook:', error)
+    console.error('❌ [Webhook Setup] Error:', {
+      salonId: req.params.salonId,
+      message: error.message,
+      stack: error.stack,
+    })
     return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
@@ -216,16 +230,38 @@ export const handleWebhook = async (req, res) => {
   try {
     const channelId = req.headers['x-goog-channel-id']
     const resourceId = req.headers['x-goog-resource-id']
+    const resourceState = req.headers['x-goog-resource-state']
+
+    console.log('📨 [Webhook] Notification received:', {
+      channelId,
+      resourceId,
+      resourceState,
+      headers: req.headers,
+    })
 
     if (!channelId || !resourceId) {
+      console.error('❌ [Webhook] Missing headers')
       return res.status(400).json({ error: 'Missing webhook headers' })
     }
 
+    // Si es solo una verificación de sincronización, responder OK sin procesar
+    if (resourceState === 'sync') {
+      console.log('✅ [Webhook] Sync verification - responding OK')
+      return res.status(200).json({ success: true })
+    }
+
+    console.log('🔄 [Webhook] Processing notification...')
     await GoogleCalendar.processWebhookNotification(channelId, resourceId)
+    console.log('✅ [Webhook] Notification processed successfully')
 
     return res.status(200).json({ success: true })
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    console.error('❌ [Webhook] Error processing:', {
+      message: error.message,
+      stack: error.stack,
+      channelId: req.headers['x-goog-channel-id'],
+      resourceId: req.headers['x-goog-resource-id'],
+    })
     return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }

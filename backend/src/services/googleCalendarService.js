@@ -283,6 +283,8 @@ export const fullBidirectionalSync = async salonId => {
  * Configurar webhook de Google Calendar
  */
 export const setupWebhook = async (salonId, webhookUrl) => {
+  console.log('🔔 [Google Calendar Service] Setting up webhook:', { salonId, webhookUrl })
+
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
@@ -292,11 +294,18 @@ export const setupWebhook = async (salonId, webhookUrl) => {
   )
 
   if (!salonResult.rows[0].google_calendar_id) {
+    console.error('❌ [Google Calendar Service] No calendar configured for salon:', salonId)
     throw new Error('No calendar configured')
   }
 
   const calendarId = salonResult.rows[0].google_calendar_id
   const channelId = `lobba-${salonId}-${Date.now()}`
+
+  console.log('🔔 [Google Calendar Service] Requesting watch:', {
+    calendarId,
+    channelId,
+    webhookUrl,
+  })
 
   const response = await calendarApi.events.watch({
     calendarId,
@@ -305,6 +314,12 @@ export const setupWebhook = async (salonId, webhookUrl) => {
       type: 'web_hook',
       address: webhookUrl,
     },
+  })
+
+  console.log('✅ [Google Calendar Service] Watch registered:', {
+    channelId: response.data.id,
+    resourceId: response.data.resourceId,
+    expiration: new Date(parseInt(response.data.expiration)),
   })
 
   await pool.query(
@@ -328,6 +343,11 @@ export const setupWebhook = async (salonId, webhookUrl) => {
  * Procesar notificación de webhook
  */
 export const processWebhookNotification = async (channelId, resourceId) => {
+  console.log('🔄 [Google Calendar Service] Processing webhook notification:', {
+    channelId,
+    resourceId,
+  })
+
   const salonResult = await pool.query(
     `SELECT id FROM salon_profiles
      WHERE google_webhook_channel_id = $1
@@ -336,12 +356,15 @@ export const processWebhookNotification = async (channelId, resourceId) => {
   )
 
   if (salonResult.rows.length === 0) {
+    console.error('❌ [Google Calendar Service] Webhook not found:', { channelId, resourceId })
     throw new Error('Webhook not found')
   }
 
   const salonId = salonResult.rows[0].id
+  console.log('🔄 [Google Calendar Service] Syncing events for salon:', salonId)
 
   await syncGoogleEventsToBlocks(salonId)
 
+  console.log('✅ [Google Calendar Service] Webhook processed successfully for salon:', salonId)
   return { success: true, salonId }
 }
