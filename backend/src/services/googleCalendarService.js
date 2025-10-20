@@ -214,7 +214,7 @@ export const syncReservationsToGoogle = async salonId => {
  */
 export const syncGoogleEventsToBlocks = async salonId => {
   console.log('🔄 [Sync Google→Blocks] Starting for salon:', salonId)
-  
+
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
