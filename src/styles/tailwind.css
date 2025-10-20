@@ -1,15 +1,12 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap");
 
 @variant dark (.dark &);
 
 @theme {
-    --font-family-primary: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-    --font-family-secondary: "Open Sans", ui-sans-serif, system-ui, sans-serif;
-}
-
-@layer base {
-    body {
-        font-family: var(--font-family-secondary);
-    }
+    --font-playfair: "Playfair Display", serif;
+    --font-montserrat: "Montserrat", sans-serif;
+    --font-poppins: "Poppins", sans-serif;
+    --font-cormorant: "Cormorant Garamond", serif;
+    --font-cinzel: "Cinzel", serif;
+    --font-sans: "Open Sans", sans-serif;
 }

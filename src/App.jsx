@@ -45,12 +45,16 @@ import MembershipDashboard from './modules/membership/components/MembershipDashb
 import MembershipPlans from './modules/membership/MembershipPlans'
 import ReferralDashboard from './modules/referral/ReferralDashboard'
 import SalonSettings from './pages/SalonSettings'
+import Maintenance from './pages/Maintenance'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
+        {/* Maintenance Page - Standalone without Layout */}
+        <Route path="*" element={<Maintenance />} />
+        
+        {/* <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -338,7 +342,7 @@ function App() {
 
           <Route path="kiosk" element={<KioskMode />} />
 
-          {/* Membership Routes */}
+
           <Route path="membership/plans" element={<MembershipPlans />} />
           
           <Route
@@ -368,7 +372,7 @@ function App() {
             }
           />
 
-          {/* Referral Routes */}
+
           <Route
             path="referidos"
             element={
@@ -377,7 +381,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Route>
+        </Route> */}
       </Routes>
     </BrowserRouter>
   )
