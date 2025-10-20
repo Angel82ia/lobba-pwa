@@ -134,7 +134,7 @@ export const syncReservationsToGoogle = async salonId => {
   const calendarId = salonResult.rows[0].google_calendar_id
 
   const reservations = await pool.query(
-    `SELECT r.*, s.name as service_name, u.email as user_email, u.name as user_name
+    `SELECT r.*, s.name as service_name, u.email as user_email
      FROM reservations r
      JOIN salon_services s ON r.service_id = s.id
      JOIN users u ON r.user_id = u.id
@@ -149,7 +149,7 @@ export const syncReservationsToGoogle = async salonId => {
 
   for (const reservation of reservations.rows) {
     const event = {
-      summary: `${reservation.service_name} - ${reservation.user_name}`,
+      summary: `${reservation.service_name} - ${reservation.user_email}`,
       description: `Reserva LOBBA\nCliente: ${reservation.user_email}\nEstado: ${reservation.status}`,
       start: {
         dateTime: reservation.start_time.toISOString(),

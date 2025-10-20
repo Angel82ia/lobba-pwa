@@ -43,6 +43,7 @@ import ShareMembership from './pages/ShareMembership'
 import MembershipDashboard from './modules/membership/components/MembershipDashboard'
 import MembershipPlans from './modules/membership/MembershipPlans'
 import ReferralDashboard from './modules/referral/ReferralDashboard'
+import SalonSettings from './pages/SalonSettings'
 
 function App() {
   return (
@@ -79,6 +80,15 @@ function App() {
             element={
               <ProtectedRoute requiredRole="salon">
                 <EditSalonProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="salon/:id/settings"
+            element={
+              <ProtectedRoute requiredRole="salon">
+                <SalonSettings />
               </ProtectedRoute>
             }
           />
