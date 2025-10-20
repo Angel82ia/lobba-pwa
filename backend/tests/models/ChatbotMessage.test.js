@@ -10,15 +10,14 @@ describe('ChatbotMessage Model', () => {
   beforeEach(async () => {
     await pool.query('DELETE FROM chatbot_messages')
     await pool.query('DELETE FROM chatbot_conversations')
-    await pool.query("DELETE FROM users WHERE email IN ('chatbot-msg-test@example.com')")
-    
+
     const userResult = await pool.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role)
        VALUES ('chatbot-msg-test@example.com', 'hash', 'Chatbot', 'Message', 'user')
        RETURNING id`
     )
     testUserId = userResult.rows[0].id
-    
+
     const conversation = await ChatbotConversation.findOrCreateConversation(testUserId)
     testConversationId = conversation.id
   })
@@ -28,9 +27,9 @@ describe('ChatbotMessage Model', () => {
       const message = await ChatbotMessage.createMessage({
         conversationId: testConversationId,
         senderType: 'user',
-        content: 'Hello Olivia!'
+        content: 'Hello Olivia!',
       })
-      
+
       expect(message).toBeTruthy()
       expect(message.conversation_id).toBe(testConversationId)
       expect(message.sender_type).toBe('user')
@@ -41,9 +40,9 @@ describe('ChatbotMessage Model', () => {
       const message = await ChatbotMessage.createMessage({
         conversationId: testConversationId,
         senderType: 'bot',
-        content: 'Hello! How can I help you?'
+        content: 'Hello! How can I help you?',
       })
-      
+
       expect(message.sender_type).toBe('bot')
       expect(message.content).toBe('Hello! How can I help you?')
     })
@@ -54,30 +53,30 @@ describe('ChatbotMessage Model', () => {
       await ChatbotMessage.createMessage({
         conversationId: testConversationId,
         senderType: 'user',
-        content: 'First message'
+        content: 'First message',
       })
-      
+
       await ChatbotMessage.createMessage({
         conversationId: testConversationId,
         senderType: 'bot',
-        content: 'Bot response'
+        content: 'Bot response',
       })
     })
 
     it('should return messages in chronological order', async () => {
       const messages = await ChatbotMessage.findMessagesByConversation(testConversationId)
-      
+
       expect(messages).toHaveLength(2)
       expect(messages[0].content).toBe('First message')
       expect(messages[1].content).toBe('Bot response')
     })
 
     it('should respect limit and offset', async () => {
-      const messages = await ChatbotMessage.findMessagesByConversation(
-        testConversationId,
-        { limit: 1, offset: 0 }
-      )
-      
+      const messages = await ChatbotMessage.findMessagesByConversation(testConversationId, {
+        limit: 1,
+        offset: 0,
+      })
+
       expect(messages).toHaveLength(1)
       expect(messages[0].content).toBe('First message')
     })
@@ -88,11 +87,11 @@ describe('ChatbotMessage Model', () => {
       await ChatbotMessage.createMessage({
         conversationId: testConversationId,
         senderType: 'user',
-        content: 'Recent message'
+        content: 'Recent message',
       })
-      
+
       const messages = await ChatbotMessage.findRecentMessages(testConversationId, 5)
-      
+
       expect(messages).toHaveLength(1)
       expect(messages[0].content).toBe('Recent message')
     })
@@ -103,12 +102,12 @@ describe('ChatbotMessage Model', () => {
       await ChatbotMessage.createMessage({
         conversationId: testConversationId,
         senderType: 'user',
-        content: 'To be deleted'
+        content: 'To be deleted',
       })
-      
+
       const deleted = await ChatbotMessage.deleteConversationMessages(testConversationId)
       const remaining = await ChatbotMessage.findMessagesByConversation(testConversationId)
-      
+
       expect(deleted).toHaveLength(1)
       expect(remaining).toHaveLength(0)
     })

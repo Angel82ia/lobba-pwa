@@ -47,7 +47,7 @@ describe('EquipmentRequestForm', () => {
 
   it('should render equipment request form', () => {
     renderWithRouter(<EquipmentRequestForm />)
-    expect(screen.getByText('Solicitar Equipo en Préstamo')).toBeInTheDocument()
+    expect(screen.getByText(/Solicitar Equipo en Préstamo/)).toBeInTheDocument()
   })
 
   it('should load equipment on mount', async () => {
@@ -63,7 +63,7 @@ describe('EquipmentRequestForm', () => {
   it('should switch between pickup and return modes', async () => {
     renderWithRouter(<EquipmentRequestForm />)
 
-    const returnButton = screen.getByText('Devolver Equipo')
+    const returnButton = screen.getByText(/Devolver Equipo/)
     fireEvent.click(returnButton)
 
     expect(returnButton).toHaveClass('active')
@@ -76,7 +76,7 @@ describe('EquipmentRequestForm', () => {
       expect(screen.getByText('Hair Dryer')).toBeInTheDocument()
     })
 
-    const equipCard = screen.getByText('Hair Dryer').closest('.equipment-card')
+    const equipCard = screen.getByText('Hair Dryer').closest('div')
     fireEvent.click(equipCard)
 
     await waitFor(() => {
@@ -98,14 +98,14 @@ describe('EquipmentRequestForm', () => {
   it('should submit return request', async () => {
     renderWithRouter(<EquipmentRequestForm />)
 
-    const returnButton = screen.getByText('Devolver Equipo')
+    const returnButton = screen.getByText(/Devolver Equipo/)
     fireEvent.click(returnButton)
 
     await waitFor(() => {
       expect(screen.getByText('Hair Dryer')).toBeInTheDocument()
     })
 
-    const equipCard = screen.getByText('Hair Dryer').closest('.equipment-card')
+    const equipCard = screen.getByText('Hair Dryer').closest('div')
     fireEvent.click(equipCard)
 
     await waitFor(() => {

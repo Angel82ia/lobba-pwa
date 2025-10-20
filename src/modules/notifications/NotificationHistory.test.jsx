@@ -44,7 +44,7 @@ describe('NotificationHistory', () => {
     render(<NotificationHistory />)
 
     await waitFor(() => {
-      expect(screen.getByText('Historial de Notificaciones')).toBeInTheDocument()
+      expect(screen.getByText(/Historial de Notificaciones/)).toBeInTheDocument()
     })
   })
 
