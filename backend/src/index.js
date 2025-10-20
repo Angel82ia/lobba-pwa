@@ -34,7 +34,7 @@ import auditLogRoutes from './routes/auditLog.js'
 import courtesyRoutes from './routes/courtesy.js'
 import referralRoutes from './routes/referral.js'
 import adminRoutes from './routes/admin.js'
-import availabilityRoutes from './routes/availability.js'
+import whatsappRoutes from './routes/whatsapp.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
@@ -158,6 +158,7 @@ app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/availability', availabilityRoutes)
+app.use('/api/whatsapp', whatsappRoutes)
 
 app.use((err, req, res, _next) => {
   logger.error('Unhandled error:', err)

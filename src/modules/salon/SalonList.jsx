@@ -239,7 +239,7 @@ const SalonList = () => {
         <>
           {/* Map View */}
           {viewMode === 'map' && (
-            <Card className="p-0 overflow-hidden">
+            <Card className="p-0 overflow-hidden h-[600px] min-h-[600px]">
               <SalonMap 
                 salons={salons}
                 center={location ? [location.latitude, location.longitude] : null}
