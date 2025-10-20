@@ -11,6 +11,7 @@ import {
   cancelReservation,
   completeReservation,
 } from '../controllers/reservationController.js'
+import { modifyReservation, getReservationHistory } from '../controllers/reservationModificationController.js'
 import { getReservationTimeoutStatus } from '../controllers/reservationTimeoutController.js'
 import { auditUserAction } from '../middleware/audit.js'
 
@@ -31,7 +32,8 @@ router.post(
   auditUserAction,
   createReservation
 )
-router.get('/:id', requireAuth, getReservation)
+router.get('/:id/history', requireAuth, getReservationHistory)
+router.put('/:id', requireAuth, auditUserAction, modifyReservation)
 router.get('/:id/timeout', requireAuth, getReservationTimeoutStatus)
 router.put('/:id/confirm', requireAuth, auditUserAction, confirmReservation)
 router.put(
