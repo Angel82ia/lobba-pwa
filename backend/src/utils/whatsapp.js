@@ -5,23 +5,23 @@
  */
 
 const MESSAGE_TEMPLATES = {
-  general: (salon, booking, user) => 
+  general: (salon, booking, user) =>
     `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}, tengo una reserva:\n📅 ${booking.scheduled_date} a las ${booking.scheduled_time}\n📋 Reserva #${booking.short_id}\n\n¿Podrías confirmarme los detalles?`,
-  
-  confirm_pending: (salon, booking, user) => 
+
+  confirm_pending: (salon, booking, user) =>
     `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}. Acabo de hacer una reserva:\n📅 ${booking.scheduled_date} a las ${booking.scheduled_time}\n📋 Reserva #${booking.short_id}\n\n¿Podrías confirmarla? ¡Gracias!`,
-  
-  change_time: (salon, booking, user) => 
+
+  change_time: (salon, booking, _user) =>
     `Hola ${salon.business_name} 👋\n\nTengo reserva el ${booking.scheduled_date} a las ${booking.scheduled_time} (#${booking.short_id})\n\n¿Sería posible cambiar la hora? Gracias`,
-  
-  running_late: (salon, booking, user) => 
+
+  running_late: (salon, booking, _user) =>
     `Hola ${salon.business_name} 👋\n\nTengo reserva hoy a las ${booking.scheduled_time} (#${booking.short_id})\n\nVoy a llegar un poco tarde. ¡Disculpa las molestias!`,
-  
-  cancel: (salon, booking, user) => 
+
+  cancel: (salon, booking, _user) =>
     `Hola ${salon.business_name} 👋\n\nTengo reserva el ${booking.scheduled_date} a las ${booking.scheduled_time} (#${booking.short_id})\n\nNecesito cancelarla. ¿Me podrías ayudar? Gracias`,
-  
-  question: (salon, booking, user) => 
-    `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}. Tengo una consulta sobre mi reserva #${booking.short_id}:\n\n`
+
+  question: (salon, booking, user) =>
+    `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}. Tengo una consulta sobre mi reserva #${booking.short_id}:\n\n`,
 }
 
 /**
@@ -38,7 +38,7 @@ export const generateWhatsAppLink = (salon, booking = null, user = {}, context =
   }
 
   const cleanNumber = salon.whatsapp_number.replace(/[^\d+]/g, '')
-  
+
   if (!cleanNumber.startsWith('+')) {
     console.warn(`WhatsApp number for salon ${salon.id} should start with +`)
     return null
@@ -46,7 +46,7 @@ export const generateWhatsAppLink = (salon, booking = null, user = {}, context =
 
   const template = MESSAGE_TEMPLATES[context] || MESSAGE_TEMPLATES.general
   const message = template(salon, booking, user)
-  
+
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
 }
 
@@ -54,12 +54,12 @@ export const generateWhatsAppLink = (salon, booking = null, user = {}, context =
  * @deprecated OBSOLETO - No enviar mensajes automáticos, solo click-to-chat
  * Mantener solo para compatibilidad temporal
  */
-export const sendWhatsAppMessage = async ({ to, body }) => {
+export const sendWhatsAppMessage = async ({ to: _to, body: _body }) => {
   console.warn('sendWhatsAppMessage is DEPRECATED. Use generateWhatsAppLink instead.')
-  return { 
-    sid: 'deprecated', 
+  return {
+    sid: 'deprecated',
     status: 'not_sent',
-    message: 'WhatsApp automatic sending is disabled. Use click-to-chat instead.'
+    message: 'WhatsApp automatic sending is disabled. Use click-to-chat instead.',
   }
 }
 
@@ -67,7 +67,7 @@ export const sendWhatsAppMessage = async ({ to, body }) => {
  * @deprecated OBSOLETO - No enviar mensajes automáticos
  * Usar generateWhatsAppLink con context='confirm_pending'
  */
-export const sendReservationConfirmation = async reservation => {
+export const sendReservationConfirmation = async _reservation => {
   console.warn('sendReservationConfirmation is DEPRECATED. Use generateWhatsAppLink instead.')
   return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }
@@ -76,7 +76,7 @@ export const sendReservationConfirmation = async reservation => {
  * @deprecated OBSOLETO - No enviar mensajes automáticos
  * Usar generateWhatsAppLink con context='general'
  */
-export const sendReservationReminder = async reservation => {
+export const sendReservationReminder = async _reservation => {
   console.warn('sendReservationReminder is DEPRECATED. Use generateWhatsAppLink instead.')
   return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }
@@ -85,7 +85,7 @@ export const sendReservationReminder = async reservation => {
  * @deprecated OBSOLETO - No enviar mensajes automáticos
  * Usar generateWhatsAppLink con context='cancel'
  */
-export const sendReservationCancellation = async reservation => {
+export const sendReservationCancellation = async _reservation => {
   console.warn('sendReservationCancellation is DEPRECATED. Use generateWhatsAppLink instead.')
   return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }

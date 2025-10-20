@@ -4,15 +4,22 @@ import { requireAuth } from '../middleware/auth.js'
 import {
   getSlots,
   createReservation,
-  getReservation,
   getUserReservations,
   getSalonReservations,
   confirmReservation,
   cancelReservation,
   completeReservation,
 } from '../controllers/reservationController.js'
-import { rejectReservation, startReservation, rescheduleReservation, addSalonNotes } from '../controllers/reservationStatusController.js'
-import { modifyReservation, getReservationHistory } from '../controllers/reservationModificationController.js'
+import {
+  rejectReservation,
+  startReservation,
+  rescheduleReservation,
+  addSalonNotes,
+} from '../controllers/reservationStatusController.js'
+import {
+  modifyReservation,
+  getReservationHistory,
+} from '../controllers/reservationModificationController.js'
 import { getReservationTimeoutStatus } from '../controllers/reservationTimeoutController.js'
 import { auditUserAction } from '../middleware/audit.js'
 

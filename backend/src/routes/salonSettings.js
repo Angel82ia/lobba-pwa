@@ -1,11 +1,11 @@
 import express from 'express'
-import { authenticateUser } from '../middleware/auth.js'
+import { requireAuth } from '../middleware/auth.js'
 import { getSettings, updateSettings } from '../controllers/salonSettingsController.js'
 
 const router = express.Router()
 
 router.get('/:salonId', getSettings)
 
-router.put('/:salonId', authenticateUser, updateSettings)
+router.put('/:salonId', requireAuth, updateSettings)
 
 export default router

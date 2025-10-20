@@ -1,11 +1,9 @@
 import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
-import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import { refundReservationPayment } from '../services/stripeConnectService.js'
 import { scheduleReminder, cancelReservationReminders } from '../services/reminderService.js'
 import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
-import { applyAutoConfirmation } from '../services/autoConfirmationService.js'
-import { setConfirmationDeadline } from '../services/reservationTimeoutService.js'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -25,7 +23,7 @@ export const calculateReservationCheckout = async (req, res) => {
     }
 
     const totalPrice = parseFloat(service.price)
-    const commissionPercentage = 3.00
+    const commissionPercentage = 3.0
     const commissionAmount = (totalPrice * commissionPercentage) / 100
     const amountToCommerce = totalPrice - commissionAmount
 
@@ -35,15 +33,15 @@ export const calculateReservationCheckout = async (req, res) => {
         id: service.id,
         name: service.name,
         price: totalPrice,
-        durationMinutes: service.duration_minutes
+        durationMinutes: service.duration_minutes,
       },
       breakdown: {
         totalPrice,
         commissionPercentage,
         commissionAmount: parseFloat(commissionAmount.toFixed(2)),
         amountToLobba: parseFloat(commissionAmount.toFixed(2)),
-        amountToCommerce: parseFloat(amountToCommerce.toFixed(2))
-      }
+        amountToCommerce: parseFloat(amountToCommerce.toFixed(2)),
+      },
     })
   } catch (error) {
     console.error('Error calculating reservation checkout:', error)
@@ -58,7 +56,7 @@ export const calculateReservationCheckout = async (req, res) => {
  * 3. Verificar que salón tenga Stripe Connect
  * 4. Crear Payment Intent (SIN crear reserva aún)
  * 5. Devolver client_secret para frontend
- * 
+ *
  * La reserva se crea SOLO tras confirmar pago en confirmReservation()
  */
 export const processReservationCheckout = async (req, res) => {
@@ -66,13 +64,7 @@ export const processReservationCheckout = async (req, res) => {
 
   try {
     const userId = req.user.id
-    const {
-      serviceId,
-      startTime,
-      endTime,
-      notes,
-      clientPhone
-    } = req.body
+    const { serviceId, startTime, endTime, notes, clientPhone } = req.body
 
     if (!serviceId || !startTime || !endTime) {
       return res.status(400).json({ error: 'Service ID, start time and end time are required' })
@@ -87,10 +79,9 @@ export const processReservationCheckout = async (req, res) => {
       return res.status(404).json({ error: 'Service not found' })
     }
 
-    const salonResult = await client.query(
-      'SELECT * FROM salon_profiles WHERE id = $1',
-      [service.salon_profile_id]
-    )
+    const salonResult = await client.query('SELECT * FROM salon_profiles WHERE id = $1', [
+      service.salon_profile_id,
+    ])
 
     if (salonResult.rows.length === 0) {
       await client.query('ROLLBACK')
@@ -98,12 +89,13 @@ export const processReservationCheckout = async (req, res) => {
     }
 
     const salon = salonResult.rows[0]
+    const maxCapacity = salon.capacity_enabled ? salon.simultaneous_capacity || 1 : 1
 
     // 2. Verificar Stripe Connect
     if (!salon.stripe_connect_account_id || !salon.stripe_connect_enabled) {
       await client.query('ROLLBACK')
-      return res.status(400).json({ 
-        error: 'This salon has not configured payment reception yet. Please contact the salon.' 
+      return res.status(400).json({
+        error: 'This salon has not configured payment reception yet. Please contact the salon.',
       })
     }
 
@@ -122,7 +114,7 @@ export const processReservationCheckout = async (req, res) => {
       require('crypto').createHash('md5').update(lockKey).digest('hex').substring(0, 8),
       16
     )
-    
+
     await client.query('SELECT pg_advisory_xact_lock($1)', [lockHash])
 
     const overlappingReservations = await client.query(
@@ -142,19 +134,19 @@ export const processReservationCheckout = async (req, res) => {
 
     if (currentCount >= maxCapacity) {
       await client.query('ROLLBACK')
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'SLOT_NO_LONGER_AVAILABLE',
-        message: 'This time slot was just booked by another user. Please select a different time.'
+        message: 'This time slot was just booked by another user. Please select a different time.',
       })
     }
 
     const totalPrice = parseFloat(service.price)
-    const commissionPercentage = 3.00
+    const commissionPercentage = 3.0
     const commissionAmount = (totalPrice * commissionPercentage) / 100
     const amountToCommerce = totalPrice - commissionAmount
 
     const stripe = await import('stripe').then(m => m.default(process.env.STRIPE_SECRET_KEY))
-    
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(totalPrice * 100),
       currency: 'eur',
@@ -174,7 +166,7 @@ export const processReservationCheckout = async (req, res) => {
         commission_amount: commissionAmount.toFixed(2),
         amount_to_commerce: amountToCommerce.toFixed(2),
         notes: notes || '',
-        client_phone: clientPhone || ''
+        client_phone: clientPhone || '',
       },
       automatic_payment_methods: {
         enabled: true,
@@ -189,28 +181,27 @@ export const processReservationCheckout = async (req, res) => {
       service: {
         id: service.id,
         name: service.name,
-        durationMinutes: service.duration_minutes
+        durationMinutes: service.duration_minutes,
       },
       salon: {
         id: salon.id,
-        name: salon.business_name
+        name: salon.business_name,
       },
       schedule: {
         startTime,
-        endTime
+        endTime,
       },
       pricing: {
         totalPrice,
         commissionAmount: parseFloat(commissionAmount.toFixed(2)),
-        amountToCommerce: parseFloat(amountToCommerce.toFixed(2))
+        amountToCommerce: parseFloat(amountToCommerce.toFixed(2)),
       },
       paymentIntent: {
         id: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
-        amount: totalPrice
-      }
+        amount: totalPrice,
+      },
     })
-
   } catch (error) {
     await client.query('ROLLBACK')
     console.error('Error processing reservation checkout:', error)
@@ -245,18 +236,18 @@ export const confirmReservation = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       await client.query('ROLLBACK')
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'PAYMENT_NOT_CONFIRMED',
-        message: 'Payment has not been completed successfully'
+        message: 'Payment has not been completed successfully',
       })
     }
 
     const metadata = paymentIntent.metadata
     if (!metadata.user_id || !metadata.salon_profile_id || !metadata.service_id) {
       await client.query('ROLLBACK')
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'INVALID_PAYMENT_INTENT',
-        message: 'Payment intent metadata is incomplete'
+        message: 'Payment intent metadata is incomplete',
       })
     }
 
@@ -265,7 +256,7 @@ export const confirmReservation = async (req, res) => {
       require('crypto').createHash('md5').update(lockKey).digest('hex').substring(0, 8),
       16
     )
-    
+
     await client.query('SELECT pg_advisory_xact_lock($1)', [lockHash])
 
     const overlappingReservations = await client.query(
@@ -282,33 +273,22 @@ export const confirmReservation = async (req, res) => {
 
     if (overlappingReservations.rows.length > 0) {
       await client.query('ROLLBACK')
-      
+
       await stripe.refunds.create({
         payment_intent: paymentIntentId,
         reason: 'requested_by_customer',
         metadata: {
-          refund_reason: 'Slot no longer available after payment'
-        }
+          refund_reason: 'Slot no longer available after payment',
+        },
       })
 
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'SLOT_NO_LONGER_AVAILABLE',
         message: 'Time slot was booked while payment was processing. Refund initiated.',
-        refunded: true
+        refunded: true,
       })
     }
 
-    const reservation = reservationResult.rows[0]
-
-    try {
-      await scheduleReminder(reservation)
-    } catch (error) {
-      console.error('Error scheduling reminder:', error)
-    }
-
-    return res.status(200).json({
-      success: true,
-      reservation
     const reservation = await Reservation.createReservation({
       userId: metadata.user_id,
       salonProfileId: metadata.salon_profile_id,
@@ -317,7 +297,7 @@ export const confirmReservation = async (req, res) => {
       endTime: metadata.end_time,
       totalPrice: parseFloat(metadata.total_price),
       notes: metadata.notes || null,
-      clientPhone: metadata.client_phone || null
+      clientPhone: metadata.client_phone || null,
     })
 
     await client.query(
@@ -334,28 +314,33 @@ export const confirmReservation = async (req, res) => {
     await stripe.paymentIntents.update(paymentIntentId, {
       metadata: {
         ...metadata,
-        reservation_id: reservation.id
-      }
+        reservation_id: reservation.id,
+      },
     })
 
     await client.query('COMMIT')
 
     const finalReservation = await Reservation.findReservationById(reservation.id)
 
+    try {
+      await scheduleReminder(finalReservation)
+    } catch (error) {
+      console.error('Error scheduling reminder:', error)
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Reservation confirmed successfully',
-      reservation: finalReservation
+      reservation: finalReservation,
     })
-
   } catch (error) {
     await client.query('ROLLBACK')
     console.error('Error confirming reservation:', error)
-    
+
     if (error.type === 'StripeCardError' || error.code === 'payment_intent_unexpected_state') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'PAYMENT_ERROR',
-        message: error.message 
+        message: error.message,
       })
     }
 
@@ -374,10 +359,9 @@ export const cancelAndRefundReservation = async (req, res) => {
     const { reason } = req.body
     const { userId } = req.user
 
-    const reservationResult = await pool.query(
-      'SELECT * FROM reservations WHERE id = $1',
-      [reservationId]
-    )
+    const reservationResult = await pool.query('SELECT * FROM reservations WHERE id = $1', [
+      reservationId,
+    ])
 
     if (reservationResult.rows.length === 0) {
       return res.status(404).json({ error: 'Reservation not found' })
@@ -411,10 +395,9 @@ export const cancelAndRefundReservation = async (req, res) => {
       refund: {
         id: refund.id,
         amount: refund.amount / 100,
-        status: refund.status
-      }
+        status: refund.status,
+      },
     })
-
   } catch (error) {
     console.error('Error cancelling reservation:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })

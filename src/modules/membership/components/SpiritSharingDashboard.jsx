@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { getSharedMembershipByMembershipId } from '../../../services/sharedMembership'
 import { Card, Button } from '../../../components/common'
@@ -10,11 +10,7 @@ const SpiritSharingDashboard = ({ membershipId, membershipType }) => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
 
-  useEffect(() => {
-    checkSharedStatus()
-  }, [membershipId])
-
-  const checkSharedStatus = async () => {
+  const checkSharedStatus = useCallback(async () => {
     try {
       setLoading(true)
       const shared = await getSharedMembershipByMembershipId(membershipId)
@@ -24,7 +20,11 @@ const SpiritSharingDashboard = ({ membershipId, membershipType }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [membershipId])
+
+  useEffect(() => {
+    checkSharedStatus()
+  }, [checkSharedStatus])
 
   const handleSuccess = () => {
     setShowForm(false)

@@ -40,7 +40,7 @@ const PowerbankScanner = () => {
     try {
       setProcessing(true);
       setError(null);
-      const result = await loanPowerbank({
+      await loanPowerbank({
         powerbankId: powerbankId.trim(),
         commerceId: commerceId.trim(),
         commerceName: commerceName.trim(),

@@ -39,6 +39,7 @@ import googleCalendarRoutes from './routes/googleCalendar.js'
 import availabilityBlockRoutes from './routes/availabilityBlock.js'
 import salonSettingsRoutes from './routes/salonSettings.js'
 import whatsappRoutes from './routes/whatsapp.js'
+import availabilityRoutes from './routes/availability.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
@@ -179,7 +180,7 @@ if (process.env.NODE_ENV !== 'test') {
   httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
     startReminderCron()
-    
+
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')
   })

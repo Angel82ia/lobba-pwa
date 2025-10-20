@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { getSharedMembershipByMembershipId, revokeSharedMembership, updateSharedMembership } from '../../../services/sharedMembership'
 import Card from '../../../components/common/Card'
@@ -15,11 +15,7 @@ const SpiritSharingList = ({ membershipId, onRevoke }) => {
   })
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    loadSharedMembership()
-  }, [membershipId])
-
-  const loadSharedMembership = async () => {
+  const loadSharedMembership = useCallback(async () => {
     try {
       setLoading(true)
       const data = await getSharedMembershipByMembershipId(membershipId)
@@ -32,12 +28,15 @@ const SpiritSharingList = ({ membershipId, onRevoke }) => {
         })
       }
     } catch (err) {
-      console.error('Error loading shared membership:', err)
       setError('Error cargando información de membresía compartida')
     } finally {
       setLoading(false)
     }
-  }
+  }, [membershipId])
+
+  useEffect(() => {
+    loadSharedMembership()
+  }, [loadSharedMembership])
 
   const handleRevoke = async () => {
     if (!window.confirm('¿Estás segura de que quieres revocar el acceso compartido? Esta acción no se puede deshacer.')) {
@@ -52,7 +51,6 @@ const SpiritSharingList = ({ membershipId, onRevoke }) => {
         onRevoke()
       }
     } catch (err) {
-      console.error('Error revoking shared membership:', err)
       alert('Error al revocar membresía compartida')
     } finally {
       setActionLoading(false)
@@ -88,7 +86,6 @@ const SpiritSharingList = ({ membershipId, onRevoke }) => {
       setSharedMembership(updated)
       setIsEditing(false)
     } catch (err) {
-      console.error('Error updating shared membership:', err)
       alert('Error al actualizar membresía compartida')
     } finally {
       setActionLoading(false)

@@ -3,18 +3,13 @@ import pool from '../../src/config/database.js'
 
 vi.mock('../../src/config/database.js', () => ({
   default: {
-    query: vi.fn()
-  }
+    query: vi.fn(),
+  },
 }))
 
-const {
-  createBlock,
-  getBlocksInRange,
-  isSlotBlocked,
-  getSalonBlocks,
-  updateBlock,
-  deleteBlock
-} = await import('../../src/models/AvailabilityBlock.js')
+const { createBlock, getBlocksInRange, isSlotBlocked, updateBlock, deleteBlock } = await import(
+  '../../src/models/AvailabilityBlock.js'
+)
 
 describe('AvailabilityBlock Model', () => {
   beforeEach(() => {
@@ -29,11 +24,11 @@ describe('AvailabilityBlock Model', () => {
         start_time: '2025-10-20T10:00:00Z',
         end_time: '2025-10-20T18:00:00Z',
         block_type: 'vacation',
-        title: 'Summer Vacation'
+        title: 'Summer Vacation',
       }
 
       pool.query.mockResolvedValue({
-        rows: [mockBlock]
+        rows: [mockBlock],
       })
 
       const result = await createBlock({
@@ -41,7 +36,7 @@ describe('AvailabilityBlock Model', () => {
         startTime: '2025-10-20T10:00:00Z',
         endTime: '2025-10-20T18:00:00Z',
         blockType: 'vacation',
-        title: 'Summer Vacation'
+        title: 'Summer Vacation',
       })
 
       expect(result).toEqual(mockBlock)
@@ -59,12 +54,12 @@ describe('AvailabilityBlock Model', () => {
           id: 'block-1',
           salon_profile_id: 'salon-1',
           start_time: '2025-10-20T10:00:00Z',
-          end_time: '2025-10-20T12:00:00Z'
-        }
+          end_time: '2025-10-20T12:00:00Z',
+        },
       ]
 
       pool.query.mockResolvedValue({
-        rows: mockBlocks
+        rows: mockBlocks,
       })
 
       const result = await getBlocksInRange(
@@ -78,7 +73,7 @@ describe('AvailabilityBlock Model', () => {
 
     it('should return empty array if no blocks', async () => {
       pool.query.mockResolvedValue({
-        rows: []
+        rows: [],
       })
 
       const result = await getBlocksInRange(
@@ -94,28 +89,20 @@ describe('AvailabilityBlock Model', () => {
   describe('isSlotBlocked', () => {
     it('should return true if slot is blocked', async () => {
       pool.query.mockResolvedValue({
-        rows: [{ id: 'block-1' }]
+        rows: [{ id: 'block-1' }],
       })
 
-      const result = await isSlotBlocked(
-        'salon-1',
-        '2025-10-20T10:00:00Z',
-        '2025-10-20T11:00:00Z'
-      )
+      const result = await isSlotBlocked('salon-1', '2025-10-20T10:00:00Z', '2025-10-20T11:00:00Z')
 
       expect(result).toBe(true)
     })
 
     it('should return false if slot is not blocked', async () => {
       pool.query.mockResolvedValue({
-        rows: []
+        rows: [],
       })
 
-      const result = await isSlotBlocked(
-        'salon-1',
-        '2025-10-20T10:00:00Z',
-        '2025-10-20T11:00:00Z'
-      )
+      const result = await isSlotBlocked('salon-1', '2025-10-20T10:00:00Z', '2025-10-20T11:00:00Z')
 
       expect(result).toBe(false)
     })
@@ -126,25 +113,25 @@ describe('AvailabilityBlock Model', () => {
       const updated = {
         id: 'block-1',
         title: 'Updated Title',
-        is_active: false
+        is_active: false,
       }
 
       pool.query.mockResolvedValue({
-        rows: [updated]
+        rows: [updated],
       })
 
       const result = await updateBlock('block-1', {
         title: 'Updated Title',
-        is_active: false
+        is_active: false,
       })
 
       expect(result).toEqual(updated)
     })
 
     it('should throw error if no valid fields', async () => {
-      await expect(
-        updateBlock('block-1', { invalid: 'field' })
-      ).rejects.toThrow('No valid fields to update')
+      await expect(updateBlock('block-1', { invalid: 'field' })).rejects.toThrow(
+        'No valid fields to update'
+      )
     })
   })
 
@@ -152,11 +139,11 @@ describe('AvailabilityBlock Model', () => {
     it('should soft delete block', async () => {
       const deleted = {
         id: 'block-1',
-        is_active: false
+        is_active: false,
       }
 
       pool.query.mockResolvedValue({
-        rows: [deleted]
+        rows: [deleted],
       })
 
       const result = await deleteBlock('block-1')

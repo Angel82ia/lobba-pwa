@@ -13,14 +13,14 @@ const transporter = nodemailer.createTransport({
   secure: SMTP_PORT === '465',
   auth: {
     user: SMTP_USER,
-    pass: SMTP_PASS
-  }
+    pass: SMTP_PASS,
+  },
 })
 
 /**
  * Obtener template de notificación
  */
-export const getTemplate = async (templateKey) => {
+export const getTemplate = async templateKey => {
   const result = await pool.query(
     `SELECT * FROM notification_templates
      WHERE template_key = $1 AND is_active = true`,
@@ -59,11 +59,10 @@ export const sendEmail = async (to, subject, body) => {
       to,
       subject,
       text: body,
-      html: body.replace(/\n/g, '<br>')
+      html: body.replace(/\n/g, '<br>'),
     })
 
     return { success: true, messageId: info.messageId }
-
   } catch (error) {
     console.error('Error sending email:', error)
     return { success: false, error: error.message }
@@ -116,12 +115,11 @@ export const sendNotification = async (templateKey, recipient, variables) => {
         subject,
         body,
         template.notification_type,
-        JSON.stringify({ template_key: templateKey, variables })
+        JSON.stringify({ template_key: templateKey, variables }),
       ]
     )
 
     return result
-
   } catch (error) {
     console.error('Error sending notification:', error)
     throw error
@@ -131,7 +129,7 @@ export const sendNotification = async (templateKey, recipient, variables) => {
 /**
  * Enviar push notification (usa tabla existente fcm_tokens)
  */
-const sendPushNotification = async (userId, title, body) => {
+const sendPushNotification = async (userId, _title, _body) => {
   try {
     const tokensResult = await pool.query(
       'SELECT token FROM fcm_tokens WHERE user_id = $1 AND is_active = true',
@@ -143,7 +141,6 @@ const sendPushNotification = async (userId, title, body) => {
     }
 
     return { success: true, tokens: tokensResult.rows.length }
-
   } catch (error) {
     console.error('Error sending push notification:', error)
     return { success: false, error: error.message }
@@ -154,7 +151,7 @@ const sendPushNotification = async (userId, title, body) => {
  * Notificaciones específicas para reservas
  */
 
-export const notifyReservationCreated = async (reservation) => {
+export const notifyReservationCreated = async reservation => {
   const serviceResult = await pool.query(
     `SELECT s.name as service_name, sp.business_name as salon_name, sp.user_id as salon_owner_id
      FROM salon_services s
@@ -163,10 +160,9 @@ export const notifyReservationCreated = async (reservation) => {
     [reservation.service_id]
   )
 
-  const userResult = await pool.query(
-    'SELECT name, email FROM users WHERE id = $1',
-    [reservation.user_id]
-  )
+  const userResult = await pool.query('SELECT name, email FROM users WHERE id = $1', [
+    reservation.user_id,
+  ])
 
   if (serviceResult.rows.length === 0 || userResult.rows.length === 0) {
     return
@@ -181,18 +177,18 @@ export const notifyReservationCreated = async (reservation) => {
     service_name: service.service_name,
     start_time: new Date(reservation.start_time).toLocaleString('es-ES'),
     total_price: reservation.total_price,
-    status: reservation.status
+    status: reservation.status,
   }
 
   await sendNotification('reservation_created', user.email, variables)
 
   await sendNotification('new_reservation_salon', service.salon_owner_id, {
     ...variables,
-    user_email: user.email
+    user_email: user.email,
   })
 }
 
-export const notifyReservationConfirmed = async (reservation) => {
+export const notifyReservationConfirmed = async reservation => {
   const serviceResult = await pool.query(
     `SELECT s.name as service_name, sp.business_name as salon_name
      FROM salon_services s
@@ -201,10 +197,9 @@ export const notifyReservationConfirmed = async (reservation) => {
     [reservation.service_id]
   )
 
-  const userResult = await pool.query(
-    'SELECT name, phone FROM users WHERE id = $1',
-    [reservation.user_id]
-  )
+  const userResult = await pool.query('SELECT name, phone FROM users WHERE id = $1', [
+    reservation.user_id,
+  ])
 
   if (serviceResult.rows.length === 0 || userResult.rows.length === 0) {
     return
@@ -218,7 +213,7 @@ export const notifyReservationConfirmed = async (reservation) => {
     salon_name: service.salon_name,
     service_name: service.service_name,
     start_time: new Date(reservation.start_time).toLocaleString('es-ES'),
-    total_price: reservation.total_price
+    total_price: reservation.total_price,
   }
 
   await sendNotification('reservation_confirmed', user.phone || reservation.user_id, variables)
@@ -233,10 +228,9 @@ export const notifyReservationCancelled = async (reservation, reason) => {
     [reservation.service_id]
   )
 
-  const userResult = await pool.query(
-    'SELECT name, email FROM users WHERE id = $1',
-    [reservation.user_id]
-  )
+  const userResult = await pool.query('SELECT name, email FROM users WHERE id = $1', [
+    reservation.user_id,
+  ])
 
   if (serviceResult.rows.length === 0 || userResult.rows.length === 0) {
     return
@@ -249,7 +243,7 @@ export const notifyReservationCancelled = async (reservation, reason) => {
     user_name: user.name,
     salon_name: service.salon_name,
     start_time: new Date(reservation.start_time).toLocaleString('es-ES'),
-    reason: reason || 'No especificada'
+    reason: reason || 'No especificada',
   }
 
   await sendNotification('reservation_cancelled', user.email, variables)
@@ -264,10 +258,9 @@ export const notifyReservationModified = async (reservation, changes) => {
     [reservation.service_id]
   )
 
-  const userResult = await pool.query(
-    'SELECT name, email FROM users WHERE id = $1',
-    [reservation.user_id]
-  )
+  const userResult = await pool.query('SELECT name, email FROM users WHERE id = $1', [
+    reservation.user_id,
+  ])
 
   if (serviceResult.rows.length === 0 || userResult.rows.length === 0) {
     return
@@ -279,10 +272,14 @@ export const notifyReservationModified = async (reservation, changes) => {
   const variables = {
     user_name: user.name,
     salon_name: service.salon_name,
-    old_start_time: changes.start_time?.from ? new Date(changes.start_time.from).toLocaleString('es-ES') : 'N/A',
+    old_start_time: changes.start_time?.from
+      ? new Date(changes.start_time.from).toLocaleString('es-ES')
+      : 'N/A',
     old_service_name: changes.service?.from || service.service_name,
-    new_start_time: changes.start_time?.to ? new Date(changes.start_time.to).toLocaleString('es-ES') : 'N/A',
-    new_service_name: changes.service?.to || service.service_name
+    new_start_time: changes.start_time?.to
+      ? new Date(changes.start_time.to).toLocaleString('es-ES')
+      : 'N/A',
+    new_service_name: changes.service?.to || service.service_name,
   }
 
   await sendNotification('reservation_modified', user.email, variables)

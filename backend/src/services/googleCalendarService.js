@@ -1,46 +1,42 @@
 import { google } from 'googleapis'
 import pool from '../config/database.js'
 import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
-import * as Reservation from '../models/Reservation.js'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/google-calendar/callback'
+const GOOGLE_REDIRECT_URI =
+  process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/google-calendar/callback'
 
 /**
  * Crear cliente OAuth2 de Google
  */
 const createOAuth2Client = () => {
-  return new google.auth.OAuth2(
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI
-  )
+  return new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI)
 }
 
 /**
  * Obtener URL de autorización de Google
  */
-export const getAuthUrl = (salonId) => {
+export const getAuthUrl = salonId => {
   const oauth2Client = createOAuth2Client()
-  
+
   const scopes = [
     'https://www.googleapis.com/auth/calendar',
-    'https://www.googleapis.com/auth/calendar.events'
+    'https://www.googleapis.com/auth/calendar.events',
   ]
 
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
     state: salonId,
-    prompt: 'consent'
+    prompt: 'consent',
   })
 }
 
 /**
  * Intercambiar código por tokens
  */
-export const exchangeCodeForTokens = async (code) => {
+export const exchangeCodeForTokens = async code => {
   const oauth2Client = createOAuth2Client()
   const { tokens } = await oauth2Client.getToken(code)
   return tokens
@@ -66,7 +62,7 @@ export const saveGoogleTokens = async (salonId, tokens) => {
 /**
  * Obtener cliente autenticado de Google Calendar
  */
-const getAuthenticatedClient = async (salonId) => {
+const getAuthenticatedClient = async salonId => {
   const result = await pool.query(
     `SELECT google_refresh_token, google_access_token, google_token_expiry
      FROM salon_profiles
@@ -83,7 +79,7 @@ const getAuthenticatedClient = async (salonId) => {
 
   oauth2Client.setCredentials({
     refresh_token: salon.google_refresh_token,
-    access_token: salon.google_access_token
+    access_token: salon.google_access_token,
   })
 
   if (new Date(salon.google_token_expiry) < new Date()) {
@@ -98,7 +94,7 @@ const getAuthenticatedClient = async (salonId) => {
 /**
  * Listar calendarios disponibles
  */
-export const listCalendars = async (salonId) => {
+export const listCalendars = async salonId => {
   const auth = await getAuthenticatedClient(salonId)
   const calendar = google.calendar({ version: 'v3', auth })
 
@@ -122,7 +118,7 @@ export const setPrimaryCalendar = async (salonId, calendarId) => {
 /**
  * Sincronizar reservas LOBBA → Google Calendar
  */
-export const syncReservationsToGoogle = async (salonId) => {
+export const syncReservationsToGoogle = async salonId => {
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
@@ -157,41 +153,36 @@ export const syncReservationsToGoogle = async (salonId) => {
       description: `Reserva LOBBA\nCliente: ${reservation.user_email}\nEstado: ${reservation.status}`,
       start: {
         dateTime: reservation.start_time.toISOString(),
-        timeZone: 'Europe/Madrid'
+        timeZone: 'Europe/Madrid',
       },
       end: {
         dateTime: reservation.end_time.toISOString(),
-        timeZone: 'Europe/Madrid'
+        timeZone: 'Europe/Madrid',
       },
-      attendees: [
-        { email: reservation.user_email }
-      ],
+      attendees: [{ email: reservation.user_email }],
       extendedProperties: {
         private: {
           lobba_reservation_id: reservation.id,
-          lobba_source: 'true'
-        }
-      }
+          lobba_source: 'true',
+        },
+      },
     }
 
     const response = await calendarApi.events.insert({
       calendarId,
       resource: event,
-      sendUpdates: 'none'
+      sendUpdates: 'none',
     })
 
-    await pool.query(
-      'UPDATE reservations SET google_event_id = $1 WHERE id = $2',
-      [response.data.id, reservation.id]
-    )
+    await pool.query('UPDATE reservations SET google_event_id = $1 WHERE id = $2', [
+      response.data.id,
+      reservation.id,
+    ])
 
     synced.push(response.data.id)
   }
 
-  await pool.query(
-    'UPDATE salon_profiles SET last_google_sync = NOW() WHERE id = $1',
-    [salonId]
-  )
+  await pool.query('UPDATE salon_profiles SET last_google_sync = NOW() WHERE id = $1', [salonId])
 
   return { synced: synced.length, eventIds: synced }
 }
@@ -199,7 +190,7 @@ export const syncReservationsToGoogle = async (salonId) => {
 /**
  * Sincronizar eventos Google Calendar → LOBBA (availability_blocks)
  */
-export const syncGoogleEventsToBlocks = async (salonId) => {
+export const syncGoogleEventsToBlocks = async salonId => {
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
@@ -223,7 +214,7 @@ export const syncGoogleEventsToBlocks = async (salonId) => {
     timeMin: now.toISOString(),
     timeMax: maxDate.toISOString(),
     singleEvents: true,
-    orderBy: 'startTime'
+    orderBy: 'startTime',
   })
 
   const events = response.data.items || []
@@ -243,7 +234,7 @@ export const syncGoogleEventsToBlocks = async (salonId) => {
       start: event.start.dateTime,
       end: event.end.dateTime,
       summary: event.summary || 'Google Calendar Event',
-      description: event.description
+      description: event.description,
     })
 
     blocked.push(event.id)
@@ -255,14 +246,14 @@ export const syncGoogleEventsToBlocks = async (salonId) => {
 /**
  * Sincronización bidireccional completa
  */
-export const fullBidirectionalSync = async (salonId) => {
+export const fullBidirectionalSync = async salonId => {
   const toGoogle = await syncReservationsToGoogle(salonId)
   const toBlocks = await syncGoogleEventsToBlocks(salonId)
 
   return {
     reservationsToGoogle: toGoogle.synced,
     eventsToBlocks: toBlocks.blocked,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   }
 }
 
@@ -290,8 +281,8 @@ export const setupWebhook = async (salonId, webhookUrl) => {
     requestBody: {
       id: channelId,
       type: 'web_hook',
-      address: webhookUrl
-    }
+      address: webhookUrl,
+    },
   })
 
   await pool.query(
@@ -304,7 +295,7 @@ export const setupWebhook = async (salonId, webhookUrl) => {
       response.data.id,
       response.data.resourceId,
       new Date(parseInt(response.data.expiration)),
-      salonId
+      salonId,
     ]
   )
 

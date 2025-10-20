@@ -1,5 +1,4 @@
 import pool from '../config/database.js'
-import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
 
@@ -53,7 +52,7 @@ export const modifyReservation = async (req, res) => {
       user_id: userId,
       action: 'modified',
       changes: {},
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     if (serviceId && serviceId !== reservation.service_id) {
@@ -72,7 +71,7 @@ export const modifyReservation = async (req, res) => {
       updates.service_id = serviceId
       updates.total_price = parseFloat(newService.price)
 
-      const commissionPercentage = reservation.commission_percentage || 3.00
+      const commissionPercentage = reservation.commission_percentage || 3.0
       const commissionAmount = (updates.total_price * commissionPercentage) / 100
       updates.commission_amount = commissionAmount
       updates.amount_to_commerce = updates.total_price - commissionAmount
@@ -82,8 +81,8 @@ export const modifyReservation = async (req, res) => {
         to: newService.name,
         price_change: {
           from: parseFloat(reservation.total_price),
-          to: updates.total_price
-        }
+          to: updates.total_price,
+        },
       }
     }
 
@@ -129,7 +128,7 @@ export const modifyReservation = async (req, res) => {
         updates.start_time = startTime
         auditLog.changes.start_time = {
           from: reservation.start_time,
-          to: startTime
+          to: startTime,
         }
       }
 
@@ -137,7 +136,7 @@ export const modifyReservation = async (req, res) => {
         updates.end_time = endTime
         auditLog.changes.end_time = {
           from: reservation.end_time,
-          to: endTime
+          to: endTime,
         }
       }
     }
@@ -146,7 +145,7 @@ export const modifyReservation = async (req, res) => {
       updates.notes = notes
       auditLog.changes.notes = {
         from: reservation.notes,
-        to: notes
+        to: notes,
       }
     }
 
@@ -201,9 +200,8 @@ export const modifyReservation = async (req, res) => {
       success: true,
       message: 'Reservation modified successfully',
       reservation: updatedReservation.rows[0],
-      changes: auditLog.changes
+      changes: auditLog.changes,
     })
-
   } catch (error) {
     await client.query('ROLLBACK')
     console.error('Error modifying reservation:', error)
@@ -221,10 +219,9 @@ export const getReservationHistory = async (req, res) => {
     const { reservationId } = req.params
     const userId = req.user?.id
 
-    const reservationResult = await pool.query(
-      'SELECT user_id FROM reservations WHERE id = $1',
-      [reservationId]
-    )
+    const reservationResult = await pool.query('SELECT user_id FROM reservations WHERE id = $1', [
+      reservationId,
+    ])
 
     if (reservationResult.rows.length === 0) {
       return res.status(404).json({ error: 'Reservation not found' })
@@ -243,9 +240,8 @@ export const getReservationHistory = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      history: history.rows
+      history: history.rows,
     })
-
   } catch (error) {
     console.error('Error getting reservation history:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })

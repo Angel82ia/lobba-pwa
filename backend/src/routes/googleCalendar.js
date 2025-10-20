@@ -1,5 +1,5 @@
 import express from 'express'
-import { authenticateUser } from '../middleware/auth.js'
+import { requireAuth } from '../middleware/auth.js'
 import {
   initiateAuth,
   handleCallback,
@@ -8,25 +8,25 @@ import {
   syncNow,
   setupWebhook,
   handleWebhook,
-  disconnect
+  disconnect,
 } from '../controllers/googleCalendarController.js'
 
 const router = express.Router()
 
-router.get('/auth/:salonId', authenticateUser, initiateAuth)
+router.get('/auth/:salonId', requireAuth, initiateAuth)
 
 router.get('/callback', handleCallback)
 
-router.get('/calendars/:salonId', authenticateUser, getCalendars)
+router.get('/calendars/:salonId', requireAuth, getCalendars)
 
-router.post('/set-calendar/:salonId', authenticateUser, setCalendar)
+router.post('/set-calendar/:salonId', requireAuth, setCalendar)
 
-router.post('/sync/:salonId', authenticateUser, syncNow)
+router.post('/sync/:salonId', requireAuth, syncNow)
 
-router.post('/webhook/setup/:salonId', authenticateUser, setupWebhook)
+router.post('/webhook/setup/:salonId', requireAuth, setupWebhook)
 
 router.post('/webhook', handleWebhook)
 
-router.delete('/disconnect/:salonId', authenticateUser, disconnect)
+router.delete('/disconnect/:salonId', requireAuth, disconnect)
 
 export default router
