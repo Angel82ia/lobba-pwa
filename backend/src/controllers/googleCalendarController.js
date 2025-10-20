@@ -9,10 +9,9 @@ export const initiateAuth = async (req, res) => {
     const { salonId } = req.params
     const userId = req.user?.id
 
-    const salonResult = await pool.query(
-      'SELECT user_id FROM salon_profiles WHERE id = $1',
-      [salonId]
-    )
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
 
     if (salonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Salon not found' })
@@ -26,9 +25,8 @@ export const initiateAuth = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      authUrl
+      authUrl,
     })
-
   } catch (error) {
     console.error('Error initiating Google auth:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -46,12 +44,15 @@ export const handleCallback = async (req, res) => {
       hasCode: !!code,
       salonId,
       error,
-      allParams: req.query
+      allParams: req.query,
     })
 
     if (error) {
       console.error('❌ [Google Calendar] OAuth error from Google:', error)
-      return res.redirect(`${process.env.FRONTEND_URL}/salon/settings?error=google_auth_failed&reason=${error}`)
+      const redirectUrl = salonId 
+        ? `${process.env.FRONTEND_URL}/salon/${salonId}/settings?error=google_auth_failed&reason=${error}`
+        : `${process.env.FRONTEND_URL}/?error=google_auth_failed&reason=${error}`
+      return res.redirect(redirectUrl)
     }
 
     if (!code || !salonId) {
@@ -67,16 +68,22 @@ export const handleCallback = async (req, res) => {
     await GoogleCalendar.saveGoogleTokens(salonId, tokens)
     console.log('✅ [Google Calendar] Tokens saved successfully')
 
-    return res.redirect(`${process.env.FRONTEND_URL}/salon/${salonId}/settings?google_calendar=connected`)
-
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/salon/${salonId}/settings?google_calendar=connected`
+    )
   } catch (error) {
+    const { state: salonId } = req.query
     console.error('❌ [Google Calendar] Error handling callback:', {
+      salonId,
       message: error.message,
       stack: error.stack,
       code: error.code,
-      response: error.response?.data
+      response: error.response?.data,
     })
-    return res.redirect(`${process.env.FRONTEND_URL}/salon/settings?error=google_auth_failed`)
+    const redirectUrl = salonId 
+      ? `${process.env.FRONTEND_URL}/salon/${salonId}/settings?error=google_auth_failed`
+      : `${process.env.FRONTEND_URL}/?error=google_auth_failed`
+    return res.redirect(redirectUrl)
   }
 }
 
@@ -88,10 +95,9 @@ export const getCalendars = async (req, res) => {
     const { salonId } = req.params
     const userId = req.user?.id
 
-    const salonResult = await pool.query(
-      'SELECT user_id FROM salon_profiles WHERE id = $1',
-      [salonId]
-    )
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
 
     if (salonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Salon not found' })
@@ -105,9 +111,8 @@ export const getCalendars = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      calendars
+      calendars,
     })
-
   } catch (error) {
     console.error('Error getting calendars:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -127,10 +132,9 @@ export const setCalendar = async (req, res) => {
       return res.status(400).json({ error: 'Calendar ID is required' })
     }
 
-    const salonResult = await pool.query(
-      'SELECT user_id FROM salon_profiles WHERE id = $1',
-      [salonId]
-    )
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
 
     if (salonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Salon not found' })
@@ -144,9 +148,8 @@ export const setCalendar = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Calendar configured successfully'
+      message: 'Calendar configured successfully',
     })
-
   } catch (error) {
     console.error('Error setting calendar:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -161,10 +164,9 @@ export const syncNow = async (req, res) => {
     const { salonId } = req.params
     const userId = req.user?.id
 
-    const salonResult = await pool.query(
-      'SELECT user_id FROM salon_profiles WHERE id = $1',
-      [salonId]
-    )
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
 
     if (salonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Salon not found' })
@@ -178,9 +180,8 @@ export const syncNow = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      sync: result
+      sync: result,
     })
-
   } catch (error) {
     console.error('Error syncing calendar:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -195,10 +196,9 @@ export const setupWebhook = async (req, res) => {
     const { salonId } = req.params
     const userId = req.user?.id
 
-    const salonResult = await pool.query(
-      'SELECT user_id FROM salon_profiles WHERE id = $1',
-      [salonId]
-    )
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
 
     if (salonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Salon not found' })
@@ -213,9 +213,8 @@ export const setupWebhook = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      webhook
+      webhook,
     })
-
   } catch (error) {
     console.error('Error setting up webhook:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -237,7 +236,6 @@ export const handleWebhook = async (req, res) => {
     await GoogleCalendar.processWebhookNotification(channelId, resourceId)
 
     return res.status(200).json({ success: true })
-
   } catch (error) {
     console.error('Error processing webhook:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -252,10 +250,9 @@ export const disconnect = async (req, res) => {
     const { salonId } = req.params
     const userId = req.user?.id
 
-    const salonResult = await pool.query(
-      'SELECT user_id FROM salon_profiles WHERE id = $1',
-      [salonId]
-    )
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
 
     if (salonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Salon not found' })
@@ -282,9 +279,8 @@ export const disconnect = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Google Calendar disconnected'
+      message: 'Google Calendar disconnected',
     })
-
   } catch (error) {
     console.error('Error disconnecting Google Calendar:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
