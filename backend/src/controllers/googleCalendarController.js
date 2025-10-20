@@ -40,13 +40,6 @@ export const handleCallback = async (req, res) => {
   try {
     const { code, state: salonId, error } = req.query
 
-    console.log('🔍 [Google Calendar] Callback received:', {
-      hasCode: !!code,
-      salonId,
-      error,
-      allParams: req.query,
-    })
-
     if (error) {
       console.error('❌ [Google Calendar] OAuth error from Google:', error)
       const redirectUrl = salonId
@@ -60,13 +53,8 @@ export const handleCallback = async (req, res) => {
       return res.status(400).json({ error: 'Missing code or state' })
     }
 
-    console.log('🔄 [Google Calendar] Exchanging code for tokens...')
     const tokens = await GoogleCalendar.exchangeCodeForTokens(code)
-    console.log('✅ [Google Calendar] Tokens received')
-
-    console.log('🔄 [Google Calendar] Saving tokens to database...')
     await GoogleCalendar.saveGoogleTokens(salonId, tokens)
-    console.log('✅ [Google Calendar] Tokens saved successfully')
 
     return res.redirect(
       `${process.env.FRONTEND_URL}/salon/${salonId}/settings?google_calendar=connected`

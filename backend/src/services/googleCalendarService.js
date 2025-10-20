@@ -20,10 +20,6 @@ const createOAuth2Client = () => {
 export const getAuthUrl = salonId => {
   const oauth2Client = createOAuth2Client()
 
-  console.log('🔍 [Google Calendar] Generating auth URL with:')
-  console.log('   GOOGLE_REDIRECT_URI:', GOOGLE_REDIRECT_URI)
-  console.log('   Salon ID:', salonId)
-
   const scopes = [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events',
@@ -42,14 +38,8 @@ export const getAuthUrl = salonId => {
  */
 export const exchangeCodeForTokens = async code => {
   try {
-    console.log('🔄 [Google Calendar Service] Exchanging code for tokens...')
     const oauth2Client = createOAuth2Client()
     const { tokens } = await oauth2Client.getToken(code)
-    console.log('✅ [Google Calendar Service] Tokens obtained:', {
-      hasAccessToken: !!tokens.access_token,
-      hasRefreshToken: !!tokens.refresh_token,
-      expiryDate: tokens.expiry_date,
-    })
     return tokens
   } catch (error) {
     console.error('❌ [Google Calendar Service] Error exchanging code:', {
@@ -65,7 +55,6 @@ export const exchangeCodeForTokens = async code => {
  */
 export const saveGoogleTokens = async (salonId, tokens) => {
   try {
-    console.log('🔄 [Google Calendar Service] Saving tokens for salon:', salonId)
     const expiryDate = new Date(tokens.expiry_date)
 
     const result = await pool.query(
@@ -82,8 +71,6 @@ export const saveGoogleTokens = async (salonId, tokens) => {
       console.error('❌ [Google Calendar Service] Salon not found:', salonId)
       throw new Error(`Salon with id ${salonId} not found`)
     }
-
-    console.log('✅ [Google Calendar Service] Tokens saved successfully for salon:', salonId)
   } catch (error) {
     console.error('❌ [Google Calendar Service] Error saving tokens:', {
       salonId,
