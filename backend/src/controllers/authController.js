@@ -21,6 +21,9 @@ import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
 import { findCodigoByValue } from '../models/CodigoInfluencer.js'
 import { enviarRegistroASheet } from '../services/googleSheetsService.js'
+import { registerReferral } from '../services/referralService.js'
+import { validarCodigoInfluencer } from '../services/influencerCodeService.js'
+import pool from '../config/database.js'
 
 export const register = async (req, res) => {
   try {
@@ -29,23 +32,40 @@ export const register = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { email, password, firstName, lastName, role = 'user', codigo_referido } = req.body
+    const { email, password, firstName, lastName, role = 'user', codigo_referido, codigo_amigas } = req.body
 
     const existingUser = await findUserByEmail(email)
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' })
     }
 
-    let codigoReferidoValido = null
-    if (codigo_referido) {
+    let tipoDescuento = 'ninguno'
+    let codigoReferidoFinal = null
+    let usarProgramaReferidos = false
+    
+    if (codigo_amigas) {
+      const codigoTrimmed = codigo_amigas.trim().toUpperCase()
+      const referralCodeResult = await pool.query(
+        'SELECT id FROM users WHERE referral_code = $1',
+        [codigoTrimmed]
+      )
+      
+      if (referralCodeResult.rows.length > 0) {
+        usarProgramaReferidos = true
+        tipoDescuento = 'referido_amigas'
+        logger.info(`Aplicando programa de referidos con código ${codigoTrimmed} (PRIORIDAD 1)`)
+      }
+    }
+    
+    if (!usarProgramaReferidos && codigo_referido) {
       const codigoTrimmed = codigo_referido.trim().toUpperCase()
-      if (codigoTrimmed) {
-        const codigoExistente = await findCodigoByValue(codigoTrimmed)
-        if (codigoExistente) {
-          codigoReferidoValido = codigoTrimmed
-        } else {
-          logger.warn(`Código de referido inválido intentado: ${codigoTrimmed}`)
-        }
+      const codigoExistente = await validarCodigoInfluencer(codigoTrimmed)
+      if (codigoExistente) {
+        codigoReferidoFinal = codigoTrimmed
+        tipoDescuento = 'codigo_influencer'
+        logger.info(`Aplicando código influencer ${codigoTrimmed} (PRIORIDAD 2)`)
+      } else {
+        logger.warn(`Código de influencer inválido intentado: ${codigoTrimmed}`)
       }
     }
 
@@ -56,12 +76,26 @@ export const register = async (req, res) => {
       firstName,
       lastName,
       role,
-      codigoReferido: codigoReferidoValido,
+      codigoReferido: codigoReferidoFinal,
     })
+    
+    await pool.query(
+      'UPDATE users SET tipo_descuento_aplicado = $1 WHERE id = $2',
+      [tipoDescuento, user.id]
+    )
+    
+    if (usarProgramaReferidos) {
+      try {
+        await registerReferral(user.id, codigo_amigas.trim().toUpperCase())
+        logger.info(`Usuario ${user.id} registrado en programa de referidos`)
+      } catch (error) {
+        logger.error('Error registrando en programa de referidos:', error)
+      }
+    }
 
-    if (codigoReferidoValido) {
+    if (codigoReferidoFinal) {
       enviarRegistroASheet({
-        codigo: codigoReferidoValido,
+        codigo: codigoReferidoFinal,
         nombre: `${firstName} ${lastName}`,
         email: email,
       }).catch(err => logger.error('Error enviando a Google Sheets (no crítico):', err))
@@ -84,6 +118,7 @@ export const register = async (req, res) => {
         role: userWithSalon.role,
         membershipActive: userWithSalon.membership_active,
         salonId: userWithSalon.salon_profile_id || null,
+        tipoDescuento,
       },
       tokens: {
         accessToken,
