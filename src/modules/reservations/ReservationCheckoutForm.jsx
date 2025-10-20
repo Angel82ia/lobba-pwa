@@ -106,7 +106,7 @@ const ReservationCheckoutContent = () => {
       })
 
     } catch (err) {
-      console.error('Error en checkout:', err)
+      // Error en checkout
       
       // Manejar error específico de slot no disponible
       if (err.message?.includes('SLOT_NO_LONGER_AVAILABLE')) {

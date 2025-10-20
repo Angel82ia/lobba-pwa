@@ -166,7 +166,7 @@ function GoogleCalendarIntegration({ salonId }) {
       
       alert('✅ Sincronización automática activada\n\nLos cambios en Google Calendar ahora se reflejarán automáticamente en Lobba.')
     } catch (error) {
-      console.error('Error activating webhook:', error)
+      // Error activating webhook
       alert('❌ Error al activar sincronización automática\n\n' + (error.response?.data?.error || error.message))
     } finally {
       setActivatingWebhook(false)

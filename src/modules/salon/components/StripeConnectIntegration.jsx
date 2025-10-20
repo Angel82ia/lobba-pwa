@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import { 
   createStripeConnectAccount, 
   getStripeConnectStatus,
@@ -20,21 +21,7 @@ const StripeConnectIntegration = ({ salonId }) => {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
 
-  useEffect(() => {
-    fetchData()
-  }, [salonId])
-
-  // Verificar si volvió de Stripe onboarding
-  useEffect(() => {
-    if (searchParams.get('stripe_return') === 'true') {
-      setSuccess('✅ ¡Configuración de pagos completada! Ya puedes recibir reservas.')
-      fetchData()
-      // Limpiar query params
-      navigate(window.location.pathname, { replace: true })
-    }
-  }, [searchParams, navigate])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -49,7 +36,21 @@ const StripeConnectIntegration = ({ salonId }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [salonId])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // Verificar si volvió de Stripe onboarding
+  useEffect(() => {
+    if (searchParams.get('stripe_return') === 'true') {
+      setSuccess('✅ ¡Configuración de pagos completada! Ya puedes recibir reservas.')
+      fetchData()
+      // Limpiar query params
+      navigate(window.location.pathname, { replace: true })
+    }
+  }, [searchParams, navigate, fetchData])
 
   const handleConnectStripe = async () => {
     if (!salon) return
@@ -309,6 +310,10 @@ const StripeConnectIntegration = ({ salonId }) => {
       </div>
     </Card>
   )
+}
+
+StripeConnectIntegration.propTypes = {
+  salonId: PropTypes.string.isRequired,
 }
 
 export default StripeConnectIntegration
