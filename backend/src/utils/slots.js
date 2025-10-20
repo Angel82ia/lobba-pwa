@@ -1,4 +1,6 @@
 import pool from '../config/database.js'
+import { listCalendarEvents } from './googleCalendar.js'
+import logger from './logger.js'
 
 const generateTimeSlots = (openTime, closeTime, intervalMinutes = 15) => {
   const slots = []
@@ -61,17 +63,22 @@ const isSlotBlocked = (slotTime, slotEndTime, reservations, bufferMinutes) => {
 }
 
 export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => {
-  const salonResult = await pool.query('SELECT business_hours FROM salon_profiles WHERE id = $1', [
-    salonProfileId,
-  ])
+  const salonResult = await pool.query(
+    `SELECT sp.business_hours, u.google_refresh_token, u.google_access_token 
+     FROM salon_profiles sp
+     LEFT JOIN users u ON sp.user_id = u.id
+     WHERE sp.id = $1`,
+    [salonProfileId]
+  )
 
   if (salonResult.rows.length === 0) {
     throw new Error('Salon not found')
   }
 
+  const salon = salonResult.rows[0]
   const dateObj = new Date(date)
   const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-  const businessHours = salonResult.rows[0].business_hours?.[dayName]
+  const businessHours = salon.business_hours?.[dayName]
 
   if (!businessHours || !businessHours.open || !businessHours.close) {
     return []
@@ -97,7 +104,40 @@ export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => 
     [salonProfileId, date]
   )
 
-  const existingReservations = reservationsResult.rows
+  const existingReservations = [...reservationsResult.rows]
+
+  if (salon.google_refresh_token || salon.google_access_token) {
+    try {
+      const startOfDay = new Date(date)
+      startOfDay.setHours(0, 0, 0, 0)
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+
+      const credentials = {
+        refresh_token: salon.google_refresh_token,
+        access_token: salon.google_access_token,
+      }
+
+      const calendarEvents = await listCalendarEvents({
+        startTime: startOfDay,
+        endTime: endOfDay,
+        credentials,
+      })
+
+      const googleReservations = calendarEvents
+        .filter(event => event.start?.dateTime && event.end?.dateTime)
+        .map(event => ({
+          start_time: event.start.dateTime,
+          end_time: event.end.dateTime,
+          buffer_minutes: 15,
+        }))
+
+      existingReservations.push(...googleReservations)
+      logger.info(`Added ${googleReservations.length} Google Calendar events to availability calculation`)
+    } catch (error) {
+      logger.warn('Failed to fetch Google Calendar events, using only database reservations:', error.message)
+    }
+  }
 
   const allSlots = generateTimeSlots(businessHours.open, businessHours.close, 15)
 

@@ -1,6 +1,6 @@
 import * as Reservation from '../models/Reservation.js'
 import { getAvailableSlots } from '../utils/slots.js'
-import { createCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
+import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
 import { sendReservationConfirmation, sendReservationCancellation } from '../utils/whatsapp.js'
 import { 
   sendReservationConfirmationEmail, 
@@ -56,6 +56,43 @@ export const createReservation = async (req, res) => {
 
     const fullReservation = await Reservation.findReservationById(reservation.id)
 
+    let googleCalendarEventId = null
+    try {
+      const salonOwnerResult = await pool.query(
+        `SELECT u.google_refresh_token, u.google_access_token
+         FROM salon_profiles sp
+         LEFT JOIN users u ON sp.user_id = u.id
+         WHERE sp.id = $1`,
+        [salonProfileId]
+      )
+
+      if (salonOwnerResult.rows.length > 0 && 
+          (salonOwnerResult.rows[0].google_refresh_token || salonOwnerResult.rows[0].google_access_token)) {
+        const credentials = {
+          refresh_token: salonOwnerResult.rows[0].google_refresh_token,
+          access_token: salonOwnerResult.rows[0].google_access_token,
+        }
+
+        const calendarEvent = await createCalendarEvent({
+          summary: `${fullReservation.service_name} - ${fullReservation.first_name} ${fullReservation.last_name}`,
+          description: fullReservation.notes || 'Reserva desde LOBBA',
+          startTime: new Date(fullReservation.start_time),
+          endTime: new Date(fullReservation.end_time),
+          attendeeEmail: fullReservation.email,
+          credentials,
+        })
+        googleCalendarEventId = calendarEvent.id
+
+        await pool.query(
+          'UPDATE reservations SET google_calendar_event_id = $1 WHERE id = $2',
+          [googleCalendarEventId, reservation.id]
+        )
+        logger.info(`Created Google Calendar event ${googleCalendarEventId} for reservation ${reservation.id}`)
+      }
+    } catch (calendarError) {
+      logger.error('Error creating Google Calendar event:', calendarError)
+    }
+
     try {
       const salonResult = await pool.query(
         'SELECT email FROM salon_profiles WHERE id = $1',
@@ -75,7 +112,7 @@ export const createReservation = async (req, res) => {
       logger.error('Error sending new reservation email to salon:', emailError)
     }
 
-    res.status(201).json(reservation)
+    res.status(201).json({ ...reservation, google_calendar_event_id: googleCalendarEventId })
   } catch (error) {
     logger.error('Create reservation error:', error)
     res.status(500).json({ error: 'Failed to create reservation' })
@@ -151,18 +188,37 @@ export const confirmReservation = async (req, res) => {
       return res.status(404).json({ error: 'Reservation not found' })
     }
 
-    let googleCalendarEventId = null
-    try {
-      const calendarEvent = await createCalendarEvent({
-        summary: `${reservation.service_name} - ${reservation.first_name} ${reservation.last_name}`,
-        description: reservation.notes || '',
-        startTime: new Date(reservation.start_time),
-        endTime: new Date(reservation.end_time),
-        attendeeEmail: reservation.email,
-      })
-      googleCalendarEventId = calendarEvent.id
-    } catch (error) {
-      logger.error('Google Calendar error:', error)
+    let googleCalendarEventId = reservation.google_calendar_event_id
+    
+    if (googleCalendarEventId) {
+      try {
+        const salonOwnerResult = await pool.query(
+          `SELECT u.google_refresh_token, u.google_access_token
+           FROM salon_profiles sp
+           LEFT JOIN users u ON sp.user_id = u.id
+           WHERE sp.id = $1`,
+          [reservation.salon_profile_id]
+        )
+
+        if (salonOwnerResult.rows.length > 0) {
+          const credentials = {
+            refresh_token: salonOwnerResult.rows[0].google_refresh_token,
+            access_token: salonOwnerResult.rows[0].google_access_token,
+          }
+
+          await updateCalendarEvent(
+            googleCalendarEventId,
+            {
+              summary: `✅ ${reservation.service_name} - ${reservation.first_name} ${reservation.last_name}`,
+              description: `${reservation.notes || ''}\n\nReserva confirmada desde LOBBA`,
+            },
+            credentials
+          )
+          logger.info(`Updated Google Calendar event ${googleCalendarEventId} to confirmed status`)
+        }
+      } catch (error) {
+        logger.error('Google Calendar update error:', error)
+      }
     }
 
     const updated = await Reservation.updateReservationStatus(id, 'confirmed', {
@@ -218,7 +274,23 @@ export const cancelReservation = async (req, res) => {
 
     if (reservation.google_calendar_event_id) {
       try {
-        await deleteCalendarEvent(reservation.google_calendar_event_id)
+        const salonOwnerResult = await pool.query(
+          `SELECT u.google_refresh_token, u.google_access_token
+           FROM salon_profiles sp
+           LEFT JOIN users u ON sp.user_id = u.id
+           WHERE sp.id = $1`,
+          [reservation.salon_profile_id]
+        )
+
+        if (salonOwnerResult.rows.length > 0) {
+          const credentials = {
+            refresh_token: salonOwnerResult.rows[0].google_refresh_token,
+            access_token: salonOwnerResult.rows[0].google_access_token,
+          }
+          
+          await deleteCalendarEvent(reservation.google_calendar_event_id, credentials)
+          logger.info(`Deleted Google Calendar event ${reservation.google_calendar_event_id}`)
+        }
       } catch (error) {
         logger.error('Google Calendar delete error:', error)
       }
@@ -285,6 +357,30 @@ export const rejectReservation = async (req, res) => {
 
     if (!reservation) {
       return res.status(404).json({ error: 'Reservation not found' })
+    }
+
+    if (reservation.google_calendar_event_id) {
+      try {
+        const salonOwnerResult = await pool.query(
+          `SELECT u.google_refresh_token, u.google_access_token
+           FROM salon_profiles sp
+           LEFT JOIN users u ON sp.user_id = u.id
+           WHERE sp.id = $1`,
+          [reservation.salon_profile_id]
+        )
+
+        if (salonOwnerResult.rows.length > 0) {
+          const credentials = {
+            refresh_token: salonOwnerResult.rows[0].google_refresh_token,
+            access_token: salonOwnerResult.rows[0].google_access_token,
+          }
+          
+          await deleteCalendarEvent(reservation.google_calendar_event_id, credentials)
+          logger.info(`Deleted Google Calendar event ${reservation.google_calendar_event_id} for rejected reservation`)
+        }
+      } catch (error) {
+        logger.error('Google Calendar delete error:', error)
+      }
     }
 
     const rejected = await Reservation.cancelReservation(id, reason || 'Rechazada por el salón')

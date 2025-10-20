@@ -63,3 +63,33 @@ export const deleteCalendarEvent = async (eventId, credentials = null) => {
     eventId,
   })
 }
+
+export const getFreeBusyInfo = async ({ startTime, endTime, credentials = null }) => {
+  const auth = initializeGoogleAuth(credentials)
+  const calendar = google.calendar({ version: 'v3', auth })
+
+  const response = await calendar.freebusy.query({
+    requestBody: {
+      timeMin: startTime.toISOString(),
+      timeMax: endTime.toISOString(),
+      items: [{ id: 'primary' }],
+    },
+  })
+
+  return response.data.calendars?.primary?.busy || []
+}
+
+export const listCalendarEvents = async ({ startTime, endTime, credentials = null }) => {
+  const auth = initializeGoogleAuth(credentials)
+  const calendar = google.calendar({ version: 'v3', auth })
+
+  const response = await calendar.events.list({
+    calendarId: 'primary',
+    timeMin: startTime.toISOString(),
+    timeMax: endTime.toISOString(),
+    singleEvents: true,
+    orderBy: 'startTime',
+  })
+
+  return response.data.items || []
+}
