@@ -11,6 +11,7 @@ import {
   cancelReservation,
   completeReservation,
 } from '../controllers/reservationController.js'
+import { rejectReservation, startReservation, rescheduleReservation, addSalonNotes } from '../controllers/reservationStatusController.js'
 import { modifyReservation, getReservationHistory } from '../controllers/reservationModificationController.js'
 import { getReservationTimeoutStatus } from '../controllers/reservationTimeoutController.js'
 import { auditUserAction } from '../middleware/audit.js'
@@ -50,5 +51,9 @@ router.put(
   auditUserAction,
   completeReservation
 )
+router.put('/:id/reject', requireAuth, auditUserAction, rejectReservation)
+router.put('/:id/start', requireAuth, auditUserAction, startReservation)
+router.post('/:id/reschedule', requireAuth, auditUserAction, rescheduleReservation)
+router.put('/:id/notes', requireAuth, addSalonNotes)
 
 export default router
