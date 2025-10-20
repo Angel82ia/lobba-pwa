@@ -160,6 +160,13 @@ export const syncGoogleCalendarBlock = async (salonProfileId, eventData) => {
   const existing = await getBlockByGoogleEventId(salonProfileId, eventData.id)
 
   if (existing) {
+    console.log(`🔄 [AvailabilityBlock] Updating existing block:`, {
+      blockId: existing.id,
+      eventId: eventData.id,
+      start: eventData.start,
+      end: eventData.end,
+    })
+    
     return updateBlock(existing.id, {
       start_time: eventData.start,
       end_time: eventData.end,
@@ -167,7 +174,15 @@ export const syncGoogleCalendarBlock = async (salonProfileId, eventData) => {
       description: eventData.description
     })
   } else {
-    return createBlock({
+    console.log(`➕ [AvailabilityBlock] Creating new block:`, {
+      salonProfileId,
+      eventId: eventData.id,
+      start: eventData.start,
+      end: eventData.end,
+      title: eventData.summary,
+    })
+    
+    const result = await createBlock({
       salonProfileId,
       startTime: eventData.start,
       endTime: eventData.end,
@@ -176,5 +191,8 @@ export const syncGoogleCalendarBlock = async (salonProfileId, eventData) => {
       description: eventData.description,
       googleCalendarEventId: eventData.id
     })
+    
+    console.log(`✅ [AvailabilityBlock] Block created with ID:`, result.id)
+    return result
   }
 }

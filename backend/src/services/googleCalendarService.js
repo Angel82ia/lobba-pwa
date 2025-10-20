@@ -213,6 +213,8 @@ export const syncReservationsToGoogle = async salonId => {
  * Sincronizar eventos Google Calendar → LOBBA (availability_blocks)
  */
 export const syncGoogleEventsToBlocks = async salonId => {
+  console.log('🔄 [Sync Google→Blocks] Starting for salon:', salonId)
+  
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
@@ -222,6 +224,7 @@ export const syncGoogleEventsToBlocks = async salonId => {
   )
 
   if (!salonResult.rows[0].google_calendar_id) {
+    console.error('❌ [Sync Google→Blocks] No calendar configured for salon:', salonId)
     throw new Error('No calendar configured')
   }
 
@@ -230,6 +233,12 @@ export const syncGoogleEventsToBlocks = async salonId => {
   const now = new Date()
   const maxDate = new Date()
   maxDate.setMonth(maxDate.getMonth() + 3)
+
+  console.log('🔄 [Sync Google→Blocks] Fetching events from Google Calendar:', {
+    calendarId,
+    timeMin: now.toISOString(),
+    timeMax: maxDate.toISOString(),
+  })
 
   const response = await calendarApi.events.list({
     calendarId,
@@ -240,16 +249,29 @@ export const syncGoogleEventsToBlocks = async salonId => {
   })
 
   const events = response.data.items || []
+  console.log(`📅 [Sync Google→Blocks] Found ${events.length} events in Google Calendar`)
+
   const blocked = []
 
   for (const event of events) {
+    // Ignorar eventos creados por Lobba
     if (event.extendedProperties?.private?.lobba_source === 'true') {
+      console.log(`⏭️  [Sync Google→Blocks] Skipping Lobba event: ${event.summary}`)
       continue
     }
 
+    // Ignorar eventos sin fecha/hora (eventos de día completo)
     if (!event.start?.dateTime || !event.end?.dateTime) {
+      console.log(`⏭️  [Sync Google→Blocks] Skipping all-day event: ${event.summary}`)
       continue
     }
+
+    console.log(`🔒 [Sync Google→Blocks] Blocking slot for event:`, {
+      id: event.id,
+      summary: event.summary,
+      start: event.start.dateTime,
+      end: event.end.dateTime,
+    })
 
     await AvailabilityBlock.syncGoogleCalendarBlock(salonId, {
       id: event.id,
@@ -262,6 +284,7 @@ export const syncGoogleEventsToBlocks = async salonId => {
     blocked.push(event.id)
   }
 
+  console.log(`✅ [Sync Google→Blocks] Completed: ${blocked.length} slots blocked`)
   return { blocked: blocked.length, eventIds: blocked }
 }
 
