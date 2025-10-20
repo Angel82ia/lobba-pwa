@@ -156,6 +156,7 @@ const ReservationList = () => {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
+                        timeZone: 'Europe/Madrid',
                       })}
                     </p>
                   </div>
@@ -165,6 +166,7 @@ const ReservationList = () => {
                       {new Date(reservation.start_time).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit',
+                        timeZone: 'Europe/Madrid',
                       })}
                     </p>
                   </div>

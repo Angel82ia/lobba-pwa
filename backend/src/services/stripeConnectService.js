@@ -8,6 +8,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
  */
 export const createConnectAccount = async (salonProfileId, email, businessName) => {
   try {
+    console.log('[Stripe Connect] Creating account for:', { salonProfileId, email, businessName })
+
     const account = await stripe.accounts.create({
       type: 'express',
       country: 'ES',
@@ -23,6 +25,8 @@ export const createConnectAccount = async (salonProfileId, email, businessName) 
       },
     })
 
+    console.log('[Stripe Connect] Account created:', account.id)
+
     await pool.query(
       `UPDATE salon_profiles 
        SET stripe_connect_account_id = $1,
@@ -34,8 +38,15 @@ export const createConnectAccount = async (salonProfileId, email, businessName) 
 
     return account
   } catch (error) {
-    console.error('Error creating Connect account:', error)
-    throw new Error('Error al crear cuenta Stripe Connect')
+    console.error('[Stripe Connect] Error creating account:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      statusCode: error.statusCode,
+      details: error.raw?.message || error.toString(),
+    })
+    // Propagar el error real de Stripe
+    throw error
   }
 }
 
@@ -44,6 +55,12 @@ export const createConnectAccount = async (salonProfileId, email, businessName) 
  */
 export const createAccountLink = async (accountId, salonProfileId) => {
   try {
+    console.log('[Stripe Connect] Creating account link for:', accountId)
+    console.log('[Stripe Connect] URLs:', {
+      refresh: `${process.env.FRONTEND_URL}/salon/connect/refresh?salon_id=${salonProfileId}`,
+      return: `${process.env.FRONTEND_URL}/salon/connect/return?salon_id=${salonProfileId}`,
+    })
+
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: `${process.env.FRONTEND_URL}/salon/connect/refresh?salon_id=${salonProfileId}`,
@@ -51,17 +68,24 @@ export const createAccountLink = async (accountId, salonProfileId) => {
       type: 'account_onboarding',
     })
 
+    console.log('[Stripe Connect] Account link created:', accountLink.url)
     return accountLink
   } catch (error) {
-    console.error('Error creating account link:', error)
-    throw new Error('Error al generar link de onboarding')
+    console.error('[Stripe Connect] Error creating account link:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      details: error.raw?.message || error.toString(),
+    })
+    // Propagar el error real de Stripe
+    throw error
   }
 }
 
 /**
  * Obtener estado de cuenta Stripe Connect
  */
-export const getAccountStatus = async (accountId) => {
+export const getAccountStatus = async accountId => {
   try {
     const account = await stripe.accounts.retrieve(accountId)
 
@@ -98,7 +122,7 @@ export const updateAccountStatus = async (salonProfileId, accountId) => {
         status.chargesEnabled && status.payoutsEnabled,
         status.chargesEnabled,
         status.payoutsEnabled,
-        salonProfileId
+        salonProfileId,
       ]
     )
 
@@ -112,11 +136,11 @@ export const updateAccountStatus = async (salonProfileId, accountId) => {
 /**
  * @deprecated OBSOLETO - No usar. Payment Intent se crea directamente en reservationCheckoutController
  * @see processReservationCheckout en reservationCheckoutController.js
- * 
+ *
  * Esta función se mantiene solo para compatibilidad temporal
  * Crear Split Payment (3% LOBBA, 97% Salón)
  */
-export const createSplitPayment = async (reservation) => {
+export const createSplitPayment = async reservation => {
   try {
     const salonResult = await pool.query(
       'SELECT stripe_connect_account_id, stripe_connect_enabled FROM salon_profiles WHERE id = $1',
@@ -167,13 +191,7 @@ export const createSplitPayment = async (reservation) => {
            amount_to_lobba = $3,
            amount_to_commerce = $4
        WHERE id = $5`,
-      [
-        paymentIntent.id,
-        commissionAmount,
-        commissionAmount,
-        amountToCommerce,
-        reservation.id
-      ]
+      [paymentIntent.id, commissionAmount, commissionAmount, amountToCommerce, reservation.id]
     )
 
     return paymentIntent
@@ -186,7 +204,7 @@ export const createSplitPayment = async (reservation) => {
 /**
  * Confirmar pago de reserva tras éxito
  */
-export const confirmReservationPayment = async (paymentIntentId) => {
+export const confirmReservationPayment = async paymentIntentId => {
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
 
@@ -235,8 +253,8 @@ export const refundReservationPayment = async (reservationId, reason = '') => {
       reason: 'requested_by_customer',
       metadata: {
         reservation_id: reservationId,
-        refund_reason: reason
-      }
+        refund_reason: reason,
+      },
     })
 
     await pool.query(

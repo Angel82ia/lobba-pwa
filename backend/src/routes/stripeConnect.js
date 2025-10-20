@@ -15,17 +15,19 @@ const router = express.Router()
  */
 router.post('/create', requireAuth, async (req, res) => {
   try {
-    const { userId } = req.user
-    const { salonProfileId, email, businessName } = req.body
+    const userId = req.user.id
+    const { salonProfileId } = req.body
 
-    if (!salonProfileId || !email || !businessName) {
-      return res
-        .status(400)
-        .json({ error: 'Salon profile ID, email and business name are required' })
+    if (!salonProfileId) {
+      return res.status(400).json({ error: 'Salon profile ID is required' })
     }
 
+    // Obtener salón y verificar pertenencia
     const salonResult = await pool.query(
-      'SELECT * FROM salon_profiles WHERE id = $1 AND user_id = $2',
+      `SELECT sp.*, u.email as owner_email 
+       FROM salon_profiles sp
+       JOIN users u ON sp.user_id = u.id
+       WHERE sp.id = $1 AND sp.user_id = $2`,
       [salonProfileId, userId]
     )
 
@@ -39,7 +41,12 @@ router.post('/create', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Salon already has a Stripe Connect account' })
     }
 
-    const account = await createConnectAccount(salonProfileId, email, businessName)
+    // Usar email del usuario dueño y business_name del salón
+    const account = await createConnectAccount(
+      salonProfileId,
+      salon.owner_email,
+      salon.business_name
+    )
 
     const accountLink = await createAccountLink(account.id, salonProfileId)
 
@@ -49,8 +56,21 @@ router.post('/create', requireAuth, async (req, res) => {
       onboardingUrl: accountLink.url,
     })
   } catch (error) {
-    console.error('Error creating Connect account:', error)
-    return res.status(500).json({ error: error.message || 'Internal server error' })
+    console.error('[Stripe Connect Route] Error:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      stack: error.stack,
+    })
+
+    // Devolver mensaje de error más específico
+    const errorMessage = error.message || 'Error al crear cuenta Stripe Connect'
+    const statusCode = error.statusCode || 500
+
+    return res.status(statusCode).json({
+      error: errorMessage,
+      details: error.type || 'stripe_error',
+    })
   }
 })
 
@@ -60,7 +80,7 @@ router.post('/create', requireAuth, async (req, res) => {
  */
 router.post('/refresh-link', requireAuth, async (req, res) => {
   try {
-    const { userId } = req.user
+    const userId = req.user.id
     const { salonProfileId } = req.body
 
     if (!salonProfileId) {
@@ -100,7 +120,7 @@ router.post('/refresh-link', requireAuth, async (req, res) => {
  */
 router.get('/status/:salonProfileId', requireAuth, async (req, res) => {
   try {
-    const { userId } = req.user
+    const userId = req.user.id
     const { salonProfileId } = req.params
 
     const salonResult = await pool.query(

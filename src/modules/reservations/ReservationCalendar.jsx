@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getSalonProfile, getSalonServices } from '../../services/profile'
-import { getAvailableSlots, createReservation } from '../../services/reservation'
+import { getAvailableSlots } from '../../services/reservation'
 import { Button, Card, Input, Textarea, Alert } from '../../components/common'
 
 const ReservationCalendar = () => {
@@ -67,23 +67,37 @@ const ReservationCalendar = () => {
     try {
       setSubmitting(true)
       const [hours, minutes] = selectedSlot.split(':')
-      const startTime = new Date(selectedDate)
-      startTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0)
       
-      const endTime = new Date(startTime)
-      endTime.setMinutes(endTime.getMinutes() + selectedService.durationMinutes)
+      // Crear fecha en zona horaria local (no UTC)
+      // Ejemplo: 2025-10-20 + 14:00 → 2025-10-20T14:00:00+02:00 (España)
+      const [year, month, day] = selectedDate.split('-')
+      const startTime = new Date(
+        parseInt(year),
+        parseInt(month) - 1, // Mes es 0-indexed
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes),
+        0,
+        0
+      )
+      
+      const endTime = new Date(startTime.getTime() + selectedService.durationMinutes * 60000)
 
-      await createReservation({
-        salonProfileId: salonId,
-        serviceId: selectedService.id,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        totalPrice: selectedService.price,
-        notes,
-        clientPhone,
+      // Redirigir al checkout de pago con los datos de la reserva
+      navigate('/reservation-checkout', {
+        state: {
+          reservationData: {
+            salon,
+            service: selectedService,
+            selectedDate,
+            selectedSlot,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            notes,
+            clientPhone,
+          }
+        }
       })
-
-      navigate('/reservations')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -240,7 +254,7 @@ const ReservationCalendar = () => {
                 </div>
               </Card>
 
-              {/* Botón de confirmación */}
+              {/* Botón de continuar al pago */}
               <div className="pt-4">
                 <Button 
                   type="submit" 
@@ -248,8 +262,11 @@ const ReservationCalendar = () => {
                   fullWidth
                   size="large"
                 >
-                  {submitting ? 'Reservando...' : '✓ Confirmar Reserva'}
+                  {submitting ? 'Procesando...' : '💳 Continuar al Pago'}
                 </Button>
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                  En el siguiente paso realizarás el pago seguro con tarjeta
+                </p>
               </div>
             </>
           )}

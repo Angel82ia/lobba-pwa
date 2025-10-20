@@ -13,6 +13,7 @@ import AdminDashboard from './modules/admin/AdminDashboard'
 import DeviceRegistration from './modules/devices/DeviceRegistration'
 import ReservationList from './modules/reservations/ReservationList'
 import ReservationCalendar from './modules/reservations/ReservationCalendar'
+import ReservationCheckout from './pages/ReservationCheckout'
 import ChatWindow from './modules/messaging/ChatWindow'
 import ProductGrid from './modules/ecommerce/ProductGrid'
 import ProductDetail from './modules/ecommerce/ProductDetail'
@@ -134,6 +135,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <ReservationCalendar />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="reservation-checkout"
+            element={
+              <ProtectedRoute>
+                <ReservationCheckout />
               </ProtectedRoute>
             }
           />

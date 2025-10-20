@@ -10,6 +10,7 @@ import profileRoutes from './routes/profile.js'
 import salonRoutes from './routes/salon.js'
 import deviceRoutes from './routes/device.js'
 import reservationRoutes from './routes/reservation.js'
+import reservationCheckoutRoutes from './routes/reservationCheckout.js'
 import messageRoutes from './routes/message.js'
 import productRoutes from './routes/product.js'
 import categoryRoutes from './routes/category.js'
@@ -38,6 +39,7 @@ import analyticsRoutes from './routes/analytics.js'
 import googleCalendarRoutes from './routes/googleCalendar.js'
 import availabilityBlockRoutes from './routes/availabilityBlock.js'
 import salonSettingsRoutes from './routes/salonSettings.js'
+import stripeConnectRoutes from './routes/stripeConnect.js'
 import whatsappRoutes from './routes/whatsapp.js'
 import availabilityRoutes from './routes/availability.js'
 import passport from './config/passport.js'
@@ -141,6 +143,7 @@ app.use('/api/profile', profileRoutes)
 app.use('/api/salons', salonRoutes)
 app.use('/api/device', deviceRoutes)
 app.use('/api/reservations', reservationRoutes)
+app.use('/api/reservation-checkout', reservationCheckoutRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/categories', categoryRoutes)
@@ -168,6 +171,7 @@ app.use('/api/analytics', analyticsRoutes)
 app.use('/api/google-calendar', googleCalendarRoutes)
 app.use('/api/availability-blocks', availabilityBlockRoutes)
 app.use('/api/salon-settings', salonSettingsRoutes)
+app.use('/api/stripe-connect', stripeConnectRoutes)
 app.use('/api/availability', availabilityRoutes)
 app.use('/api/whatsapp', whatsappRoutes)
 
