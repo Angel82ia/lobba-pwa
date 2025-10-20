@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { getCart } from '../../services/cart'
-import { createPaymentIntent, confirmPayment } from '../../services/checkout'
+import { createPaymentIntent, confirmPayment, validateDiscountCode } from '../../services/checkout'
 import Button from '../../components/common/Button'
 import Card from '../../components/common/Card'
 import Input from '../../components/common/Input'
@@ -28,6 +28,10 @@ const CheckoutFormContent = () => {
     postal_code: '',
     country: 'ES',
   })
+  const [discountCode, setDiscountCode] = useState('')
+  const [codeValidating, setCodeValidating] = useState(false)
+  const [codeValidation, setCodeValidation] = useState(null)
+  const [appliedCode, setAppliedCode] = useState(null)
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -51,7 +55,7 @@ const CheckoutFormContent = () => {
       if (!cart || cart.items.length === 0) return
 
       try {
-        const data = await createPaymentIntent(shippingMethod)
+        const data = await createPaymentIntent(shippingMethod, appliedCode)
         setCheckoutData(data)
       } catch (err) {
         setError(err.response?.data?.message || 'Error al calcular totales')
@@ -59,7 +63,35 @@ const CheckoutFormContent = () => {
     }
 
     fetchCheckoutData()
-  }, [cart, shippingMethod])
+  }, [cart, shippingMethod, appliedCode])
+
+  const handleValidateCode = async () => {
+    if (!discountCode.trim()) {
+      setCodeValidation({ valid: false, message: 'Ingresa un código' })
+      return
+    }
+
+    setCodeValidating(true)
+    setCodeValidation(null)
+
+    try {
+      const result = await validateDiscountCode(discountCode.trim().toUpperCase())
+      setCodeValidation({ valid: true, ...result })
+      setAppliedCode(discountCode.trim().toUpperCase())
+    } catch (err) {
+      const message = err.response?.data?.message || 'Código inválido'
+      setCodeValidation({ valid: false, message })
+      setAppliedCode(null)
+    } finally {
+      setCodeValidating(false)
+    }
+  }
+
+  const handleRemoveCode = () => {
+    setDiscountCode('')
+    setAppliedCode(null)
+    setCodeValidation(null)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -97,7 +129,7 @@ const CheckoutFormContent = () => {
         throw new Error(stripeError.message)
       }
 
-      await confirmPayment(paymentIntent.id, shippingAddress, shippingMethod)
+      await confirmPayment(paymentIntent.id, shippingAddress, shippingMethod, appliedCode)
 
       navigate('/orders', { 
         state: { 
@@ -146,6 +178,8 @@ const CheckoutFormContent = () => {
   const subtotal = checkoutData?.subtotal || 0
   const membershipDiscount = checkoutData?.membershipDiscount || 0
   const membershipType = checkoutData?.membershipType
+  const codeDiscount = checkoutData?.codeDiscount || 0
+  const totalDiscount = checkoutData?.totalDiscount || 0
   const shippingCost = checkoutData?.shippingCost || 0
   const freeShipping = checkoutData?.freeShipping || false
   const total = checkoutData?.total || 0
@@ -230,6 +264,46 @@ const CheckoutFormContent = () => {
               </label>
             </div>
 
+            <h3>Código de descuento</h3>
+            <div className="discount-code-section">
+              {!appliedCode ? (
+                <div className="code-input-group">
+                  <Input
+                    label="¿Tienes un código?"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    placeholder="CODIGO"
+                    disabled={codeValidating}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleValidateCode}
+                    disabled={!discountCode.trim() || codeValidating}
+                    className="validate-code-button"
+                  >
+                    {codeValidating ? 'Validando...' : 'Aplicar'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="code-applied">
+                  <span className="code-label">Código aplicado: <strong>{appliedCode}</strong></span>
+                  <Button
+                    type="button"
+                    onClick={handleRemoveCode}
+                    className="remove-code-button"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
+              
+              {codeValidation && (
+                <div className={`code-message ${codeValidation.valid ? 'success' : 'error'}`}>
+                  {codeValidation.message}
+                </div>
+              )}
+            </div>
+
             <h3>Método de pago</h3>
             <div className="card-element-container">
               <CardElement
@@ -250,7 +324,7 @@ const CheckoutFormContent = () => {
               />
             </div>
 
-            <Button 
+            <Button
               type="submit" 
               disabled={!stripe || processing || !checkoutData} 
               className="checkout-button"
@@ -297,6 +371,20 @@ const CheckoutFormContent = () => {
               <div className="summary-row discount">
                 <span>Descuento Membresía ({membershipType === 'spirit' ? '15%' : '10%'})</span>
                 <span className="discount-amount">-{membershipDiscount.toFixed(2)}€</span>
+              </div>
+            )}
+
+            {codeDiscount > 0 && appliedCode && (
+              <div className="summary-row discount">
+                <span>Descuento Código ({appliedCode})</span>
+                <span className="discount-amount">-{codeDiscount.toFixed(2)}€</span>
+              </div>
+            )}
+
+            {totalDiscount > 0 && (
+              <div className="summary-row total-discount">
+                <span><strong>Descuento Total</strong></span>
+                <span className="discount-amount"><strong>-{totalDiscount.toFixed(2)}€</strong></span>
               </div>
             )}
 
