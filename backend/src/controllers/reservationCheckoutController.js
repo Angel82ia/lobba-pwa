@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import { scheduleReminder, cancelReservationReminders } from '../services/reminderService.js'
 import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
 import { applyAutoConfirmation } from '../services/autoConfirmationService.js'
 import { setConfirmationDeadline } from '../services/reservationTimeoutService.js'
@@ -297,6 +298,17 @@ export const confirmReservation = async (req, res) => {
       })
     }
 
+    const reservation = reservationResult.rows[0]
+
+    try {
+      await scheduleReminder(reservation)
+    } catch (error) {
+      console.error('Error scheduling reminder:', error)
+    }
+
+    return res.status(200).json({
+      success: true,
+      reservation
     const reservation = await Reservation.createReservation({
       userId: metadata.user_id,
       salonProfileId: metadata.salon_profile_id,
@@ -386,6 +398,12 @@ export const cancelAndRefundReservation = async (req, res) => {
     }
 
     const refund = await refundReservationPayment(reservationId, reason)
+
+    try {
+      await cancelReservationReminders(reservationId)
+    } catch (error) {
+      console.error('Error cancelling reminders:', error)
+    }
 
     return res.status(200).json({
       success: true,

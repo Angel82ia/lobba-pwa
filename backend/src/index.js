@@ -42,6 +42,7 @@ import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
 import { generalLimiter } from './middleware/rateLimits.js'
+import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
 
 dotenv.config()
@@ -175,6 +176,7 @@ app.use((err, req, res, _next) => {
 if (process.env.NODE_ENV !== 'test') {
   httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
+    startReminderCron()
     
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')
