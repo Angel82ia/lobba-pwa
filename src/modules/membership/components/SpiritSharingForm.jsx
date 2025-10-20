@@ -56,7 +56,6 @@ const SpiritSharingForm = ({ membershipId, onSuccess, onCancel }) => {
       await createSharedMembership(membershipId, formData)
       onSuccess()
     } catch (err) {
-      console.error('Error creating shared membership:', err)
       setError(err.response?.data?.error || 'Error al compartir membresía')
     } finally {
       setLoading(false)

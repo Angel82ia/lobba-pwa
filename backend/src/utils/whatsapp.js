@@ -1,95 +1,91 @@
-import twilio from 'twilio'
+/**
+ * WhatsApp Click-to-Chat System - V3.0
+ * NO usa Twilio API, solo genera enlaces wa.me
+ * Cada salón tiene su propio número WhatsApp
+ */
 
-let client = null
+const MESSAGE_TEMPLATES = {
+  general: (salon, booking, user) =>
+    `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}, tengo una reserva:\n📅 ${booking.scheduled_date} a las ${booking.scheduled_time}\n📋 Reserva #${booking.short_id}\n\n¿Podrías confirmarme los detalles?`,
 
-const initializeTwilioClient = () => {
-  if (client) return client
+  confirm_pending: (salon, booking, user) =>
+    `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}. Acabo de hacer una reserva:\n📅 ${booking.scheduled_date} a las ${booking.scheduled_time}\n📋 Reserva #${booking.short_id}\n\n¿Podrías confirmarla? ¡Gracias!`,
 
-  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
-    console.warn('Twilio credentials not configured. WhatsApp messaging will be disabled.')
+  change_time: (salon, booking, _user) =>
+    `Hola ${salon.business_name} 👋\n\nTengo reserva el ${booking.scheduled_date} a las ${booking.scheduled_time} (#${booking.short_id})\n\n¿Sería posible cambiar la hora? Gracias`,
+
+  running_late: (salon, booking, _user) =>
+    `Hola ${salon.business_name} 👋\n\nTengo reserva hoy a las ${booking.scheduled_time} (#${booking.short_id})\n\nVoy a llegar un poco tarde. ¡Disculpa las molestias!`,
+
+  cancel: (salon, booking, _user) =>
+    `Hola ${salon.business_name} 👋\n\nTengo reserva el ${booking.scheduled_date} a las ${booking.scheduled_time} (#${booking.short_id})\n\nNecesito cancelarla. ¿Me podrías ayudar? Gracias`,
+
+  question: (salon, booking, user) =>
+    `Hola ${salon.business_name} 👋\n\nSoy ${user.first_name}. Tengo una consulta sobre mi reserva #${booking.short_id}:\n\n`,
+}
+
+/**
+ * Generar enlace WhatsApp click-to-chat
+ * @param {Object} salon - Datos del salón con whatsapp_number
+ * @param {Object} booking - Datos de la reserva (opcional)
+ * @param {Object} user - Datos del usuario
+ * @param {String} context - Tipo de mensaje: general, confirm_pending, change_time, running_late, cancel, question
+ * @returns {String|null} - URL wa.me o null si WhatsApp no habilitado
+ */
+export const generateWhatsAppLink = (salon, booking = null, user = {}, context = 'general') => {
+  if (!salon.whatsapp_enabled || !salon.whatsapp_number) {
     return null
   }
 
-  if (!process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
-    console.warn('Twilio ACCOUNT_SID is invalid. WhatsApp messaging will be disabled.')
+  const cleanNumber = salon.whatsapp_number.replace(/[^\d+]/g, '')
+
+  if (!cleanNumber.startsWith('+')) {
+    console.warn(`WhatsApp number for salon ${salon.id} should start with +`)
     return null
   }
 
-  client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  return client
+  const template = MESSAGE_TEMPLATES[context] || MESSAGE_TEMPLATES.general
+  const message = template(salon, booking, user)
+
+  return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
 }
 
-export const sendWhatsAppMessage = async ({ to, body }) => {
-  const twilioClient = initializeTwilioClient()
-
-  if (!twilioClient || !process.env.TWILIO_WHATSAPP_NUMBER) {
-    console.warn('Twilio not configured. Message not sent:', { to, body: body.substring(0, 50) })
-    return { sid: 'mock-sid', status: 'skipped' }
+/**
+ * @deprecated OBSOLETO - No enviar mensajes automáticos, solo click-to-chat
+ * Mantener solo para compatibilidad temporal
+ */
+export const sendWhatsAppMessage = async ({ to: _to, body: _body }) => {
+  console.warn('sendWhatsAppMessage is DEPRECATED. Use generateWhatsAppLink instead.')
+  return {
+    sid: 'deprecated',
+    status: 'not_sent',
+    message: 'WhatsApp automatic sending is disabled. Use click-to-chat instead.',
   }
-
-  const message = await twilioClient.messages.create({
-    from: process.env.TWILIO_WHATSAPP_NUMBER,
-    to: `whatsapp:${to}`,
-    body,
-  })
-
-  return message
 }
 
-export const sendReservationConfirmation = async reservation => {
-  const { client_phone, start_time, salon_profile, service } = reservation
-
-  if (!client_phone) return null
-
-  const startDate = new Date(start_time)
-  const formattedDate = startDate.toLocaleDateString('es-ES', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-  const formattedTime = startDate.toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
-  const body = `✅ Reserva confirmada en ${salon_profile.business_name}
-  
-Servicio: ${service.name}
-Fecha: ${formattedDate}
-Hora: ${formattedTime}
-
-¡Te esperamos!`
-
-  return sendWhatsAppMessage({ to: client_phone, body })
+/**
+ * @deprecated OBSOLETO - No enviar mensajes automáticos
+ * Usar generateWhatsAppLink con context='confirm_pending'
+ */
+export const sendReservationConfirmation = async _reservation => {
+  console.warn('sendReservationConfirmation is DEPRECATED. Use generateWhatsAppLink instead.')
+  return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }
 
-export const sendReservationReminder = async reservation => {
-  const { client_phone, start_time, salon_profile } = reservation
-
-  if (!client_phone) return null
-
-  const startDate = new Date(start_time)
-  const formattedTime = startDate.toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
-  const body = `🔔 Recordatorio: Tienes una cita en ${salon_profile.business_name} mañana a las ${formattedTime}.`
-
-  return sendWhatsAppMessage({ to: client_phone, body })
+/**
+ * @deprecated OBSOLETO - No enviar mensajes automáticos
+ * Usar generateWhatsAppLink con context='general'
+ */
+export const sendReservationReminder = async _reservation => {
+  console.warn('sendReservationReminder is DEPRECATED. Use generateWhatsAppLink instead.')
+  return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }
 
-export const sendReservationCancellation = async reservation => {
-  const { client_phone, salon_profile, cancellation_reason } = reservation
-
-  if (!client_phone) return null
-
-  const body = `❌ Tu reserva en ${salon_profile.business_name} ha sido cancelada.
-  
-Motivo: ${cancellation_reason || 'No especificado'}
-
-Si necesitas ayuda, contacta con nosotros.`
-
-  return sendWhatsAppMessage({ to: client_phone, body })
+/**
+ * @deprecated OBSOLETO - No enviar mensajes automáticos
+ * Usar generateWhatsAppLink con context='cancel'
+ */
+export const sendReservationCancellation = async _reservation => {
+  console.warn('sendReservationCancellation is DEPRECATED. Use generateWhatsAppLink instead.')
+  return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }

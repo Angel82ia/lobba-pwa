@@ -1,10 +1,8 @@
-import pool from '../config/database.js';
-import logger from '../utils/logger.js';
-import * as PowerbankLoan from '../models/PowerbankLoan.js';
-import * as MembershipLimitsService from './membershipLimitsService.js';
+import logger from '../utils/logger.js'
+import * as PowerbankLoan from '../models/PowerbankLoan.js'
+import * as MembershipLimitsService from './membershipLimitsService.js'
 
-const PENALTY_AMOUNT = 10.00;
-const LOAN_DURATION_HOURS = 24;
+const LOAN_DURATION_HOURS = 24
 
 /**
  * Loan a powerbank to a user
@@ -16,29 +14,29 @@ const LOAN_DURATION_HOURS = 24;
  */
 export const loanPowerbank = async (userId, powerbankId, commerceId, commerceName) => {
   try {
-    const canLoan = await MembershipLimitsService.canLoanPowerbank(userId);
-    
+    const canLoan = await MembershipLimitsService.canLoanPowerbank(userId)
+
     if (!canLoan.canUse) {
-      throw new Error(canLoan.reason);
+      throw new Error(canLoan.reason)
     }
-    
-    const activeLoan = await PowerbankLoan.findActiveLoanByUserId(userId);
-    
+
+    const activeLoan = await PowerbankLoan.findActiveLoanByUserId(userId)
+
     if (activeLoan) {
-      throw new Error('User already has an active powerbank loan');
+      throw new Error('User already has an active powerbank loan')
     }
-    
+
     const loan = await PowerbankLoan.createLoan({
       userId,
       powerbankId,
       commerceId,
       commerceName,
-    });
-    
-    await MembershipLimitsService.recordPowerbankLoan(userId);
-    
-    logger.info(`Powerbank ${powerbankId} loaned to user ${userId}`);
-    
+    })
+
+    await MembershipLimitsService.recordPowerbankLoan(userId)
+
+    logger.info(`Powerbank ${powerbankId} loaned to user ${userId}`)
+
     return {
       id: loan.id,
       powerbankId: loan.powerbank_id,
@@ -48,12 +46,12 @@ export const loanPowerbank = async (userId, powerbankId, commerceId, commerceNam
         id: loan.commerce_id,
         name: loan.commerce_name,
       },
-    };
+    }
   } catch (error) {
-    logger.error('Error loaning powerbank:', error);
-    throw error;
+    logger.error('Error loaning powerbank:', error)
+    throw error
   }
-};
+}
 
 /**
  * Return a powerbank
@@ -63,16 +61,18 @@ export const loanPowerbank = async (userId, powerbankId, commerceId, commerceNam
  */
 export const returnPowerbank = async (loanId, userId) => {
   try {
-    const existingLoan = await PowerbankLoan.findLoanByIdAndUserId(loanId, userId);
-    
+    const existingLoan = await PowerbankLoan.findLoanByIdAndUserId(loanId, userId)
+
     if (!existingLoan || existingLoan.status !== 'active') {
-      throw new Error('Active loan not found');
+      throw new Error('Active loan not found')
     }
-    
-    const loan = await PowerbankLoan.markAsReturned(loanId);
-    
-    logger.info(`Powerbank ${loan.powerbank_id} returned by user ${userId}. Penalty: ${loan.penalty_applied}`);
-    
+
+    const loan = await PowerbankLoan.markAsReturned(loanId)
+
+    logger.info(
+      `Powerbank ${loan.powerbank_id} returned by user ${userId}. Penalty: ${loan.penalty_applied}`
+    )
+
     return {
       id: loan.id,
       powerbankId: loan.powerbank_id,
@@ -82,31 +82,31 @@ export const returnPowerbank = async (loanId, userId) => {
       penaltyApplied: loan.penalty_applied,
       penaltyAmount: loan.penalty_amount,
       penaltyReason: loan.penalty_reason,
-    };
+    }
   } catch (error) {
-    logger.error('Error returning powerbank:', error);
-    throw error;
+    logger.error('Error returning powerbank:', error)
+    throw error
   }
-};
+}
 
 /**
  * Get active loan for a user
  * @param {string} userId - User ID
  * @returns {Promise<Object|null>} Active loan with deadline info or null
  */
-export const getActiveLoan = async (userId) => {
+export const getActiveLoan = async userId => {
   try {
-    const loan = await PowerbankLoan.findActiveLoanByUserId(userId);
-    
+    const loan = await PowerbankLoan.findActiveLoanByUserId(userId)
+
     if (!loan) {
-      return null;
+      return null
     }
-    
-    const now = new Date();
-    const loanDate = new Date(loan.loan_date);
-    const deadline = new Date(loanDate.getTime() + LOAN_DURATION_HOURS * 60 * 60 * 1000);
-    const hoursRemaining = Math.max(0, (deadline - now) / (1000 * 60 * 60));
-    
+
+    const now = new Date()
+    const loanDate = new Date(loan.loan_date)
+    const deadline = new Date(loanDate.getTime() + LOAN_DURATION_HOURS * 60 * 60 * 1000)
+    const hoursRemaining = Math.max(0, (deadline - now) / (1000 * 60 * 60))
+
     return {
       id: loan.id,
       powerbankId: loan.powerbank_id,
@@ -118,12 +118,12 @@ export const getActiveLoan = async (userId) => {
         id: loan.commerce_id,
         name: loan.commerce_name,
       },
-    };
+    }
   } catch (error) {
-    logger.error('Error getting active loan:', error);
-    throw error;
+    logger.error('Error getting active loan:', error)
+    throw error
   }
-};
+}
 
 /**
  * Get loan history for a user
@@ -133,8 +133,8 @@ export const getActiveLoan = async (userId) => {
  */
 export const getLoanHistory = async (userId, limit = 10) => {
   try {
-    const loans = await PowerbankLoan.findLoansByUserId(userId, limit);
-    
+    const loans = await PowerbankLoan.findLoansByUserId(userId, limit)
+
     return loans.map(loan => ({
       id: loan.id,
       powerbankId: loan.powerbank_id,
@@ -148,12 +148,12 @@ export const getLoanHistory = async (userId, limit = 10) => {
         id: loan.commerce_id,
         name: loan.commerce_name,
       },
-    }));
+    }))
   } catch (error) {
-    logger.error('Error getting loan history:', error);
-    throw error;
+    logger.error('Error getting loan history:', error)
+    throw error
   }
-};
+}
 
 /**
  * Check and mark overdue loans (cron job)
@@ -161,17 +161,17 @@ export const getLoanHistory = async (userId, limit = 10) => {
  */
 export const checkOverdueLoans = async () => {
   try {
-    const overdueLoans = await PowerbankLoan.findOverdueLoans();
-    
+    const overdueLoans = await PowerbankLoan.findOverdueLoans()
+
     for (const loan of overdueLoans) {
-      await PowerbankLoan.markAsOverdue(loan.id);
-      
-      logger.warn(`Powerbank loan ${loan.id} marked as overdue for user ${loan.user_id}`);
+      await PowerbankLoan.markAsOverdue(loan.id)
+
+      logger.warn(`Powerbank loan ${loan.id} marked as overdue for user ${loan.user_id}`)
     }
-    
-    return overdueLoans.length;
+
+    return overdueLoans.length
   } catch (error) {
-    logger.error('Error checking overdue loans:', error);
-    throw error;
+    logger.error('Error checking overdue loans:', error)
+    throw error
   }
-};
+}

@@ -35,12 +35,20 @@ import courtesyRoutes from './routes/courtesy.js'
 import referralRoutes from './routes/referral.js'
 import adminRoutes from './routes/admin.js'
 import animationRoutes from './routes/animation.js'
+import analyticsRoutes from './routes/analytics.js'
+import googleCalendarRoutes from './routes/googleCalendar.js'
+import availabilityBlockRoutes from './routes/availabilityBlock.js'
+import salonSettingsRoutes from './routes/salonSettings.js'
+import whatsappRoutes from './routes/whatsapp.js'
+import availabilityRoutes from './routes/availability.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
 import { generalLimiter } from './middleware/rateLimits.js'
 import { initialize as initializeStorage } from './services/cloudStorageService.js'
 import { initialize as initializeGoogleSheets } from './services/googleSheetsService.js'
+import { startReminderCron } from './services/reminderService.js'
+import { initTimeoutService } from './services/reservationTimeoutService.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -167,6 +175,12 @@ app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api', animationRoutes)
+app.use('/api/analytics', analyticsRoutes)
+app.use('/api/google-calendar', googleCalendarRoutes)
+app.use('/api/availability-blocks', availabilityBlockRoutes)
+app.use('/api/salon-settings', salonSettingsRoutes)
+app.use('/api/availability', availabilityRoutes)
+app.use('/api/whatsapp', whatsappRoutes)
 
 app.use((err, req, res, _next) => {
   logger.error('Unhandled error:', err)
@@ -178,6 +192,9 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`Backend with WebSocket running on port ${PORT}`)
     await initializeStorage()
     await initializeGoogleSheets()
+    startReminderCron()
+    initTimeoutService(1)
+    console.log('Reservation timeout service initialized')
   })
 }
 

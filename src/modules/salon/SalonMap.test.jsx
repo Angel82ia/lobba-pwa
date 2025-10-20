@@ -1,12 +1,22 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import PropTypes from 'prop-types'
 import SalonMap from './SalonMap'
 
+const MapContainer = ({ children }) => <div data-testid="map-container">{children}</div>
+MapContainer.propTypes = { children: PropTypes.node }
+
+const Marker = ({ children }) => <div data-testid="marker">{children}</div>
+Marker.propTypes = { children: PropTypes.node }
+
+const Popup = ({ children }) => <div data-testid="popup">{children}</div>
+Popup.propTypes = { children: PropTypes.node }
+
 vi.mock('react-leaflet', () => ({
-  MapContainer: ({ children }) => <div data-testid="map-container">{children}</div>,
+  MapContainer,
   TileLayer: () => <div data-testid="tile-layer" />,
-  Marker: ({ children }) => <div data-testid="marker">{children}</div>,
-  Popup: ({ children }) => <div data-testid="popup">{children}</div>,
+  Marker,
+  Popup,
   useMap: () => ({
     setView: vi.fn(),
     getZoom: vi.fn(() => 13),

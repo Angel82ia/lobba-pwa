@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useEmergency, getCurrentMonthLimits } from '../../../services/courtesy';
+import { requestEmergencyArticle, getCurrentMonthLimits } from '../../../services/courtesy';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
 
@@ -48,7 +48,7 @@ const EmergencyRequest = () => {
       setError(null);
       setSuccess(false);
 
-      await useEmergency({
+      await requestEmergencyArticle({
         articleType: selectedArticle,
         commerceId: commerceId.trim(),
         commerceName: commerceName.trim(),

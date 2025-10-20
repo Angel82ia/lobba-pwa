@@ -1,16 +1,11 @@
 import apiClient from './api'
 
 export const createSharedMembership = async (membershipId, data) => {
-  try {
-    const response = await apiClient.post('/membership/shared', {
-      membershipId,
-      ...data,
-    })
-    return response.data
-  } catch (error) {
-    console.error('Error creating shared membership:', error)
-    throw error
-  }
+  const response = await apiClient.post('/membership/shared', {
+    membershipId,
+    ...data,
+  })
+  return response.data
 }
 
 export const getSharedMembershipByMembershipId = async membershipId => {
@@ -21,37 +16,21 @@ export const getSharedMembershipByMembershipId = async membershipId => {
     if (error.response?.status === 404) {
       return null
     }
-    console.error('Error getting shared membership:', error)
     throw error
   }
 }
 
 export const getMySharedMemberships = async () => {
-  try {
-    const response = await apiClient.get('/membership/shared')
-    return response.data
-  } catch (error) {
-    console.error('Error getting my shared memberships:', error)
-    throw error
-  }
+  const response = await apiClient.get('/membership/shared')
+  return response.data
 }
 
 export const updateSharedMembership = async (id, data) => {
-  try {
-    const response = await apiClient.put(`/membership/shared/${id}`, data)
-    return response.data
-  } catch (error) {
-    console.error('Error updating shared membership:', error)
-    throw error
-  }
+  const response = await apiClient.put(`/membership/shared/${id}`, data)
+  return response.data
 }
 
 export const revokeSharedMembership = async id => {
-  try {
-    const response = await apiClient.delete(`/membership/shared/${id}`)
-    return response.data
-  } catch (error) {
-    console.error('Error revoking shared membership:', error)
-    throw error
-  }
+  const response = await apiClient.delete(`/membership/shared/${id}`)
+  return response.data
 }

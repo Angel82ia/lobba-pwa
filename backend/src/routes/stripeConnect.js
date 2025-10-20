@@ -1,11 +1,10 @@
 import express from 'express'
 import pool from '../config/database.js'
 import { requireAuth } from '../middleware/auth.js'
-import { 
-  createConnectAccount, 
-  createAccountLink, 
-  getAccountStatus,
-  updateAccountStatus 
+import {
+  createConnectAccount,
+  createAccountLink,
+  updateAccountStatus,
 } from '../services/stripeConnectService.js'
 
 const router = express.Router()
@@ -20,7 +19,9 @@ router.post('/create', requireAuth, async (req, res) => {
     const { salonProfileId, email, businessName } = req.body
 
     if (!salonProfileId || !email || !businessName) {
-      return res.status(400).json({ error: 'Salon profile ID, email and business name are required' })
+      return res
+        .status(400)
+        .json({ error: 'Salon profile ID, email and business name are required' })
     }
 
     const salonResult = await pool.query(
@@ -45,9 +46,8 @@ router.post('/create', requireAuth, async (req, res) => {
     return res.status(201).json({
       success: true,
       accountId: account.id,
-      onboardingUrl: accountLink.url
+      onboardingUrl: accountLink.url,
     })
-
   } catch (error) {
     console.error('Error creating Connect account:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -86,9 +86,8 @@ router.post('/refresh-link', requireAuth, async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      onboardingUrl: accountLink.url
+      onboardingUrl: accountLink.url,
     })
-
   } catch (error) {
     console.error('Error refreshing account link:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -120,7 +119,7 @@ router.get('/status/:salonProfileId', requireAuth, async (req, res) => {
         success: true,
         hasAccount: false,
         onboarded: false,
-        enabled: false
+        enabled: false,
       })
     }
 
@@ -134,9 +133,8 @@ router.get('/status/:salonProfileId', requireAuth, async (req, res) => {
       enabled: status.chargesEnabled && status.payoutsEnabled,
       chargesEnabled: status.chargesEnabled,
       payoutsEnabled: status.payoutsEnabled,
-      requirements: status.requirements
+      requirements: status.requirements,
     })
-
   } catch (error) {
     console.error('Error getting account status:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -165,7 +163,6 @@ router.post('/webhook', async (req, res) => {
     }
 
     return res.status(200).json({ received: true })
-
   } catch (error) {
     console.error('Error processing webhook:', error)
     return res.status(500).json({ error: 'Internal server error' })

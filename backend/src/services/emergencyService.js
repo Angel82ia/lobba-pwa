@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 import logger from '../utils/logger.js'
-import { getCurrentMonthLimits, canUseEmergency } from './membershipLimitsService.js'
+import { canUseEmergency } from './membershipLimitsService.js'
 
 export const recordEmergencyArticleUse = async (userId, articleType, commerceId, commerceName) => {
   const client = await pool.connect()
@@ -26,7 +26,6 @@ export const recordEmergencyArticleUse = async (userId, articleType, commerceId,
     }
 
     const membershipType = membershipQuery.rows[0].membership_type
-    const currentMonth = new Date().toISOString().slice(0, 7)
 
     const result = await client.query(
       `INSERT INTO emergency_article_uses
