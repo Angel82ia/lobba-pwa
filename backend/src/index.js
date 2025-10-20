@@ -34,6 +34,8 @@ import auditLogRoutes from './routes/auditLog.js'
 import courtesyRoutes from './routes/courtesy.js'
 import referralRoutes from './routes/referral.js'
 import adminRoutes from './routes/admin.js'
+import influencerCodesAdminRoutes from './routes/admin/influencerCodes.js'
+import commissionsAdminRoutes from './routes/admin/commissions.js'
 import analyticsRoutes from './routes/analytics.js'
 import googleCalendarRoutes from './routes/googleCalendar.js'
 import availabilityBlockRoutes from './routes/availabilityBlock.js'
@@ -164,6 +166,8 @@ app.use('/api/audit-logs', auditLogRoutes)
 app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/admin/influencer-codes', influencerCodesAdminRoutes)
+app.use('/api/admin/commissions', commissionsAdminRoutes)
 app.use('/api/analytics', analyticsRoutes)
 app.use('/api/google-calendar', googleCalendarRoutes)
 app.use('/api/availability-blocks', availabilityBlockRoutes)
