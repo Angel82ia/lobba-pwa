@@ -64,17 +64,22 @@ const UserPermissionHistory = () => {
       
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-3 mb-8">
-        {['all', 'pending', 'used', 'expired'].map(status => (
+        {[
+          { value: 'all', label: 'Todos' },
+          { value: 'pending', label: 'Pendientes' },
+          { value: 'used', label: 'Usados' },
+          { value: 'expired', label: 'Expirados' }
+        ].map(({ value, label }) => (
           <button
-            key={status}
+            key={value}
             className={`px-5 py-2.5 rounded-full font-medium transition-all duration-200 ${
-              filter === status
+              filter === value
                 ? 'bg-[#FF1493] text-white shadow-lg shadow-[#FF1493]/30'
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
-            onClick={() => setFilter(status)}
+            onClick={() => setFilter(value)}
           >
-            {status === 'all' ? 'Todos' : status.charAt(0).toUpperCase() + status.slice(1) + 's'}
+            {label}
           </button>
         ))}
       </div>

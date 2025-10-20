@@ -97,7 +97,18 @@ export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => 
     [salonProfileId, date]
   )
 
-  const existingReservations = reservationsResult.rows
+  // Obtener también los bloqueos de disponibilidad (ej: desde Google Calendar)
+  const blocksResult = await pool.query(
+    `SELECT start_time, end_time, 0 as buffer_minutes
+     FROM availability_blocks
+     WHERE salon_profile_id = $1
+       AND DATE(start_time AT TIME ZONE 'UTC') = $2
+       AND is_active = true`,
+    [salonProfileId, date]
+  )
+
+  // Combinar reservas y bloqueos
+  const existingReservations = [...reservationsResult.rows, ...blocksResult.rows]
 
   const allSlots = generateTimeSlots(businessHours.open, businessHours.close, 15)
 

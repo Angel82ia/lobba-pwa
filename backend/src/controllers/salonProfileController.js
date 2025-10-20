@@ -39,6 +39,11 @@ export const getSalonProfile = async (req, res) => {
       totalReviews: profile.total_reviews,
       isActive: profile.is_active,
       verified: profile.verified,
+      // Google Calendar integration
+      google_calendar_enabled: profile.google_calendar_enabled || false,
+      google_calendar_id: profile.google_calendar_id || null,
+      google_sync_enabled: profile.google_sync_enabled || false,
+      last_google_sync: profile.last_google_sync || null,
       gallery: galleryImages.map(img => ({
         id: img.id,
         cloudinaryUrl: img.cloudinary_url,

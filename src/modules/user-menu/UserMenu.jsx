@@ -75,13 +75,22 @@ const UserMenu = () => {
           Programa de Referidos
           </Link>
           {auth.role === 'salon' && (
-            <Link
-              to={`/salon/${auth.user?.salonId}/edit`}
-              className="block px-4 py-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              onClick={closeMenu}
-            >
-              Mi Salón
-            </Link>
+            <>
+              <Link
+                to={`/salon/${auth.user?.salonId}/edit`}
+                className="block px-4 py-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={closeMenu}
+              >
+                📝 Mi Salón
+              </Link>
+              <Link
+                to={`/salon/${auth.user?.salonId}/settings`}
+                className="block px-4 py-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={closeMenu}
+              >
+                ⚙️ Configuración
+              </Link>
+            </>
           )}
           <button
             className="block w-full text-left px-4 py-2 text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
