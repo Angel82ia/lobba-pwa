@@ -10,6 +10,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
+
 function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
   const [mapCenter, setMapCenter] = useState(center || [40.416775, -3.703790])
 
@@ -32,13 +33,13 @@ function SalonMap({ salons, center, zoom = 13, onSalonClick }) {
   }
 
   return (
-    <div className="w-full h-full rounded-lg overflow-hidden">
+    <div className="w-full h-full rounded-lg overflow-hidden relative">
       <MapContainer 
         key={`map-${mapCenter[0]}-${mapCenter[1]}`}
         center={mapCenter}
         zoom={zoom} 
         style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
