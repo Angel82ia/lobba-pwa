@@ -1,15 +1,18 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Input, Alert, Card } from '../../components/common'
 import { register } from '../../services/auth'
 import useStore from '../../store'
 
 const RegisterForm = () => {
+  const [searchParams] = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     firstName: '',
     lastName: '',
+    codigo_referido: '',
+    codigo_amigas: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,10 +20,35 @@ const RegisterForm = () => {
   const { setUser, setToken } = useStore()
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    const friendCode = searchParams.get('friend')
+    
+    if (ref) {
+      setFormData(prev => ({
+        ...prev,
+        codigo_referido: ref.toUpperCase(),
+      }))
+    }
+    
+    if (friendCode) {
+      setFormData(prev => ({
+        ...prev,
+        codigo_amigas: friendCode.toUpperCase(),
+      }))
+    }
+  }, [searchParams])
+
   const handleChange = (e) => {
+    let value = e.target.value
+    
+    if (e.target.name === 'codigo_referido' || e.target.name === 'codigo_amigas') {
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     })
   }
 
@@ -116,6 +144,38 @@ const RegisterForm = () => {
           required
           fullWidth
         />
+        
+        <div>
+          <Input
+            label="¿Tienes un código de influencer?"
+            name="codigo_referido"
+            type="text"
+            value={formData.codigo_referido}
+            onChange={handleChange}
+            placeholder="Ej: MARIA10"
+            maxLength={20}
+            fullWidth
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Código de influencer (opcional) - 10% de descuento en tu primera compra
+          </p>
+        </div>
+        
+        <div>
+          <Input
+            label="¿Te lo recomendó una amiga?"
+            name="codigo_amigas"
+            type="text"
+            value={formData.codigo_amigas}
+            onChange={handleChange}
+            placeholder="Ej: ANA2024"
+            maxLength={20}
+            fullWidth
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Código de amiga (opcional) - Ambas recibiréis beneficios
+          </p>
+        </div>
         
         <Button type="submit" loading={loading} fullWidth size="large" className="mt-6">
           Registrarse
