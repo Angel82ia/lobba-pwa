@@ -1,8 +1,26 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import { Button, Card } from '../components/common'
 
 const Home = () => {
   const navigate = useNavigate()
+  const gridRef = useRef(null)
+
+  useEffect(() => {
+    const updateGrid = () => {
+      if (gridRef.current) {
+        if (window.innerWidth >= 768) {
+          gridRef.current.style.gridTemplateColumns = 'repeat(auto-fit, minmax(360px, 1fr))'
+        } else {
+          gridRef.current.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))'
+        }
+      }
+    }
+
+    updateGrid()
+    window.addEventListener('resize', updateGrid)
+    return () => window.removeEventListener('resize', updateGrid)
+  }, [])
 
   return (
     <div className="w-full">
@@ -48,14 +66,14 @@ const Home = () => {
           ¿Qué puedes hacer con LOBBA?
         </h2>
         <div 
+          ref={gridRef}
           className="grid gap-8 max-w-[1280px] mx-auto"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))' }}
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
         >
           <Card 
             variant="elevated" 
             hover
             onClick={() => navigate('/salones')}
-            className="min-w-[360px]"
           >
             <h3 className="font-primary text-xl font-semibold text-[#FF1493] mb-2">
               Reserva en Salones
@@ -69,7 +87,6 @@ const Home = () => {
             variant="elevated" 
             hover
             onClick={() => navigate('/tienda')}
-            className="min-w-[360px]"
           >
             <h3 className="font-primary text-xl font-semibold text-[#FF1493] mb-2">
               E-commerce Exclusivo
@@ -83,7 +100,6 @@ const Home = () => {
             variant="elevated" 
             hover
             onClick={() => navigate('/ai/unas')}
-            className="min-w-[360px]"
           >
             <h3 className="font-primary text-xl font-semibold text-[#FF1493] mb-2">
               IA Generativa
@@ -97,7 +113,6 @@ const Home = () => {
             variant="elevated" 
             hover
             onClick={() => navigate('/comunidad')}
-            className="min-w-[360px]"
           >
             <h3 className="font-primary text-xl font-semibold text-[#FF1493] mb-2">
               Comunidad LOBBA
