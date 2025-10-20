@@ -282,7 +282,9 @@ POST /api/checkout/calculate
 // Descuento código: -€10 (10%)
 // Total descuento: -€25 (25% - MÁXIMO)
 // Subtotal final: €75
-// Comisión influencer: €15 (15% de €100)
+// Ingreso LOBBA: €75
+// Comisión influencer: €10 (10% de €100 - FIJO)
+// Beneficio neto LOBBA: €65
 ```
 
 ---
