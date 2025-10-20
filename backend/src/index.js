@@ -157,6 +157,7 @@ app.use('/api/audit-logs', auditLogRoutes)
 app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/availability', availabilityRoutes)
 app.use('/api/whatsapp', whatsappRoutes)
 
 app.use((err, req, res, _next) => {

@@ -112,7 +112,8 @@ export const processReservationCheckout = async (req, res) => {
     await client.query('SELECT pg_advisory_xact_lock($1)', [lockHash])
 
     const overlappingReservations = await client.query(
-      `SELECT id FROM reservations
+      `SELECT COUNT(*) as count
+       FROM reservations
        WHERE salon_profile_id = $1
          AND status NOT IN ('cancelled', 'no_show')
          AND (
@@ -123,7 +124,9 @@ export const processReservationCheckout = async (req, res) => {
       [service.salon_profile_id, startTime, endTime]
     )
 
-    if (overlappingReservations.rows.length > 0) {
+    const currentCount = parseInt(overlappingReservations.rows[0].count)
+
+    if (currentCount >= maxCapacity) {
       await client.query('ROLLBACK')
       return res.status(409).json({ 
         error: 'SLOT_NO_LONGER_AVAILABLE',
