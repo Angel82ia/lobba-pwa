@@ -205,7 +205,33 @@ async function processCampaignCompletion(client, campaignId) {
     )
   }
   
-  logger.info(`Campaign ${campaignId} completed - rewards granted`)
+  await client.query(
+    `INSERT INTO referral_memberships (
+      user_id, referral_campaign_id, es_anfitriona, es_referida,
+      cuotas_totales, cuotas_cobradas, puede_cambiar_membresia
+    ) VALUES ($1, $2, TRUE, FALSE, 11, 0, FALSE)
+    ON CONFLICT (user_id) DO NOTHING`,
+    [host_user_id, campaignId]
+  )
+  
+  const referredUsers = await client.query(
+    `SELECT referred_user_id FROM referral_campaign_entries
+     WHERE campaign_id = $1 AND status = 'completed'`,
+    [campaignId]
+  )
+  
+  for (const row of referredUsers.rows) {
+    await client.query(
+      `INSERT INTO referral_memberships (
+        user_id, referral_campaign_id, es_anfitriona, es_referida,
+        cuotas_totales, cuotas_cobradas, puede_cambiar_membresia
+      ) VALUES ($1, $2, FALSE, TRUE, 11, 0, FALSE)
+      ON CONFLICT (user_id) DO NOTHING`,
+      [row.referred_user_id, campaignId]
+    )
+  }
+  
+  logger.info(`Campaign ${campaignId} completed - rewards granted and referral_memberships created`)
 }
 
 export const getReferralStats = async (userId) => {

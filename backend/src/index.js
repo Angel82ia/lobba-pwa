@@ -34,6 +34,7 @@ import auditLogRoutes from './routes/auditLog.js'
 import courtesyRoutes from './routes/courtesy.js'
 import referralRoutes from './routes/referral.js'
 import adminRoutes from './routes/admin.js'
+import animationRoutes from './routes/animation.js'
 import analyticsRoutes from './routes/analytics.js'
 import googleCalendarRoutes from './routes/googleCalendar.js'
 import availabilityBlockRoutes from './routes/availabilityBlock.js'
@@ -44,8 +45,15 @@ import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
 import { generalLimiter } from './middleware/rateLimits.js'
+import { initialize as initializeStorage } from './services/cloudStorageService.js'
+import { initialize as initializeGoogleSheets } from './services/googleSheetsService.js'
 import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 dotenv.config()
 
@@ -130,6 +138,8 @@ app.use(
 
 app.use('/api/webhooks', webhookRoutes)
 
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('combined'))
@@ -164,6 +174,7 @@ app.use('/api/audit-logs', auditLogRoutes)
 app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api', animationRoutes)
 app.use('/api/analytics', analyticsRoutes)
 app.use('/api/google-calendar', googleCalendarRoutes)
 app.use('/api/availability-blocks', availabilityBlockRoutes)
@@ -177,10 +188,11 @@ app.use((err, req, res, _next) => {
 })
 
 if (process.env.NODE_ENV !== 'test') {
-  httpServer.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', async () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
+    await initializeStorage()
+    await initializeGoogleSheets()
     startReminderCron()
-
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')
   })
