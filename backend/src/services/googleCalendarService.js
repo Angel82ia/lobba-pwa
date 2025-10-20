@@ -20,6 +20,10 @@ const createOAuth2Client = () => {
 export const getAuthUrl = salonId => {
   const oauth2Client = createOAuth2Client()
 
+  console.log('🔍 [Google Calendar] Generating auth URL with:')
+  console.log('   GOOGLE_REDIRECT_URI:', GOOGLE_REDIRECT_URI)
+  console.log('   Salon ID:', salonId)
+
   const scopes = [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events',

@@ -2,7 +2,7 @@
 
 ## Environment Variables Required
 
-Add these to your `.env` file:
+### Development (`.env` file):
 
 ```env
 GOOGLE_CLIENT_ID=your_client_id_here
@@ -11,6 +11,20 @@ GOOGLE_REDIRECT_URI=http://localhost:3000/api/google-calendar/callback
 BACKEND_URL=http://localhost:3000
 FRONTEND_URL=http://localhost:5173
 ```
+
+### Production (Railway):
+
+```env
+GOOGLE_CLIENT_ID=your_client_id_here
+GOOGLE_CLIENT_SECRET=your_client_secret_here
+GOOGLE_REDIRECT_URI=https://your-backend.railway.app/api/google-calendar/callback
+BACKEND_URL=https://your-backend.railway.app
+FRONTEND_URL=https://lobba.es
+```
+
+**⚠️ CRITICAL:** If `GOOGLE_REDIRECT_URI` is not set in Railway, it defaults to `http://localhost:3000/api/google-calendar/callback`, which will cause **"Error 400: redirect_uri_mismatch"** in production.
+
+See troubleshooting guide: [`../docs/GOOGLE_OAUTH_ERROR_400.md`](../docs/GOOGLE_OAUTH_ERROR_400.md)
 
 ## How to Get Google Calendar API Credentials
 
