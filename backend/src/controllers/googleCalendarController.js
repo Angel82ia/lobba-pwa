@@ -40,19 +40,42 @@ export const initiateAuth = async (req, res) => {
  */
 export const handleCallback = async (req, res) => {
   try {
-    const { code, state: salonId } = req.query
+    const { code, state: salonId, error } = req.query
+
+    console.log('🔍 [Google Calendar] Callback received:', {
+      hasCode: !!code,
+      salonId,
+      error,
+      allParams: req.query
+    })
+
+    if (error) {
+      console.error('❌ [Google Calendar] OAuth error from Google:', error)
+      return res.redirect(`${process.env.FRONTEND_URL}/salon/settings?error=google_auth_failed&reason=${error}`)
+    }
 
     if (!code || !salonId) {
+      console.error('❌ [Google Calendar] Missing code or state')
       return res.status(400).json({ error: 'Missing code or state' })
     }
 
+    console.log('🔄 [Google Calendar] Exchanging code for tokens...')
     const tokens = await GoogleCalendar.exchangeCodeForTokens(code)
+    console.log('✅ [Google Calendar] Tokens received')
+
+    console.log('🔄 [Google Calendar] Saving tokens to database...')
     await GoogleCalendar.saveGoogleTokens(salonId, tokens)
+    console.log('✅ [Google Calendar] Tokens saved successfully')
 
     return res.redirect(`${process.env.FRONTEND_URL}/salon/${salonId}/settings?google_calendar=connected`)
 
   } catch (error) {
-    console.error('Error handling Google callback:', error)
+    console.error('❌ [Google Calendar] Error handling callback:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      response: error.response?.data
+    })
     return res.redirect(`${process.env.FRONTEND_URL}/salon/settings?error=google_auth_failed`)
   }
 }

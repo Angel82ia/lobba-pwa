@@ -41,6 +41,7 @@ See troubleshooting guide: [`../docs/GOOGLE_OAUTH_ERROR_400.md`](../docs/GOOGLE_
 ## Flow Overview
 
 ### 1. Connect Google Calendar
+
 ```
 User → Click "Connect Google Calendar"
 Frontend → GET /api/google-calendar/auth/:salonId
@@ -52,6 +53,7 @@ Backend → Save tokens → Redirect to frontend
 ```
 
 ### 2. Select Calendar
+
 ```
 Frontend → GET /api/google-calendar/calendars/:salonId
 Backend → Returns list of available calendars
@@ -61,6 +63,7 @@ Backend → Save calendar_id, enable sync
 ```
 
 ### 3. Manual Sync
+
 ```
 Frontend → POST /api/google-calendar/sync/:salonId
 Backend → Sync bidirectionally:
@@ -69,6 +72,7 @@ Backend → Sync bidirectionally:
 ```
 
 ### 4. Automatic Sync (Webhooks)
+
 ```
 Frontend → POST /api/google-calendar/webhook/setup/:salonId
 Backend → Register webhook with Google
@@ -79,6 +83,7 @@ Backend → Sync affected salon
 ## Sync Logic
 
 ### LOBBA → Google Calendar
+
 - Creates Google Calendar event for each confirmed/pending reservation
 - Stores `google_event_id` in reservation
 - Skips reservations that already have `google_event_id`
@@ -89,6 +94,7 @@ Backend → Sync affected salon
   - Private metadata: `lobba_reservation_id`, `lobba_source=true`
 
 ### Google Calendar → LOBBA
+
 - Fetches all events in next 3 months
 - Skips events with `lobba_source=true` (created by LOBBA)
 - Creates/updates `availability_blocks` with type='google_calendar'
@@ -104,6 +110,7 @@ Backend → Sync affected salon
 ## Database Schema
 
 ### salon_profiles
+
 - `google_calendar_id`: Selected calendar ID
 - `google_calendar_enabled`: If connection is active
 - `google_sync_enabled`: If bidirectional sync is enabled
@@ -116,21 +123,23 @@ Backend → Sync affected salon
 - `last_google_sync`: Last successful sync timestamp
 
 ### reservations
+
 - `google_event_id`: Google Calendar event ID if synced
 
 ### availability_blocks
+
 - `block_type='google_calendar'`: Blocks created from Google events
 - `google_calendar_event_id`: Original Google event ID
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/google-calendar/auth/:salonId` | Get OAuth URL |
-| GET | `/api/google-calendar/callback` | OAuth callback |
-| GET | `/api/google-calendar/calendars/:salonId` | List calendars |
-| POST | `/api/google-calendar/set-calendar/:salonId` | Set primary calendar |
-| POST | `/api/google-calendar/sync/:salonId` | Manual sync |
-| POST | `/api/google-calendar/webhook/setup/:salonId` | Setup webhook |
-| POST | `/api/google-calendar/webhook` | Receive webhook |
-| DELETE | `/api/google-calendar/disconnect/:salonId` | Disconnect |
+| Method | Endpoint                                      | Description          |
+| ------ | --------------------------------------------- | -------------------- |
+| GET    | `/api/google-calendar/auth/:salonId`          | Get OAuth URL        |
+| GET    | `/api/google-calendar/callback`               | OAuth callback       |
+| GET    | `/api/google-calendar/calendars/:salonId`     | List calendars       |
+| POST   | `/api/google-calendar/set-calendar/:salonId`  | Set primary calendar |
+| POST   | `/api/google-calendar/sync/:salonId`          | Manual sync          |
+| POST   | `/api/google-calendar/webhook/setup/:salonId` | Setup webhook        |
+| POST   | `/api/google-calendar/webhook`                | Receive webhook      |
+| DELETE | `/api/google-calendar/disconnect/:salonId`    | Disconnect           |

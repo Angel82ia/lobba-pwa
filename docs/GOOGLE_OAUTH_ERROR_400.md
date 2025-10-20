@@ -34,6 +34,7 @@ BACKEND_URL=https://TU-BACKEND.railway.app
 ```
 
 **Ejemplo real:**
+
 ```bash
 GOOGLE_REDIRECT_URI=https://lobba-backend-production.up.railway.app/api/google-calendar/callback
 BACKEND_URL=https://lobba-backend-production.up.railway.app
@@ -56,16 +57,19 @@ BACKEND_URL=https://lobba-backend-production.up.railway.app
 5. Click en el nombre del Client ID para editarlo
 
 6. En la sección **Authorized redirect URIs**, verás algo como:
+
    ```
    http://localhost:3000/api/google-calendar/callback
    ```
 
 7. **AGREGA** (no reemplaces, agrega uno nuevo):
+
    ```
    https://TU-BACKEND.railway.app/api/google-calendar/callback
    ```
 
    **Ejemplo real:**
+
    ```
    https://lobba-backend-production.up.railway.app/api/google-calendar/callback
    ```
@@ -109,9 +113,9 @@ Agrega temporalmente este log en `backend/src/services/googleCalendarService.js`
 ```javascript
 export const getAuthUrl = salonId => {
   const oauth2Client = createOAuth2Client()
-  
+
   console.log('🔍 GOOGLE_REDIRECT_URI:', GOOGLE_REDIRECT_URI) // <-- AGREGAR ESTO
-  
+
   const scopes = [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events',
@@ -121,11 +125,13 @@ export const getAuthUrl = salonId => {
 ```
 
 Luego revisa los logs en Railway:
+
 ```bash
 railway logs | grep "GOOGLE_REDIRECT_URI"
 ```
 
 Debería mostrar:
+
 ```
 🔍 GOOGLE_REDIRECT_URI: https://tu-backend.railway.app/api/google-calendar/callback
 ```
@@ -208,6 +214,7 @@ Después de configurar correctamente:
 ## 🆘 Si nada funciona
 
 1. **Exporta la configuración actual:**
+
    ```bash
    railway variables > railway-vars.txt
    ```
@@ -217,6 +224,7 @@ Después de configurar correctamente:
    - Authorized redirect URIs
 
 3. **Logs del backend:**
+
    ```bash
    railway logs > backend-logs.txt
    ```
@@ -227,4 +235,3 @@ Después de configurar correctamente:
 
 **Última actualización:** 2025-10-20  
 **Documentación relacionada:** `docs/CONFIGURACION_WEBHOOKS_PRODUCCION.md`
-

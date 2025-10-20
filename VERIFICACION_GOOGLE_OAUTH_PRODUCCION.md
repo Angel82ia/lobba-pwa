@@ -98,6 +98,7 @@ El problema probablemente es el **"Modo Test"** de Google Cloud.
 7. **Importante:** Google puede requerir una verificación si tu app solicita scopes sensibles
 
 **Estado después:**
+
 ```
 Publishing status: In production
 ```
@@ -111,16 +112,19 @@ Esto permite que **cualquier usuario** con cuenta de Google pueda autorizar tu a
 Asegúrate de que las URLs coincidan **EXACTAMENTE**:
 
 #### **En Railway:**
+
 ```bash
 GOOGLE_REDIRECT_URI=https://lobba-backend-production.up.railway.app/api/google-calendar/callback
 ```
 
 #### **En Google Cloud Console:**
+
 ```
 https://lobba-backend-production.up.railway.app/api/google-calendar/callback
 ```
 
 **Errores comunes:**
+
 - ❌ Trailing slash: `.../callback/` vs `.../callback`
 - ❌ HTTP vs HTTPS: `http://...` vs `https://...`
 - ❌ Puerto diferente: `...railway.app:3000/...` vs `...railway.app/...`
@@ -195,6 +199,7 @@ Antes de volver a probar:
 Comparte:
 
 1. **Logs de Railway** (filtra por "Google Calendar"):
+
    ```bash
    railway logs | grep "Google Calendar"
    ```
@@ -204,6 +209,7 @@ Comparte:
    - Credentials → OAuth 2.0 Client ID → Authorized redirect URIs
 
 3. **Variables de Railway:**
+
    ```bash
    railway variables | grep GOOGLE
    ```
@@ -214,4 +220,3 @@ Comparte:
 
 **Última actualización:** 2025-10-20  
 **Commit con logs:** `feat: agregar logs de diagnóstico para Google OAuth`
-

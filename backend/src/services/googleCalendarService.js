@@ -41,26 +41,57 @@ export const getAuthUrl = salonId => {
  * Intercambiar código por tokens
  */
 export const exchangeCodeForTokens = async code => {
-  const oauth2Client = createOAuth2Client()
-  const { tokens } = await oauth2Client.getToken(code)
-  return tokens
+  try {
+    console.log('🔄 [Google Calendar Service] Exchanging code for tokens...')
+    const oauth2Client = createOAuth2Client()
+    const { tokens } = await oauth2Client.getToken(code)
+    console.log('✅ [Google Calendar Service] Tokens obtained:', {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      expiryDate: tokens.expiry_date
+    })
+    return tokens
+  } catch (error) {
+    console.error('❌ [Google Calendar Service] Error exchanging code:', {
+      message: error.message,
+      response: error.response?.data
+    })
+    throw error
+  }
 }
 
 /**
  * Guardar tokens de Google Calendar
  */
 export const saveGoogleTokens = async (salonId, tokens) => {
-  const expiryDate = new Date(tokens.expiry_date)
+  try {
+    console.log('🔄 [Google Calendar Service] Saving tokens for salon:', salonId)
+    const expiryDate = new Date(tokens.expiry_date)
 
-  await pool.query(
-    `UPDATE salon_profiles
-     SET google_refresh_token = $1,
-         google_access_token = $2,
-         google_token_expiry = $3,
-         google_calendar_enabled = true
-     WHERE id = $4`,
-    [tokens.refresh_token, tokens.access_token, expiryDate, salonId]
-  )
+    const result = await pool.query(
+      `UPDATE salon_profiles
+       SET google_refresh_token = $1,
+           google_access_token = $2,
+           google_token_expiry = $3,
+           google_calendar_enabled = true
+       WHERE id = $4`,
+      [tokens.refresh_token, tokens.access_token, expiryDate, salonId]
+    )
+
+    if (result.rowCount === 0) {
+      console.error('❌ [Google Calendar Service] Salon not found:', salonId)
+      throw new Error(`Salon with id ${salonId} not found`)
+    }
+
+    console.log('✅ [Google Calendar Service] Tokens saved successfully for salon:', salonId)
+  } catch (error) {
+    console.error('❌ [Google Calendar Service] Error saving tokens:', {
+      salonId,
+      message: error.message,
+      stack: error.stack
+    })
+    throw error
+  }
 }
 
 /**
