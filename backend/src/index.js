@@ -34,6 +34,7 @@ import auditLogRoutes from './routes/auditLog.js'
 import courtesyRoutes from './routes/courtesy.js'
 import referralRoutes from './routes/referral.js'
 import adminRoutes from './routes/admin.js'
+import availabilityBlockRoutes from './routes/availabilityBlock.js'
 import salonSettingsRoutes from './routes/salonSettings.js'
 import whatsappRoutes from './routes/whatsapp.js'
 import passport from './config/passport.js'
@@ -159,6 +160,7 @@ app.use('/api/audit-logs', auditLogRoutes)
 app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/availability-blocks', availabilityBlockRoutes)
 app.use('/api/salon-settings', salonSettingsRoutes)
 app.use('/api/availability', availabilityRoutes)
 app.use('/api/whatsapp', whatsappRoutes)

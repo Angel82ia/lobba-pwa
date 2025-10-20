@@ -2,6 +2,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { createSplitPayment, confirmReservationPayment, refundReservationPayment } from '../services/stripeConnectService.js'
+import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
 import { applyAutoConfirmation } from '../services/autoConfirmationService.js'
 import { setConfirmationDeadline } from '../services/reservationTimeoutService.js'
 
@@ -105,6 +106,16 @@ export const processReservationCheckout = async (req, res) => {
       })
     }
 
+    const isBlocked = await AvailabilityBlock.isSlotBlocked(
+      service.salon_profile_id,
+      startTime,
+      endTime
+    )
+
+    if (isBlocked) {
+      await client.query('ROLLBACK')
+      return res.status(409).json({ error: 'This time slot is blocked by the salon' })
+    }
     const lockKey = `${service.salon_profile_id}-${startTime}-${endTime}`
     const lockHash = parseInt(
       require('crypto').createHash('md5').update(lockKey).digest('hex').substring(0, 8),
