@@ -67,5 +67,6 @@ workbox-*.js
 # Vercel
 .vercel
 
-#pnpm-lock
-backend/pnpm-lock.yaml
+# Ignorar lockfiles de pnpm en todo el proyecto
+**/pnpm-lock.yaml
+pnpm-lock.yaml
