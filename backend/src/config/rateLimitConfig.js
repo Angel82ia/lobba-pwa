@@ -1,3 +1,5 @@
+import { ipKeyGenerator } from 'express-rate-limit'
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 export const rateLimitConfig = {
@@ -6,18 +8,9 @@ export const rateLimitConfig = {
   legacyHeaders: false,
   message: 'Too many requests, please try again later.',
   skipSuccessfulRequests: false,
-  // Use a more secure key generator when behind a proxy
-  keyGenerator: req => {
-    // Try to get the real IP first, fallback to connection remote address
-    const realIp =
-      req.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      req.get('x-real-ip') ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-      req.ip
-    return realIp || 'unknown'
-  },
+  // Use the proper ipKeyGenerator helper to handle IPv6 addresses correctly
+  // Since Express is configured with 'trust proxy', req.ip should already contain the correct IP
+  keyGenerator: ipKeyGenerator,
 }
 
 export const rateLimitPresets = {
