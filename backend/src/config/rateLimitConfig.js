@@ -6,6 +6,18 @@ export const rateLimitConfig = {
   legacyHeaders: false,
   message: 'Too many requests, please try again later.',
   skipSuccessfulRequests: false,
+  // Use a more secure key generator when behind a proxy
+  keyGenerator: req => {
+    // Try to get the real IP first, fallback to connection remote address
+    const realIp =
+      req.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.get('x-real-ip') ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+      req.ip
+    return realIp || 'unknown'
+  },
 }
 
 export const rateLimitPresets = {
