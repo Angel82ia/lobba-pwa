@@ -56,7 +56,7 @@ export const scheduleReminder = async (reservation, hoursBeforeOptions) => {
     await pool.query(
       `INSERT INTO scheduled_notifications (
         reservation_id, template_key, recipient_id, recipient_phone,
-        template_variables, scheduled_for
+        template_variables, scheduled_at
       )
       VALUES ($1, $2, $3, $4, $5, $6)`,
       [
@@ -84,8 +84,8 @@ export const processScheduledNotifications = async () => {
     const pending = await pool.query(
       `SELECT * FROM scheduled_notifications
        WHERE status = 'pending'
-         AND scheduled_for <= NOW()
-       ORDER BY scheduled_for
+         AND scheduled_at <= NOW()
+       ORDER BY scheduled_at
        LIMIT 100`
     )
 
