@@ -19,6 +19,7 @@ import orderRoutes from './routes/order.js'
 import checkoutRoutes from './routes/checkout.js'
 import wishlistRoutes from './routes/wishlist.js'
 import webhookRoutes from './routes/webhook.js'
+import reservationWebhookRoutes from './routes/reservationWebhook.js'
 import notificationRoutes from './routes/notification.js'
 import chatbotRoutes from './routes/chatbot.js'
 import bannerRoutes from './routes/banner.js'
@@ -48,8 +49,40 @@ import logger from './utils/logger.js'
 import { generalLimiter } from './middleware/rateLimits.js'
 import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
+import { validateSecrets, getFeatureStatus } from './config/secrets.js'
+import { startWebhookRenewalCron } from './services/googleCalendarWebhookRenewal.js'
 
 dotenv.config()
+
+// 🔒 VALIDAR SECRETS AL INICIO (CRÍTICO)
+try {
+  console.log('\n🔐 Validating secrets...')
+  validateSecrets()
+
+  // Mostrar estado de features opcionales
+  const featureStatus = getFeatureStatus()
+  console.log('\n📋 Feature Status:')
+  console.log(
+    `  Email:           ${featureStatus.email ? '✅' : '❌'} ${!featureStatus.email ? '(SMTP not configured)' : ''}`
+  )
+  console.log(
+    `  Push:            ${featureStatus.push ? '✅' : '❌'} ${!featureStatus.push ? '(Firebase not configured)' : ''}`
+  )
+  console.log(`  WhatsApp:        ✅ (wa.me links)`)
+  console.log(
+    `  Google Calendar: ${featureStatus.googleCalendar ? '✅' : '❌'} ${!featureStatus.googleCalendar ? '(Google OAuth not configured)' : ''}`
+  )
+  console.log(`  Stripe:          ${featureStatus.stripe ? '✅' : '❌'}`)
+  console.log(
+    `  Stripe Webhooks: ${featureStatus.stripeWebhooks ? '✅' : '❌'} ${!featureStatus.stripeWebhooks ? '(Webhook secrets not configured)' : ''}`
+  )
+  console.log('')
+} catch (error) {
+  console.error('\n❌ Application startup failed due to missing secrets')
+  console.error('Please configure required environment variables in .env file')
+  console.error('See .env.example for required variables\n')
+  process.exit(1)
+}
 
 const app = express()
 const httpServer = createServer(app)
@@ -131,6 +164,7 @@ app.use(
 )
 
 app.use('/api/webhooks', webhookRoutes)
+app.use('/api/webhooks', reservationWebhookRoutes)
 
 app.use(express.json())
 app.use(cookieParser())
@@ -183,7 +217,10 @@ app.use((err, req, res, _next) => {
 if (process.env.NODE_ENV !== 'test') {
   httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
+    
+    // Iniciar cron jobs
     startReminderCron()
+    startWebhookRenewalCron()
 
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')

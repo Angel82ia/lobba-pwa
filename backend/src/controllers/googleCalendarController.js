@@ -267,6 +267,47 @@ export const handleWebhook = async (req, res) => {
 }
 
 /**
+ * Forzar renovación manual de webhook
+ */
+export const forceRenewal = async (req, res) => {
+  try {
+    const { salonId } = req.params
+    const userId = req.user?.id
+
+    console.log('🔧 [Force Renewal] Manual renewal requested for salon:', salonId)
+
+    const salonResult = await pool.query('SELECT user_id FROM salon_profiles WHERE id = $1', [
+      salonId,
+    ])
+
+    if (salonResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Salon not found' })
+    }
+
+    if (salonResult.rows[0].user_id !== userId) {
+      return res.status(403).json({ error: 'Not authorized' })
+    }
+
+    const webhookUrl = `${process.env.BACKEND_URL}/api/google-calendar/webhook`
+    const webhook = await GoogleCalendar.setupWebhook(salonId, webhookUrl)
+
+    console.log('✅ [Force Renewal] Webhook renewed successfully for salon:', salonId)
+
+    return res.status(200).json({
+      success: true,
+      webhook: {
+        channelId: webhook.id,
+        expiration: new Date(parseInt(webhook.expiration)).toISOString(),
+      },
+      message: 'Webhook renewed successfully',
+    })
+  } catch (error) {
+    console.error('Error renewing webhook:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+/**
  * Desconectar Google Calendar
  */
 export const disconnect = async (req, res) => {

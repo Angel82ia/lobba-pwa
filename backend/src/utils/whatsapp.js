@@ -37,55 +37,27 @@ export const generateWhatsAppLink = (salon, booking = null, user = {}, context =
     return null
   }
 
-  const cleanNumber = salon.whatsapp_number.replace(/[^\d+]/g, '')
+  // Limpiar número (remover espacios, guiones, etc)
+  let cleanNumber = salon.whatsapp_number.replace(/[\s\-()]/g, '')
 
-  if (!cleanNumber.startsWith('+')) {
-    console.warn(`WhatsApp number for salon ${salon.id} should start with +`)
+  // Remover + inicial si existe (wa.me no lo necesita)
+  if (cleanNumber.startsWith('+')) {
+    cleanNumber = cleanNumber.substring(1)
+  }
+
+  // Validar que solo contenga dígitos
+  if (!/^\d+$/.test(cleanNumber)) {
+    console.warn(`Invalid WhatsApp number format for salon ${salon.id}: ${salon.whatsapp_number}`)
     return null
+  }
+
+  // Si no hay booking, generar enlace simple sin mensaje
+  if (!booking) {
+    return `https://wa.me/${cleanNumber}`
   }
 
   const template = MESSAGE_TEMPLATES[context] || MESSAGE_TEMPLATES.general
   const message = template(salon, booking, user)
 
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
-}
-
-/**
- * @deprecated OBSOLETO - No enviar mensajes automáticos, solo click-to-chat
- * Mantener solo para compatibilidad temporal
- */
-export const sendWhatsAppMessage = async ({ to: _to, body: _body }) => {
-  console.warn('sendWhatsAppMessage is DEPRECATED. Use generateWhatsAppLink instead.')
-  return {
-    sid: 'deprecated',
-    status: 'not_sent',
-    message: 'WhatsApp automatic sending is disabled. Use click-to-chat instead.',
-  }
-}
-
-/**
- * @deprecated OBSOLETO - No enviar mensajes automáticos
- * Usar generateWhatsAppLink con context='confirm_pending'
- */
-export const sendReservationConfirmation = async _reservation => {
-  console.warn('sendReservationConfirmation is DEPRECATED. Use generateWhatsAppLink instead.')
-  return { status: 'not_sent', message: 'Use click-to-chat instead' }
-}
-
-/**
- * @deprecated OBSOLETO - No enviar mensajes automáticos
- * Usar generateWhatsAppLink con context='general'
- */
-export const sendReservationReminder = async _reservation => {
-  console.warn('sendReservationReminder is DEPRECATED. Use generateWhatsAppLink instead.')
-  return { status: 'not_sent', message: 'Use click-to-chat instead' }
-}
-
-/**
- * @deprecated OBSOLETO - No enviar mensajes automáticos
- * Usar generateWhatsAppLink con context='cancel'
- */
-export const sendReservationCancellation = async _reservation => {
-  console.warn('sendReservationCancellation is DEPRECATED. Use generateWhatsAppLink instead.')
-  return { status: 'not_sent', message: 'Use click-to-chat instead' }
 }
