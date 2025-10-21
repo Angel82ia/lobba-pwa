@@ -3,6 +3,7 @@ import pool from '../config/database.js'
 import * as Reservation from '../models/Reservation.js'
 import logger from '../utils/logger.js'
 import { scheduleReminder } from '../services/reminderService.js'
+import { createHash } from 'crypto'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const webhookSecret = process.env.STRIPE_RESERVATION_WEBHOOK_SECRET
@@ -114,10 +115,7 @@ const handlePaymentIntentSucceeded = async paymentIntent => {
 
     // Advisory lock para prevenir race conditions
     const lockKey = `${metadata.salon_profile_id}-${metadata.start_time}-${metadata.end_time}`
-    const lockHash = parseInt(
-      require('crypto').createHash('md5').update(lockKey).digest('hex').substring(0, 8),
-      16
-    )
+    const lockHash = parseInt(createHash('md5').update(lockKey).digest('hex').substring(0, 8), 16)
     await client.query('SELECT pg_advisory_xact_lock($1)', [lockHash])
 
     // Verificar disponibilidad (doble check)

@@ -63,6 +63,7 @@ secrets/
 # PWA
 sw.js
 workbox-*.js
+dev-dist/
 
 # Vercel
 .vercel

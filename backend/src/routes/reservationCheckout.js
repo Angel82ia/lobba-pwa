@@ -70,11 +70,24 @@ router.post(
 
     body('clientPhone')
       .optional()
-      .trim()
-      .matches(/^\+?[0-9\s\-()]{9,15}$/)
-      .withMessage('Invalid phone format (must be 9-15 digits)')
-      .isLength({ max: 20 })
-      .withMessage('Phone number is too long'),
+      .custom(value => {
+        if (value === null || value === undefined || value === '') {
+          return true // Permitir valores nulos o vacíos
+        }
+        const trimmed = value.trim()
+        if (trimmed === '') {
+          return true // Permitir strings vacíos después de trim
+        }
+        // Solo validar formato si hay contenido real
+        const phoneRegex = /^\+?[0-9\s\-()]{9,15}$/
+        if (!phoneRegex.test(trimmed)) {
+          throw new Error('Invalid phone format (must be 9-15 digits)')
+        }
+        if (trimmed.length > 20) {
+          throw new Error('Phone number is too long')
+        }
+        return true
+      }),
   ],
   processReservationCheckout
 )

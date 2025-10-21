@@ -69,9 +69,10 @@ const ReservationCalendar = () => {
 
   // Función de validación de teléfono
   const validatePhone = (phone) => {
-    if (!phone) return true // Opcional
+    if (!phone || phone.trim() === '') return true // Opcional - permitir vacío
+    const trimmedPhone = phone.trim()
     const phoneRegex = /^\+?[0-9\s\-()]{9,15}$/
-    return phoneRegex.test(phone)
+    return phoneRegex.test(trimmedPhone)
   }
 
   // Función de validación completa del formulario
@@ -109,7 +110,7 @@ const ReservationCalendar = () => {
     }
     
     // Validar teléfono
-    if (clientPhone && !validatePhone(clientPhone)) {
+    if (clientPhone && clientPhone.trim() !== '' && !validatePhone(clientPhone)) {
       errors.phone = 'Formato de teléfono inválido (9-15 dígitos)'
     }
     
@@ -184,7 +185,7 @@ const ReservationCalendar = () => {
             startTime: formatLocalDateTime(startTime),
             endTime: formatLocalDateTime(endTime),
             notes: sanitizeInput(notes),
-            clientPhone: sanitizeInput(clientPhone),
+            clientPhone: clientPhone?.trim() || null,
           }
         }
       })
@@ -371,8 +372,11 @@ const ReservationCalendar = () => {
                 {fieldErrors.phone && (
                   <p className="text-red-500 text-sm mt-1">⚠️ {fieldErrors.phone}</p>
                 )}
-                {clientPhone && !fieldErrors.phone && validatePhone(clientPhone) && (
+                {clientPhone && clientPhone.trim() !== '' && !fieldErrors.phone && validatePhone(clientPhone) && (
                   <p className="text-green-500 text-sm mt-1">✅ Formato válido</p>
+                )}
+                {clientPhone && clientPhone.trim() !== '' && !validatePhone(clientPhone) && !fieldErrors.phone && (
+                  <p className="text-orange-500 text-sm mt-1">⚠️ Verifica el formato del teléfono</p>
                 )}
               </div>
 
