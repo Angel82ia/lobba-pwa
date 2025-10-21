@@ -19,6 +19,7 @@ const ReservationCalendar = () => {
   const [notes, setNotes] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [error, setError] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,10 +58,81 @@ const ReservationCalendar = () => {
     }
   }, [selectedService, selectedDate, fetchSlots])
 
+  // Función de sanitización de inputs
+  const sanitizeInput = (input) => {
+    if (!input) return ''
+    return input
+      .trim()
+      .replace(/[<>]/g, '') // Remover < y >
+      .substring(0, 500) // Limitar longitud
+  }
+
+  // Función de validación de teléfono
+  const validatePhone = (phone) => {
+    if (!phone) return true // Opcional
+    const phoneRegex = /^\+?[0-9\s\-()]{9,15}$/
+    return phoneRegex.test(phone)
+  }
+
+  // Función de validación completa del formulario
+  const validateForm = () => {
+    const errors = {}
+    
+    // Validar servicio
+    if (!selectedService) {
+      errors.service = 'Debes seleccionar un servicio'
+    }
+    
+    // Validar fecha
+    if (!selectedDate) {
+      errors.date = 'Debes seleccionar una fecha'
+    } else {
+      const selectedDateTime = new Date(selectedDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      if (selectedDateTime < today) {
+        errors.date = 'La fecha no puede ser en el pasado'
+      }
+      
+      // Validar no más de 6 meses en el futuro
+      const maxDate = new Date()
+      maxDate.setMonth(maxDate.getMonth() + 6)
+      if (selectedDateTime > maxDate) {
+        errors.date = 'La fecha no puede ser más de 6 meses en el futuro'
+      }
+    }
+    
+    // Validar slot
+    if (!selectedSlot) {
+      errors.slot = 'Debes seleccionar un horario'
+    }
+    
+    // Validar teléfono
+    if (clientPhone && !validatePhone(clientPhone)) {
+      errors.phone = 'Formato de teléfono inválido (9-15 dígitos)'
+    }
+    
+    // Validar notas
+    if (notes && notes.length > 500) {
+      errors.notes = 'Las notas no pueden exceder 500 caracteres'
+    }
+    
+    return errors
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!selectedService || !selectedDate || !selectedSlot) {
-      setError('Por favor completa todos los campos')
+    
+    // Limpiar errores previos
+    setError(null)
+    setFieldErrors({})
+    
+    // Validar formulario
+    const validationErrors = validateForm()
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors)
+      setError('Por favor corrige los errores en el formulario')
       return
     }
 
@@ -111,8 +183,8 @@ const ReservationCalendar = () => {
             selectedSlot,
             startTime: formatLocalDateTime(startTime),
             endTime: formatLocalDateTime(endTime),
-            notes,
-            clientPhone,
+            notes: sanitizeInput(notes),
+            clientPhone: sanitizeInput(clientPhone),
           }
         }
       })
@@ -152,8 +224,11 @@ const ReservationCalendar = () => {
           {/* Servicios */}
           <div>
             <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Selecciona un Servicio
+              Selecciona un Servicio *
             </label>
+            {fieldErrors.service && (
+              <p className="text-red-500 text-sm mb-2">⚠️ {fieldErrors.service}</p>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {services.map((service) => (
                 <div
@@ -180,16 +255,26 @@ const ReservationCalendar = () => {
           {selectedService && (
             <div>
               <label htmlFor="date" className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Selecciona una Fecha
+                Selecciona una Fecha *
               </label>
+              {fieldErrors.date && (
+                <p className="text-red-500 text-sm mb-2">⚠️ {fieldErrors.date}</p>
+              )}
               <input
                 type="date"
                 id="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value)
+                  if (fieldErrors.date) {
+                    setFieldErrors({ ...fieldErrors, date: null })
+                  }
+                }}
                 min={new Date().toISOString().split('T')[0]}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF1493] focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  fieldErrors.date ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF1493] focus:border-transparent transition-all`}
               />
             </div>
           )}
@@ -198,8 +283,11 @@ const ReservationCalendar = () => {
           {selectedService && selectedDate && (
             <div>
               <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Selecciona una Hora
+                Selecciona una Hora *
               </label>
+              {fieldErrors.slot && (
+                <p className="text-red-500 text-sm mb-2">⚠️ {fieldErrors.slot}</p>
+              )}
               {loadingSlots ? (
                 <p className="text-gray-600 dark:text-gray-400 text-center py-8">
                   ⏳ Cargando horarios disponibles...
@@ -237,24 +325,56 @@ const ReservationCalendar = () => {
           {/* Detalles adicionales */}
           {selectedSlot && (
             <>
-              <Textarea
-                label="Notas (opcional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="Añade cualquier comentario o preferencia..."
-                maxLength={500}
-                fullWidth
-              />
+              <div>
+                <Textarea
+                  label="Notas (opcional)"
+                  value={notes}
+                  onChange={(e) => {
+                    const sanitized = sanitizeInput(e.target.value)
+                    setNotes(sanitized)
+                    if (fieldErrors.notes) {
+                      setFieldErrors({ ...fieldErrors, notes: null })
+                    }
+                  }}
+                  rows={3}
+                  placeholder="Añade cualquier comentario o preferencia..."
+                  maxLength={500}
+                  fullWidth
+                  error={fieldErrors.notes}
+                />
+                <div className="flex justify-between items-center mt-1">
+                  {fieldErrors.notes && (
+                    <p className="text-red-500 text-sm">⚠️ {fieldErrors.notes}</p>
+                  )}
+                  <p className={`text-sm ml-auto ${notes.length > 450 ? 'text-red-500' : 'text-gray-500'}`}>
+                    {notes.length} / 500 caracteres
+                  </p>
+                </div>
+              </div>
 
-              <Input
-                label="Teléfono de Contacto"
-                type="tel"
-                value={clientPhone}
-                onChange={(e) => setClientPhone(e.target.value)}
-                placeholder="+34 123 456 789"
-                fullWidth
-              />
+              <div>
+                <Input
+                  label="Teléfono de Contacto (opcional)"
+                  type="tel"
+                  value={clientPhone}
+                  onChange={(e) => {
+                    const sanitized = sanitizeInput(e.target.value)
+                    setClientPhone(sanitized)
+                    if (fieldErrors.phone) {
+                      setFieldErrors({ ...fieldErrors, phone: null })
+                    }
+                  }}
+                  placeholder="+34 123 456 789"
+                  fullWidth
+                  error={fieldErrors.phone}
+                />
+                {fieldErrors.phone && (
+                  <p className="text-red-500 text-sm mt-1">⚠️ {fieldErrors.phone}</p>
+                )}
+                {clientPhone && !fieldErrors.phone && validatePhone(clientPhone) && (
+                  <p className="text-green-500 text-sm mt-1">✅ Formato válido</p>
+                )}
+              </div>
 
               {/* Resumen */}
               <Card className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" padding="medium">

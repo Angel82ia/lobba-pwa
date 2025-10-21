@@ -4,6 +4,7 @@ import * as SalonService from '../models/SalonService.js'
 import { refundReservationPayment } from '../services/stripeConnectService.js'
 import { scheduleReminder, cancelReservationReminders } from '../services/reminderService.js'
 import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
+import { validationResult } from 'express-validator'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -60,15 +61,20 @@ export const calculateReservationCheckout = async (req, res) => {
  * La reserva se crea SOLO tras confirmar pago en confirmReservation()
  */
 export const processReservationCheckout = async (req, res) => {
+  // Validar errores de express-validator
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      errors: errors.array(),
+    })
+  }
+
   const client = await pool.connect()
 
   try {
     const userId = req.user.id
     const { serviceId, startTime, endTime, notes, clientPhone } = req.body
-
-    if (!serviceId || !startTime || !endTime) {
-      return res.status(400).json({ error: 'Service ID, start time and end time are required' })
-    }
 
     await client.query('BEGIN')
 
