@@ -27,3 +27,11 @@ export const refreshStripeConnectLink = async salonProfileId => {
   })
   return response.data
 }
+
+/**
+ * Actualizar estado de cuenta Stripe Connect (útil después del onboarding)
+ */
+export const updateAccountStatus = async salonProfileId => {
+  const response = await apiClient.get(`/stripe-connect/status/${salonProfileId}`)
+  return response.data
+}

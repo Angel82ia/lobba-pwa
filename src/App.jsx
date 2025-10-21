@@ -45,6 +45,8 @@ import MembershipDashboard from './modules/membership/components/MembershipDashb
 import MembershipPlans from './modules/membership/MembershipPlans'
 import ReferralDashboard from './modules/referral/ReferralDashboard'
 import SalonSettings from './pages/SalonSettings'
+import SalonConnectReturn from './pages/SalonConnectReturn'
+import SalonConnectRefresh from './pages/SalonConnectRefresh'
 import Maintenance from './pages/Maintenance'
 
 function App() {
@@ -52,9 +54,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Maintenance Page - Standalone without Layout */}
-        <Route path="*" element={<Maintenance />} />
+        <Route path="/mantenimiento" element={<Maintenance />} />
         
-        {/* <Route path="/" element={<MainLayout />}>
+        <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -342,7 +344,7 @@ function App() {
 
           <Route path="kiosk" element={<KioskMode />} />
 
-
+          {/* Membership Routes */}
           <Route path="membership/plans" element={<MembershipPlans />} />
           
           <Route
@@ -372,7 +374,7 @@ function App() {
             }
           />
 
-
+          {/* Referral Routes */}
           <Route
             path="referidos"
             element={
@@ -381,7 +383,17 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Route> */}
+
+          {/* Stripe Connect Routes */}
+          <Route
+            path="salon/connect/return"
+            element={<SalonConnectReturn />}
+          />
+          <Route
+            path="salon/connect/refresh"
+            element={<SalonConnectRefresh />}
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
