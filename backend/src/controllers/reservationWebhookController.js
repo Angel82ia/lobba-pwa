@@ -113,6 +113,17 @@ const handlePaymentIntentSucceeded = async paymentIntent => {
       throw new Error(`Missing required metadata: ${missingFields.join(', ')}`)
     }
 
+    // Verificar que el usuario existe
+    const userCheck = await client.query('SELECT id FROM users WHERE id = $1', [metadata.user_id])
+
+    if (userCheck.rows.length === 0) {
+      logger.error('User not found for reservation', {
+        userId: metadata.user_id,
+        paymentIntentId,
+      })
+      throw new Error(`User ${metadata.user_id} not found in database`)
+    }
+
     // Advisory lock para prevenir race conditions
     const lockKey = `${metadata.salon_profile_id}-${metadata.start_time}-${metadata.end_time}`
     const lockHash = parseInt(createHash('md5').update(lockKey).digest('hex').substring(0, 8), 16)
