@@ -54,9 +54,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Maintenance Page - Standalone without Layout */}
-        <Route path="/mantenimiento" element={<Maintenance />} />
+        <Route path="*" element={<Maintenance />} />
         
-        <Route path="/" element={<MainLayout />}>
+        
+        {/* <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -344,7 +345,6 @@ function App() {
 
           <Route path="kiosk" element={<KioskMode />} />
 
-          {/* Membership Routes */}
           <Route path="membership/plans" element={<MembershipPlans />} />
           
           <Route
@@ -374,7 +374,6 @@ function App() {
             }
           />
 
-          {/* Referral Routes */}
           <Route
             path="referidos"
             element={
@@ -384,7 +383,6 @@ function App() {
             }
           />
 
-          {/* Stripe Connect Routes */}
           <Route
             path="salon/connect/return"
             element={<SalonConnectReturn />}
@@ -393,7 +391,7 @@ function App() {
             path="salon/connect/refresh"
             element={<SalonConnectRefresh />}
           />
-        </Route>
+        </Route> */}
       </Routes>
     </BrowserRouter>
   )
