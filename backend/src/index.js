@@ -49,6 +49,7 @@ import { initialize as initializeStorage } from './services/cloudStorageService.
 import { initialize as initializeGoogleSheets } from './services/googleSheetsService.js'
 import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
+import { connectRedis, checkRedisHealth } from './config/redis.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -190,6 +191,20 @@ app.use((err, req, res, _next) => {
 if (process.env.NODE_ENV !== 'test') {
   httpServer.listen(PORT, '0.0.0.0', async () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
+    
+    try {
+      await connectRedis()
+      const redisHealthy = await checkRedisHealth()
+      if (redisHealthy) {
+        console.log('✅ Redis conectado y saludable')
+      } else {
+        console.warn('⚠️  Redis no disponible - funcionalidades limitadas')
+      }
+    } catch (error) {
+      console.error('⚠️  Redis error:', error.message)
+      console.log('Continuando sin Redis (modo degradado)')
+    }
+    
     await initializeStorage()
     await initializeGoogleSheets()
     startReminderCron()
