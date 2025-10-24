@@ -35,6 +35,11 @@ router.post(
       .isLength({ max: 50 })
       .withMessage('El apellido no puede exceder 50 caracteres'),
     body('role').optional().isIn(['user', 'salon', 'admin', 'device']),
+    body('codigo_referido')
+      .optional()
+      .trim()
+      .isLength({ max: 20 })
+      .withMessage('El código de referido no puede exceder 20 caracteres'),
   ],
   auditAuthAction,
   authController.register

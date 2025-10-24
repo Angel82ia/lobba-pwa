@@ -1,4 +1,5 @@
 import pool from '../config/database.js'
+import { calcularDescuentoCompra } from './purchaseDiscountService.js'
 
 /**
  * Obtener información de membresía del usuario
@@ -87,9 +88,9 @@ export const calculateShipping = async (userId, subtotal) => {
 }
 
 /**
- * Calcular totales completos para checkout
+ * Calcular totales completos para checkout con código de descuento opcional
  */
-export const calculateCheckoutTotals = async (userId, cartItems) => {
+export const calculateCheckoutTotals = async (userId, cartItems, codigoDescuento = null) => {
   let subtotal = 0
   for (const item of cartItems) {
     const productResult = await pool.query(
@@ -106,11 +107,28 @@ export const calculateCheckoutTotals = async (userId, cartItems) => {
   
   subtotal = parseFloat(subtotal.toFixed(2))
   
-  const discountInfo = await calculateMembershipDiscount(userId, subtotal)
+  let discountInfo
   
-  const shippingInfo = await calculateShipping(userId, discountInfo.totalAfterDiscount)
+  if (codigoDescuento) {
+    discountInfo = await calcularDescuentoCompra(userId, subtotal, codigoDescuento)
+  } else {
+    const oldDiscountInfo = await calculateMembershipDiscount(userId, subtotal)
+    discountInfo = {
+      importeOriginal: subtotal,
+      membershipType: oldDiscountInfo.membershipType,
+      descuentoBasePorcentaje: oldDiscountInfo.discountPercentage / 100,
+      descuentoCodigoPorcentaje: 0,
+      descuentoTotalPorcentaje: oldDiscountInfo.discountPercentage / 100,
+      importeDescuentoTotal: oldDiscountInfo.discountAmount,
+      importeFinal: oldDiscountInfo.totalAfterDiscount,
+      comisionInfluencer: 0,
+      codigoAplicado: null
+    }
+  }
   
-  const total = parseFloat((discountInfo.totalAfterDiscount + shippingInfo.shippingCost).toFixed(2))
+  const shippingInfo = await calculateShipping(userId, discountInfo.importeFinal)
+  
+  const total = parseFloat((discountInfo.importeFinal + shippingInfo.shippingCost).toFixed(2))
   
   return {
     subtotal,
@@ -119,8 +137,8 @@ export const calculateCheckoutTotals = async (userId, cartItems) => {
     total,
     breakdown: {
       subtotal,
-      membershipDiscount: discountInfo.discountAmount,
-      subtotalAfterDiscount: discountInfo.totalAfterDiscount,
+      membershipDiscount: discountInfo.importeDescuentoTotal,
+      subtotalAfterDiscount: discountInfo.importeFinal,
       shippingCost: shippingInfo.shippingCost,
       total
     }

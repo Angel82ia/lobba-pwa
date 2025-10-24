@@ -3,6 +3,7 @@ import * as Order from '../models/Order.js'
 import * as Product from '../models/Product.js'
 import * as Cart from '../models/Cart.js'
 import logger from '../utils/logger.js'
+import pool from '../config/database.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -93,5 +94,50 @@ const handleChargeRefunded = async (charge) => {
     }
     
     logger.info(`Refund processed for order ${order.id}`)
+  }
+}
+
+/**
+ * Twilio Status Callback Webhook
+ * Recibe actualizaciones de estado de mensajes WhatsApp
+ * 
+ * Estados: queued, sent, delivered, read, failed, undelivered
+ */
+export const handleTwilioStatusCallback = async (req, res) => {
+  try {
+    const {
+      MessageSid,
+      MessageStatus,
+      ErrorCode,
+      ErrorMessage,
+      From,
+      To,
+    } = req.body
+
+    logger.info('Twilio status callback received:', {
+      MessageSid,
+      MessageStatus,
+      From,
+      To,
+      ErrorCode,
+      ErrorMessage,
+    })
+
+    await pool.query(
+      `UPDATE notifications 
+       SET status = $1, 
+           error_code = $2,
+           error_message = $3,
+           updated_at = NOW()
+       WHERE message_sid = $4`,
+      [MessageStatus, ErrorCode || null, ErrorMessage || null, MessageSid]
+    )
+
+    logger.info(`✅ Notification ${MessageSid} updated to ${MessageStatus}`)
+
+    res.status(200).send('OK')
+  } catch (error) {
+    logger.error('Error handling Twilio webhook:', error)
+    res.status(500).json({ error: 'Internal server error' })
   }
 }

@@ -1,15 +1,17 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Input, Alert, Card } from '../../components/common'
 import { register } from '../../services/auth'
 import useStore from '../../store'
 
 const RegisterForm = () => {
+  const [searchParams] = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     firstName: '',
     lastName: '',
+    codigoReferido: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,10 +19,26 @@ const RegisterForm = () => {
   const { setUser, setToken } = useStore()
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref) {
+      setFormData(prev => ({
+        ...prev,
+        codigoReferido: ref.toUpperCase(),
+      }))
+    }
+  }, [searchParams])
+
   const handleChange = (e) => {
+    let value = e.target.value
+    
+    if (e.target.name === 'codigoReferido') {
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     })
   }
 
@@ -30,7 +48,13 @@ const RegisterForm = () => {
     setLoading(true)
 
     try {
-      const user = await register(formData)
+      const dataToSend = {
+        ...formData,
+        codigo_referido: formData.codigoReferido || undefined,
+      }
+      delete dataToSend.codigoReferido
+      
+      const user = await register(dataToSend)
       setUser(user)
       setToken(localStorage.getItem('accessToken'))
       navigate('/')
@@ -116,6 +140,22 @@ const RegisterForm = () => {
           required
           fullWidth
         />
+        
+        <div>
+          <Input
+            label="¿Tienes un código de recomendación?"
+            name="codigoReferido"
+            type="text"
+            value={formData.codigoReferido}
+            onChange={handleChange}
+            placeholder="Ej: MARIA2024"
+            maxLength={20}
+            fullWidth
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Introduce el código de tu influencer favorita (opcional)
+          </p>
+        </div>
         
         <Button type="submit" loading={loading} fullWidth size="large" className="mt-6">
           Registrarse

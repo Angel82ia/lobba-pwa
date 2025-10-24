@@ -10,7 +10,6 @@ import profileRoutes from './routes/profile.js'
 import salonRoutes from './routes/salon.js'
 import deviceRoutes from './routes/device.js'
 import reservationRoutes from './routes/reservation.js'
-import reservationCheckoutRoutes from './routes/reservationCheckout.js'
 import messageRoutes from './routes/message.js'
 import productRoutes from './routes/product.js'
 import categoryRoutes from './routes/category.js'
@@ -19,8 +18,8 @@ import orderRoutes from './routes/order.js'
 import checkoutRoutes from './routes/checkout.js'
 import wishlistRoutes from './routes/wishlist.js'
 import webhookRoutes from './routes/webhook.js'
-import reservationWebhookRoutes from './routes/reservationWebhook.js'
 import notificationRoutes from './routes/notification.js'
+import notificationAdminRoutes from './routes/notificationAdmin.js'
 import chatbotRoutes from './routes/chatbot.js'
 import bannerRoutes from './routes/banner.js'
 import aiRoutes from './routes/ai.js'
@@ -36,53 +35,36 @@ import auditLogRoutes from './routes/auditLog.js'
 import courtesyRoutes from './routes/courtesy.js'
 import referralRoutes from './routes/referral.js'
 import adminRoutes from './routes/admin.js'
+import animationRoutes from './routes/animation.js'
 import analyticsRoutes from './routes/analytics.js'
 import googleCalendarRoutes from './routes/googleCalendar.js'
 import availabilityBlockRoutes from './routes/availabilityBlock.js'
 import salonSettingsRoutes from './routes/salonSettings.js'
-import stripeConnectRoutes from './routes/stripeConnect.js'
 import whatsappRoutes from './routes/whatsapp.js'
 import availabilityRoutes from './routes/availability.js'
 import passport from './config/passport.js'
 import { initializeWebSocket } from './websocket/index.js'
 import logger from './utils/logger.js'
 import { generalLimiter } from './middleware/rateLimits.js'
+import { initialize as initializeStorage } from './services/cloudStorageService.js'
+import { initialize as initializeGoogleSheets } from './services/googleSheetsService.js'
 import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
+import { connectRedis, checkRedisHealth } from './config/redis.js'
+import { TwilioNotificationService } from './services/twilioNotificationService.js'
+import { EmailService } from './services/emailService.js'
+import { VerifyService } from './services/verifyService.js'
+import { NotificationOrchestrator } from './services/notificationOrchestrator.js'
+import { startAppointmentReminderCron } from './services/appointmentReminderCron.js'
 import { validateSecrets, getFeatureStatus } from './config/secrets.js'
 import { startWebhookRenewalCron } from './services/googleCalendarWebhookRenewal.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 dotenv.config()
-
-// 🔒 VALIDAR SECRETS AL INICIO (CRÍTICO)
-try {
-  console.log('\n🔐 Validating secrets...')
-  validateSecrets()
-
-  // Mostrar estado de features opcionales
-  const featureStatus = getFeatureStatus()
-  console.log('\n📋 Feature Status:')
-  console.log(
-    `  Email:           ${featureStatus.email ? '✅' : '❌'} ${!featureStatus.email ? '(SMTP not configured)' : ''}`
-  )
-  console.log(
-    `  Push:            ${featureStatus.push ? '✅' : '❌'} ${!featureStatus.push ? '(Firebase not configured)' : ''}`
-  )
-  console.log(`  WhatsApp:        ✅ (wa.me links)`)
-  console.log(
-    `  Google Calendar: ${featureStatus.googleCalendar ? '✅' : '❌'} ${!featureStatus.googleCalendar ? '(Google OAuth not configured)' : ''}`
-  )
-  console.log(`  Stripe:          ${featureStatus.stripe ? '✅' : '❌'}`)
-  console.log(
-    `  Stripe Webhooks: ${featureStatus.stripeWebhooks ? '✅' : '❌'} ${!featureStatus.stripeWebhooks ? '(Webhook secrets not configured)' : ''}`
-  )
-  console.log('')
-} catch (error) {
-  console.error('\n❌ Application startup failed due to missing secrets')
-  console.error('Please configure required environment variables in .env file')
-  console.error('See .env.example for required variables\n')
-  process.exit(1)
-}
 
 const app = express()
 const httpServer = createServer(app)
@@ -164,7 +146,8 @@ app.use(
 )
 
 app.use('/api/webhooks', webhookRoutes)
-app.use('/api/webhooks', reservationWebhookRoutes)
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 app.use(express.json())
 app.use(cookieParser())
@@ -177,7 +160,6 @@ app.use('/api/profile', profileRoutes)
 app.use('/api/salons', salonRoutes)
 app.use('/api/device', deviceRoutes)
 app.use('/api/reservations', reservationRoutes)
-app.use('/api/reservation-checkout', reservationCheckoutRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/categories', categoryRoutes)
@@ -186,6 +168,7 @@ app.use('/api/orders', orderRoutes)
 app.use('/api/checkout', checkoutRoutes)
 app.use('/api/wishlist', wishlistRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/notification-admin', notificationAdminRoutes)
 app.use('/api/chatbot', chatbotRoutes)
 app.use('/api/banners', bannerRoutes)
 app.use('/api/ai', aiRoutes)
@@ -201,11 +184,11 @@ app.use('/api/audit-logs', auditLogRoutes)
 app.use('/api/courtesy', courtesyRoutes)
 app.use('/api/referral', referralRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api', animationRoutes)
 app.use('/api/analytics', analyticsRoutes)
 app.use('/api/google-calendar', googleCalendarRoutes)
 app.use('/api/availability-blocks', availabilityBlockRoutes)
 app.use('/api/salon-settings', salonSettingsRoutes)
-app.use('/api/stripe-connect', stripeConnectRoutes)
 app.use('/api/availability', availabilityRoutes)
 app.use('/api/whatsapp', whatsappRoutes)
 
@@ -215,13 +198,46 @@ app.use((err, req, res, _next) => {
 })
 
 if (process.env.NODE_ENV !== 'test') {
-  httpServer.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', async () => {
     console.log(`Backend with WebSocket running on port ${PORT}`)
     
-    // Iniciar cron jobs
+    try {
+      await connectRedis()
+      const redisHealthy = await checkRedisHealth()
+      if (redisHealthy) {
+        console.log('✅ Redis conectado y saludable')
+      } else {
+        console.warn('⚠️  Redis no disponible - funcionalidades limitadas')
+      }
+    } catch (error) {
+      console.error('⚠️  Redis error:', error.message)
+      console.log('Continuando sin Redis (modo degradado)')
+    }
+    
+    await initializeStorage()
+    await initializeGoogleSheets()
+    
+    const twilioService = new TwilioNotificationService()
+    const emailService = new EmailService()
+    const verifyService = new VerifyService()
+    const notificationOrchestrator = new NotificationOrchestrator(twilioService, emailService)
+    
+    app.set('twilioService', twilioService)
+    app.set('emailService', emailService)
+    app.set('verifyService', verifyService)
+    app.set('notificationOrchestrator', notificationOrchestrator)
+    
+    console.log('✅ Servicios de notificación inicializados')
+    console.log(`  - Twilio WhatsApp: ${twilioService.isConfigured() ? 'Activo' : 'Deshabilitado'}`)
+    console.log(`  - SendGrid Email: ${emailService.isConfigured() ? 'Activo' : 'Deshabilitado'}`)
+    console.log(`  - Twilio Verify: ${verifyService.isConfigured() ? 'Activo' : 'Deshabilitado'}`)
+    console.log(`  - Notification Orchestrator: Activo`)
+    
+    startAppointmentReminderCron(notificationOrchestrator)
+    console.log('✅ Appointment reminder cron initialized')
+    
     startReminderCron()
     startWebhookRenewalCron()
-
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')
   })

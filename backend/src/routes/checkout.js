@@ -9,5 +9,6 @@ const router = express.Router()
 router.post('/payment-intent', requireAuth, paymentLimiter, auditUserAction, checkoutController.createPaymentIntentController)
 router.post('/confirm', requireAuth, paymentLimiter, auditUserAction, checkoutController.confirmPayment)
 router.post('/shipping', requireAuth, checkoutController.calculateShipping)
+router.post('/validate-code', requireAuth, checkoutController.validateDiscountCode)
 
 export default router

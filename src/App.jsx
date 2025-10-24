@@ -44,6 +44,8 @@ import ShareMembership from './pages/ShareMembership'
 import MembershipDashboard from './modules/membership/components/MembershipDashboard'
 import MembershipPlans from './modules/membership/MembershipPlans'
 import ReferralDashboard from './modules/referral/ReferralDashboard'
+import LoginSuccess from './pages/LoginSuccess'
+import UploadAnimation from './pages/UploadAnimation'
 import SalonSettings from './pages/SalonSettings'
 import SalonConnectReturn from './pages/SalonConnectReturn'
 import SalonConnectRefresh from './pages/SalonConnectRefresh'
@@ -63,6 +65,15 @@ function App() {
           <Route path="register" element={<Register />} />
           
           <Route
+            path="login-success"
+            element={
+              <ProtectedRoute>
+                <LoginSuccess />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
             path="profile/:id?"
             element={
               <ProtectedRoute>
@@ -76,6 +87,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="profile/animation/upload"
+            element={
+              <ProtectedRoute>
+                <UploadAnimation />
               </ProtectedRoute>
             }
           />

@@ -8,6 +8,7 @@ import {
 } from '../services/notificationService.js'
 import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
+import pool from '../config/database.js'
 
 export const getSlots = async (req, res) => {
   try {
@@ -65,6 +66,41 @@ export const createReservation = async (req, res) => {
       await notifyReservationCreated(reservation)
     } catch (error) {
       logger.error('Notification error:', error)
+    }
+
+    try {
+      const orchestrator = req.app.get('notificationOrchestrator')
+      if (orchestrator) {
+        const salonQuery = await pool.query(
+          `SELECT sp.business_name, u.email as owner_email
+           FROM salon_profiles sp
+           JOIN users u ON sp.user_id = u.id
+           WHERE sp.id = $1`,
+          [salonProfileId]
+        )
+        
+        if (salonQuery.rows.length > 0) {
+          const salon = salonQuery.rows[0]
+          await orchestrator.sendAppointmentConfirmation(
+            {
+              id: reservation.id,
+              client_name: req.user.name || 'Cliente',
+              client_phone: clientPhone,
+              client_email: clientEmail,
+              appointment_date: new Date(startTime).toLocaleDateString('es-ES'),
+              appointment_time: new Date(startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+              service_type: reservation.service_name || 'Servicio',
+            },
+            {
+              name: salon.business_name,
+              business_name: salon.business_name,
+              owner_email: salon.owner_email,
+            }
+          )
+        }
+      }
+    } catch (error) {
+      logger.error('Orchestrator notification error:', error)
     }
 
     res.status(201).json(reservation)
@@ -207,6 +243,41 @@ export const cancelReservation = async (req, res) => {
       await notifyReservationCancelled(cancelled, reason)
     } catch (error) {
       logger.error('Notification error:', error)
+    }
+
+    try {
+      const orchestrator = req.app.get('notificationOrchestrator')
+      if (orchestrator) {
+        const salonQuery = await pool.query(
+          `SELECT sp.business_name, u.email as owner_email
+           FROM salon_profiles sp
+           JOIN users u ON sp.user_id = u.id
+           WHERE sp.id = $1`,
+          [reservation.salon_profile_id]
+        )
+        
+        if (salonQuery.rows.length > 0) {
+          const salon = salonQuery.rows[0]
+          await orchestrator.sendAppointmentCancellation(
+            {
+              id: cancelled.id,
+              client_name: req.user.name || 'Cliente',
+              client_phone: reservation.client_phone,
+              client_email: reservation.client_email,
+              appointment_date: new Date(reservation.start_time).toLocaleDateString('es-ES'),
+              appointment_time: new Date(reservation.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            },
+            {
+              name: salon.business_name,
+              business_name: salon.business_name,
+              owner_email: salon.owner_email,
+            },
+            reason
+          )
+        }
+      }
+    } catch (error) {
+      logger.error('Orchestrator cancellation error:', error)
     }
 
     res.json(cancelled)
