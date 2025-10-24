@@ -330,12 +330,15 @@ export const setupWebhook = async (salonId, webhookUrl) => {
     webhookUrl,
   })
 
+  const webhookSecret = process.env.GOOGLE_WEBHOOK_SECRET || `lobba-secret-${salonId}`
+  
   const response = await calendarApi.events.watch({
     calendarId,
     requestBody: {
       id: channelId,
       type: 'web_hook',
       address: webhookUrl,
+      token: webhookSecret,
     },
   })
 

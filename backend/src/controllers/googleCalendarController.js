@@ -231,17 +231,34 @@ export const handleWebhook = async (req, res) => {
     const channelId = req.headers['x-goog-channel-id']
     const resourceId = req.headers['x-goog-resource-id']
     const resourceState = req.headers['x-goog-resource-state']
+    const channelToken = req.headers['x-goog-channel-token']
 
     console.log('📨 [Webhook] Notification received:', {
       channelId,
       resourceId,
       resourceState,
-      headers: req.headers,
+      hasToken: !!channelToken,
     })
 
     if (!channelId || !resourceId) {
-      console.error('❌ [Webhook] Missing headers')
+      console.error('❌ [Webhook] Missing required headers')
       return res.status(400).json({ error: 'Missing webhook headers' })
+    }
+
+    const expectedToken = process.env.GOOGLE_WEBHOOK_SECRET
+    if (expectedToken && channelToken !== expectedToken) {
+      console.error('❌ [Webhook] Invalid webhook token')
+      return res.status(401).json({ error: 'Unauthorized webhook request' })
+    }
+
+    const webhookResult = await pool.query(
+      'SELECT id FROM salon_profiles WHERE google_webhook_channel_id = $1',
+      [channelId]
+    )
+
+    if (webhookResult.rows.length === 0) {
+      console.error('❌ [Webhook] Unknown channel ID:', channelId)
+      return res.status(404).json({ error: 'Unknown webhook channel' })
     }
 
     // Si es solo una verificación de sincronización, responder OK sin procesar
