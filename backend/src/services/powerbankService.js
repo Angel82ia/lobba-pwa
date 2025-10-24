@@ -1,6 +1,7 @@
 import logger from '../utils/logger.js'
 import * as PowerbankLoan from '../models/PowerbankLoan.js'
 import * as MembershipLimitsService from './membershipLimitsService.js'
+import cron from 'node-cron'
 
 const LOAN_DURATION_HOURS = 24
 
@@ -174,4 +175,24 @@ export const checkOverdueLoans = async () => {
     logger.error('Error checking overdue loans:', error)
     throw error
   }
+}
+
+/**
+ * Start cron job to check overdue powerbank loans every hour
+ */
+export function startPowerbankCron() {
+  cron.schedule('0 * * * *', async () => {
+    logger.info('⏰ Ejecutando cron job: Verificación de powerbanks vencidos')
+    
+    try {
+      const overdueCount = await checkOverdueLoans()
+      logger.info(`✅ Cron job completado: ${overdueCount} powerbanks marcados como vencidos`)
+    } catch (error) {
+      logger.error('❌ Error en cron job de powerbanks:', error)
+    }
+  }, {
+    timezone: 'Europe/Madrid'
+  })
+
+  logger.info('✅ Cron job de powerbanks configurado: cada hora')
 }

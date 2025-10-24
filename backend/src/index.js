@@ -51,6 +51,9 @@ import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
 import { validateSecrets, getFeatureStatus } from './config/secrets.js'
 import { startWebhookRenewalCron } from './services/googleCalendarWebhookRenewal.js'
+import { startPowerbankCron } from './services/powerbankService.js'
+import { startRaffleCron } from './services/raffleService.js'
+import { setupARCreditsCronJob } from './services/arCreditsResetService.js'
 
 dotenv.config()
 
@@ -221,9 +224,13 @@ if (process.env.NODE_ENV !== 'test') {
     // Iniciar cron jobs
     startReminderCron()
     startWebhookRenewalCron()
+    startPowerbankCron()
+    startRaffleCron()
+    setupARCreditsCronJob()
 
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')
+    console.log('All cron jobs initialized successfully')
   })
 }
 
