@@ -1,3 +1,5 @@
+import { ipKeyGenerator } from 'express-rate-limit'
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 export const rateLimitConfig = {
@@ -6,6 +8,9 @@ export const rateLimitConfig = {
   legacyHeaders: false,
   message: 'Too many requests, please try again later.',
   skipSuccessfulRequests: false,
+  // Use the proper ipKeyGenerator helper to handle IPv6 addresses correctly
+  // Since Express is configured with 'trust proxy', req.ip should already contain the correct IP
+  keyGenerator: ipKeyGenerator,
 }
 
 export const rateLimitPresets = {

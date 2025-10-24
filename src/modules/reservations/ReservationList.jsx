@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getUserReservations, cancelReservation } from '../../services/reservation'
+import { getWhatsAppLink, checkSalonWhatsApp } from '../../services/whatsapp'
 import { Button, Card, Alert } from '../../components/common'
 
 const ReservationList = () => {
@@ -8,6 +9,7 @@ const ReservationList = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState('all')
+  const [salonWhatsAppStatus, setSalonWhatsAppStatus] = useState({})
 
   useEffect(() => {
     fetchReservations()
@@ -18,6 +20,24 @@ const ReservationList = () => {
       setLoading(true)
       const data = await getUserReservations()
       setReservations(data)
+      
+      // Verificar estado de WhatsApp para cada salón único
+      const uniqueSalonIds = [...new Set(data.map(r => r.salon_profile_id).filter(Boolean))]
+      const whatsappStatus = {}
+      
+      await Promise.all(
+        uniqueSalonIds.map(async (salonId) => {
+          try {
+            const status = await checkSalonWhatsApp(salonId)
+            whatsappStatus[salonId] = status.whatsappEnabled
+          } catch (err) {
+            console.warn(`Could not check WhatsApp status for salon ${salonId}:`, err)
+            whatsappStatus[salonId] = false
+          }
+        })
+      )
+      
+      setSalonWhatsAppStatus(whatsappStatus)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -33,6 +53,20 @@ const ReservationList = () => {
       fetchReservations()
     } catch (err) {
       alert('Error al cancelar la reserva: ' + err.message)
+    }
+  }
+
+  const handleWhatsAppContact = async (salonId, reservationId, context = 'general') => {
+    try {
+      const response = await getWhatsAppLink(salonId, reservationId, context)
+      if (response.success && response.whatsappLink) {
+        window.open(response.whatsappLink, '_blank')
+      } else {
+        alert('No se pudo generar el enlace de WhatsApp')
+      }
+    } catch (err) {
+      console.error('WhatsApp contact error:', err)
+      alert('Error al contactar por WhatsApp: ' + (err.response?.data?.message || err.message))
     }
   }
 
@@ -176,7 +210,7 @@ const ReservationList = () => {
 
                 {/* Actions */}
                 {['pending', 'confirmed'].includes(reservation.status) && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                     <Button 
                       variant="danger" 
                       size="small" 
@@ -185,6 +219,23 @@ const ReservationList = () => {
                     >
                       Cancelar Reserva
                     </Button>
+                    
+                    {/* Botón de WhatsApp - Solo mostrar si está habilitado */}
+                    {salonWhatsAppStatus[reservation.salon_profile_id] && (
+                      <Button 
+                        variant="secondary" 
+                        size="small" 
+                        fullWidth
+                        onClick={() => handleWhatsAppContact(
+                          reservation.salon_profile_id, 
+                          reservation.id, 
+                          reservation.status === 'pending' ? 'confirm_pending' : 'general'
+                        )}
+                        className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <span>📱</span> Contactar por WhatsApp
+                      </Button>
+                    )}
                   </div>
                 )}
               </Card>

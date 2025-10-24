@@ -3,7 +3,7 @@ import pool from '../config/database.js'
 /**
  * Crear un bloqueo de disponibilidad
  */
-export const createBlock = async (blockData) => {
+export const createBlock = async blockData => {
   const {
     salonProfileId,
     startTime,
@@ -12,7 +12,7 @@ export const createBlock = async (blockData) => {
     title,
     description,
     googleCalendarEventId,
-    createdBy
+    createdBy,
   } = blockData
 
   const result = await pool.query(
@@ -22,7 +22,16 @@ export const createBlock = async (blockData) => {
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *`,
-    [salonProfileId, startTime, endTime, blockType, title, description, googleCalendarEventId, createdBy]
+    [
+      salonProfileId,
+      startTime,
+      endTime,
+      blockType,
+      title,
+      description,
+      googleCalendarEventId,
+      createdBy,
+    ]
   )
 
   return result.rows[0]
@@ -61,11 +70,11 @@ export const isSlotBlocked = async (salonProfileId, startTime, endTime) => {
  */
 export const getSalonBlocks = async (salonProfileId, activeOnly = true) => {
   let query = `SELECT * FROM availability_blocks WHERE salon_profile_id = $1`
-  
+
   if (activeOnly) {
     query += ' AND is_active = true'
   }
-  
+
   query += ' ORDER BY start_time DESC'
 
   const result = await pool.query(query, [salonProfileId])
@@ -86,7 +95,7 @@ export const updateBlock = async (blockId, updates) => {
     'block_type',
     'title',
     'description',
-    'is_active'
+    'is_active',
   ]
 
   for (const [key, value] of Object.entries(updates)) {
@@ -117,7 +126,7 @@ export const updateBlock = async (blockId, updates) => {
 /**
  * Eliminar un bloqueo (soft delete)
  */
-export const deleteBlock = async (blockId) => {
+export const deleteBlock = async blockId => {
   const result = await pool.query(
     `UPDATE availability_blocks
      SET is_active = false
@@ -132,11 +141,8 @@ export const deleteBlock = async (blockId) => {
 /**
  * Eliminar bloqueo permanentemente
  */
-export const permanentDeleteBlock = async (blockId) => {
-  await pool.query(
-    'DELETE FROM availability_blocks WHERE id = $1',
-    [blockId]
-  )
+export const permanentDeleteBlock = async blockId => {
+  await pool.query('DELETE FROM availability_blocks WHERE id = $1', [blockId])
 }
 
 /**
@@ -160,21 +166,39 @@ export const syncGoogleCalendarBlock = async (salonProfileId, eventData) => {
   const existing = await getBlockByGoogleEventId(salonProfileId, eventData.id)
 
   if (existing) {
+    console.log(`🔄 [AvailabilityBlock] Updating existing block:`, {
+      blockId: existing.id,
+      eventId: eventData.id,
+      start: eventData.start,
+      end: eventData.end,
+    })
+
     return updateBlock(existing.id, {
       start_time: eventData.start,
       end_time: eventData.end,
       title: eventData.summary,
-      description: eventData.description
+      description: eventData.description,
     })
   } else {
-    return createBlock({
+    console.log(`➕ [AvailabilityBlock] Creating new block:`, {
+      salonProfileId,
+      eventId: eventData.id,
+      start: eventData.start,
+      end: eventData.end,
+      title: eventData.summary,
+    })
+
+    const result = await createBlock({
       salonProfileId,
       startTime: eventData.start,
       endTime: eventData.end,
       blockType: 'google_calendar',
       title: eventData.summary,
       description: eventData.description,
-      googleCalendarEventId: eventData.id
+      googleCalendarEventId: eventData.id,
     })
+
+    console.log(`✅ [AvailabilityBlock] Block created with ID:`, result.id)
+    return result
   }
 }

@@ -8,6 +8,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      devOptions: {
+        enabled: true,
+        type: 'module',
+        suppressWarnings: process.env.NODE_ENV === 'development',
+      },
       manifest: {
         name: 'LOBBA',
         short_name: 'LOBBA',
@@ -16,6 +21,8 @@ export default defineConfig({
         background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: '/icon-192x192.png',
@@ -36,6 +43,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./,
@@ -49,6 +57,9 @@ export default defineConfig({
             },
           },
         ],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],
@@ -71,9 +82,23 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/test/setup.js',
+  define: {
+    global: 'globalThis',
   },
+  optimizeDeps: {
+    include: ['@stripe/stripe-js', '@stripe/react-stripe-js'],
+  },
+  resolve: {
+    alias: {
+      // Evitar problemas con require en el navegador
+      'node:fs': false,
+      'node:path': false,
+    },
+  },
+  esbuild: {
+    define: {
+      global: 'globalThis',
+    },
+  },
+  // Test configuration moved to vitest.config.js
 })

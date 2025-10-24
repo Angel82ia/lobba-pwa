@@ -37,26 +37,48 @@ export const getAuthUrl = salonId => {
  * Intercambiar código por tokens
  */
 export const exchangeCodeForTokens = async code => {
-  const oauth2Client = createOAuth2Client()
-  const { tokens } = await oauth2Client.getToken(code)
-  return tokens
+  try {
+    const oauth2Client = createOAuth2Client()
+    const { tokens } = await oauth2Client.getToken(code)
+    return tokens
+  } catch (error) {
+    console.error('❌ [Google Calendar Service] Error exchanging code:', {
+      message: error.message,
+      response: error.response?.data,
+    })
+    throw error
+  }
 }
 
 /**
  * Guardar tokens de Google Calendar
  */
 export const saveGoogleTokens = async (salonId, tokens) => {
-  const expiryDate = new Date(tokens.expiry_date)
+  try {
+    const expiryDate = new Date(tokens.expiry_date)
 
-  await pool.query(
-    `UPDATE salon_profiles
-     SET google_refresh_token = $1,
-         google_access_token = $2,
-         google_token_expiry = $3,
-         google_calendar_enabled = true
-     WHERE id = $4`,
-    [tokens.refresh_token, tokens.access_token, expiryDate, salonId]
-  )
+    const result = await pool.query(
+      `UPDATE salon_profiles
+       SET google_refresh_token = $1,
+           google_access_token = $2,
+           google_token_expiry = $3,
+           google_calendar_enabled = true
+       WHERE id = $4`,
+      [tokens.refresh_token, tokens.access_token, expiryDate, salonId]
+    )
+
+    if (result.rowCount === 0) {
+      console.error('❌ [Google Calendar Service] Salon not found:', salonId)
+      throw new Error(`Salon with id ${salonId} not found`)
+    }
+  } catch (error) {
+    console.error('❌ [Google Calendar Service] Error saving tokens:', {
+      salonId,
+      message: error.message,
+      stack: error.stack,
+    })
+    throw error
+  }
 }
 
 /**
@@ -191,6 +213,8 @@ export const syncReservationsToGoogle = async salonId => {
  * Sincronizar eventos Google Calendar → LOBBA (availability_blocks)
  */
 export const syncGoogleEventsToBlocks = async salonId => {
+  console.log('🔄 [Sync Google→Blocks] Starting for salon:', salonId)
+
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
@@ -200,6 +224,7 @@ export const syncGoogleEventsToBlocks = async salonId => {
   )
 
   if (!salonResult.rows[0].google_calendar_id) {
+    console.error('❌ [Sync Google→Blocks] No calendar configured for salon:', salonId)
     throw new Error('No calendar configured')
   }
 
@@ -208,6 +233,12 @@ export const syncGoogleEventsToBlocks = async salonId => {
   const now = new Date()
   const maxDate = new Date()
   maxDate.setMonth(maxDate.getMonth() + 3)
+
+  console.log('🔄 [Sync Google→Blocks] Fetching events from Google Calendar:', {
+    calendarId,
+    timeMin: now.toISOString(),
+    timeMax: maxDate.toISOString(),
+  })
 
   const response = await calendarApi.events.list({
     calendarId,
@@ -218,16 +249,29 @@ export const syncGoogleEventsToBlocks = async salonId => {
   })
 
   const events = response.data.items || []
+  console.log(`📅 [Sync Google→Blocks] Found ${events.length} events in Google Calendar`)
+
   const blocked = []
 
   for (const event of events) {
+    // Ignorar eventos creados por Lobba
     if (event.extendedProperties?.private?.lobba_source === 'true') {
+      console.log(`⏭️  [Sync Google→Blocks] Skipping Lobba event: ${event.summary}`)
       continue
     }
 
+    // Ignorar eventos sin fecha/hora (eventos de día completo)
     if (!event.start?.dateTime || !event.end?.dateTime) {
+      console.log(`⏭️  [Sync Google→Blocks] Skipping all-day event: ${event.summary}`)
       continue
     }
+
+    console.log(`🔒 [Sync Google→Blocks] Blocking slot for event:`, {
+      id: event.id,
+      summary: event.summary,
+      start: event.start.dateTime,
+      end: event.end.dateTime,
+    })
 
     await AvailabilityBlock.syncGoogleCalendarBlock(salonId, {
       id: event.id,
@@ -240,6 +284,7 @@ export const syncGoogleEventsToBlocks = async salonId => {
     blocked.push(event.id)
   }
 
+  console.log(`✅ [Sync Google→Blocks] Completed: ${blocked.length} slots blocked`)
   return { blocked: blocked.length, eventIds: blocked }
 }
 
@@ -261,6 +306,8 @@ export const fullBidirectionalSync = async salonId => {
  * Configurar webhook de Google Calendar
  */
 export const setupWebhook = async (salonId, webhookUrl) => {
+  console.log('🔔 [Google Calendar Service] Setting up webhook:', { salonId, webhookUrl })
+
   const auth = await getAuthenticatedClient(salonId)
   const calendarApi = google.calendar({ version: 'v3', auth })
 
@@ -270,11 +317,18 @@ export const setupWebhook = async (salonId, webhookUrl) => {
   )
 
   if (!salonResult.rows[0].google_calendar_id) {
+    console.error('❌ [Google Calendar Service] No calendar configured for salon:', salonId)
     throw new Error('No calendar configured')
   }
 
   const calendarId = salonResult.rows[0].google_calendar_id
   const channelId = `lobba-${salonId}-${Date.now()}`
+
+  console.log('🔔 [Google Calendar Service] Requesting watch:', {
+    calendarId,
+    channelId,
+    webhookUrl,
+  })
 
   const response = await calendarApi.events.watch({
     calendarId,
@@ -283,6 +337,12 @@ export const setupWebhook = async (salonId, webhookUrl) => {
       type: 'web_hook',
       address: webhookUrl,
     },
+  })
+
+  console.log('✅ [Google Calendar Service] Watch registered:', {
+    channelId: response.data.id,
+    resourceId: response.data.resourceId,
+    expiration: new Date(parseInt(response.data.expiration)),
   })
 
   await pool.query(
@@ -306,6 +366,11 @@ export const setupWebhook = async (salonId, webhookUrl) => {
  * Procesar notificación de webhook
  */
 export const processWebhookNotification = async (channelId, resourceId) => {
+  console.log('🔄 [Google Calendar Service] Processing webhook notification:', {
+    channelId,
+    resourceId,
+  })
+
   const salonResult = await pool.query(
     `SELECT id FROM salon_profiles
      WHERE google_webhook_channel_id = $1
@@ -314,12 +379,15 @@ export const processWebhookNotification = async (channelId, resourceId) => {
   )
 
   if (salonResult.rows.length === 0) {
+    console.error('❌ [Google Calendar Service] Webhook not found:', { channelId, resourceId })
     throw new Error('Webhook not found')
   }
 
   const salonId = salonResult.rows[0].id
+  console.log('🔄 [Google Calendar Service] Syncing events for salon:', salonId)
 
   await syncGoogleEventsToBlocks(salonId)
 
+  console.log('✅ [Google Calendar Service] Webhook processed successfully for salon:', salonId)
   return { success: true, salonId }
 }

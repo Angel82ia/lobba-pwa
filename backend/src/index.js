@@ -56,6 +56,8 @@ import { EmailService } from './services/emailService.js'
 import { VerifyService } from './services/verifyService.js'
 import { NotificationOrchestrator } from './services/notificationOrchestrator.js'
 import { startAppointmentReminderCron } from './services/appointmentReminderCron.js'
+import { validateSecrets, getFeatureStatus } from './config/secrets.js'
+import { startWebhookRenewalCron } from './services/googleCalendarWebhookRenewal.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -235,6 +237,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log('✅ Appointment reminder cron initialized')
     
     startReminderCron()
+    startWebhookRenewalCron()
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')
   })

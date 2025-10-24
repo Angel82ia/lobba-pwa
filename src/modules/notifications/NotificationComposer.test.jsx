@@ -98,10 +98,10 @@ describe('NotificationComposer', () => {
   it('should show radius slider for geographic targeting', () => {
     render(<NotificationComposer />)
 
-    const targetingSelect = screen.getByLabelText('Destinatarios')
+    const targetingSelect = screen.getByLabelText('Tipo de Segmentación')
     fireEvent.change(targetingSelect, { target: { value: 'geographic' } })
 
-    expect(screen.getByLabelText('Radio de alcance')).toBeInTheDocument()
-    expect(screen.getByText('10 km')).toBeInTheDocument()
+    expect(screen.getByText(/Radio \(kilómetros\)/)).toBeInTheDocument()
+    expect(screen.getByText(/10 km/)).toBeInTheDocument()
   })
 })

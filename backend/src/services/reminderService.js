@@ -21,7 +21,7 @@ export const scheduleReminder = async (reservation, hoursBeforeOptions) => {
     const hoursBefore = hoursBeforeOptions || salonSettings.rows[0].reminder_hours_before || 24
 
     const reservationTime = new Date(reservation.start_time)
-    const reminderTime = new Date(reservationTime.getTime() - (hoursBefore * 60 * 60 * 1000))
+    const reminderTime = new Date(reservationTime.getTime() - hoursBefore * 60 * 60 * 1000)
 
     if (reminderTime < new Date()) {
       return { scheduled: false, reason: 'Reminder time already passed' }
@@ -35,10 +35,9 @@ export const scheduleReminder = async (reservation, hoursBeforeOptions) => {
       [reservation.service_id]
     )
 
-    const userResult = await pool.query(
-      'SELECT name, phone FROM users WHERE id = $1',
-      [reservation.user_id]
-    )
+    const userResult = await pool.query('SELECT name, phone FROM users WHERE id = $1', [
+      reservation.user_id,
+    ])
 
     if (serviceResult.rows.length === 0 || userResult.rows.length === 0) {
       return { scheduled: false, reason: 'Service or user not found' }
@@ -51,7 +50,7 @@ export const scheduleReminder = async (reservation, hoursBeforeOptions) => {
       user_name: user.name,
       salon_name: service.salon_name,
       service_name: service.service_name,
-      start_time: reservationTime.toLocaleString('es-ES')
+      start_time: reservationTime.toLocaleString('es-ES'),
     }
 
     await pool.query(
@@ -66,12 +65,11 @@ export const scheduleReminder = async (reservation, hoursBeforeOptions) => {
         reservation.user_id,
         user.phone || reservation.client_phone,
         JSON.stringify(variables),
-        reminderTime
+        reminderTime,
       ]
     )
 
     return { scheduled: true, scheduledAt: reminderTime }
-
   } catch (error) {
     console.error('Error scheduling reminder:', error)
     throw error
@@ -94,7 +92,7 @@ export const processScheduledNotifications = async () => {
     const results = {
       sent: 0,
       failed: 0,
-      total: pending.rows.length
+      total: pending.rows.length,
     }
 
     for (const notification of pending.rows) {
@@ -110,7 +108,8 @@ export const processScheduledNotifications = async () => {
           continue
         }
 
-        const recipient = notification.recipient_phone || notification.recipient_email || notification.recipient_id
+        const recipient =
+          notification.recipient_phone || notification.recipient_email || notification.recipient_id
 
         await sendNotification(
           notification.template_key,
@@ -126,12 +125,11 @@ export const processScheduledNotifications = async () => {
         )
 
         results.sent++
-
       } catch (error) {
         console.error(`Error sending notification ${notification.id}:`, error)
 
         if (notification.retry_count < notification.max_retries) {
-          const nextRetry = new Date(Date.now() + (30 * 60 * 1000))
+          const nextRetry = new Date(Date.now() + 30 * 60 * 1000)
           await pool.query(
             `UPDATE scheduled_notifications
              SET status = 'failed',
@@ -151,7 +149,6 @@ export const processScheduledNotifications = async () => {
     }
 
     return results
-
   } catch (error) {
     console.error('Error processing scheduled notifications:', error)
     throw error
@@ -174,12 +171,13 @@ export const processFailedRetries = async () => {
     const results = {
       retried: 0,
       failed: 0,
-      total: retries.rows.length
+      total: retries.rows.length,
     }
 
     for (const notification of retries.rows) {
       try {
-        const recipient = notification.recipient_phone || notification.recipient_email || notification.recipient_id
+        const recipient =
+          notification.recipient_phone || notification.recipient_email || notification.recipient_id
 
         await sendNotification(
           notification.template_key,
@@ -195,14 +193,13 @@ export const processFailedRetries = async () => {
         )
 
         results.retried++
-
       } catch (error) {
         console.error(`Retry failed for notification ${notification.id}:`, error)
 
         if (notification.retry_count + 1 >= notification.max_retries) {
           await markNotificationFailed(notification.id, error.message)
         } else {
-          const nextRetry = new Date(Date.now() + (60 * 60 * 1000))
+          const nextRetry = new Date(Date.now() + 60 * 60 * 1000)
           await pool.query(
             `UPDATE scheduled_notifications
              SET retry_count = retry_count + 1,
@@ -218,7 +215,6 @@ export const processFailedRetries = async () => {
     }
 
     return results
-
   } catch (error) {
     console.error('Error processing failed retries:', error)
     throw error
@@ -228,7 +224,7 @@ export const processFailedRetries = async () => {
 /**
  * Cancelar recordatorios de una reserva
  */
-export const cancelReservationReminders = async (reservationId) => {
+export const cancelReservationReminders = async reservationId => {
   await pool.query(
     `UPDATE scheduled_notifications
      SET status = 'cancelled', cancelled_at = NOW()
@@ -259,10 +255,14 @@ export const startReminderCron = () => {
     console.log('Processing scheduled notifications...')
     try {
       const results = await processScheduledNotifications()
-      console.log(`Processed ${results.total} notifications: ${results.sent} sent, ${results.failed} failed`)
+      console.log(
+        `Processed ${results.total} notifications: ${results.sent} sent, ${results.failed} failed`
+      )
 
       const retryResults = await processFailedRetries()
-      console.log(`Processed ${retryResults.total} retries: ${retryResults.retried} succeeded, ${retryResults.failed} failed`)
+      console.log(
+        `Processed ${retryResults.total} retries: ${retryResults.retried} succeeded, ${retryResults.failed} failed`
+      )
     } catch (error) {
       console.error('Cron job error:', error)
     }

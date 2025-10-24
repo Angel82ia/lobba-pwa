@@ -44,7 +44,7 @@ describe('ItemRequestForm', () => {
 
   it('should render item request form', () => {
     renderWithRouter(<ItemRequestForm />)
-    expect(screen.getByText('Solicitar Artículo Gratis')).toBeInTheDocument()
+    expect(screen.getByText(/Solicitar Artículo Gratis/)).toBeInTheDocument()
   })
 
   it('should load items when button is clicked', async () => {
@@ -69,7 +69,7 @@ describe('ItemRequestForm', () => {
       expect(screen.getByText('Shampoo')).toBeInTheDocument()
     })
 
-    const itemCard = screen.getByText('Shampoo').closest('.item-card')
+    const itemCard = screen.getByText('Shampoo').closest('div')
     fireEvent.click(itemCard)
 
     await waitFor(() => {
@@ -86,7 +86,7 @@ describe('ItemRequestForm', () => {
       expect(screen.getByText('Shampoo')).toBeInTheDocument()
     })
 
-    const itemCard = screen.getByText('Shampoo').closest('.item-card')
+    const itemCard = screen.getByText('Shampoo').closest('div')
     fireEvent.click(itemCard)
 
     await waitFor(() => {

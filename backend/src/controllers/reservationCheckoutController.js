@@ -3,7 +3,10 @@ import * as Reservation from '../models/Reservation.js'
 import * as SalonService from '../models/SalonService.js'
 import { refundReservationPayment } from '../services/stripeConnectService.js'
 import { scheduleReminder, cancelReservationReminders } from '../services/reminderService.js'
+import { notifyReservationConfirmed } from '../services/notificationService.js'
 import * as AvailabilityBlock from '../models/AvailabilityBlock.js'
+import { validationResult } from 'express-validator'
+import { createHash } from 'crypto'
 
 /**
  * Calcular totales de checkout para reserva de servicio
@@ -60,15 +63,20 @@ export const calculateReservationCheckout = async (req, res) => {
  * La reserva se crea SOLO tras confirmar pago en confirmReservation()
  */
 export const processReservationCheckout = async (req, res) => {
+  // Validar errores de express-validator
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      errors: errors.array(),
+    })
+  }
+
   const client = await pool.connect()
 
   try {
     const userId = req.user.id
     const { serviceId, startTime, endTime, notes, clientPhone } = req.body
-
-    if (!serviceId || !startTime || !endTime) {
-      return res.status(400).json({ error: 'Service ID, start time and end time are required' })
-    }
 
     await client.query('BEGIN')
 
@@ -110,10 +118,7 @@ export const processReservationCheckout = async (req, res) => {
       return res.status(409).json({ error: 'This time slot is blocked by the salon' })
     }
     const lockKey = `${service.salon_profile_id}-${startTime}-${endTime}`
-    const lockHash = parseInt(
-      require('crypto').createHash('md5').update(lockKey).digest('hex').substring(0, 8),
-      16
-    )
+    const lockHash = parseInt(createHash('md5').update(lockKey).digest('hex').substring(0, 8), 16)
 
     await client.query('SELECT pg_advisory_xact_lock($1)', [lockHash])
 
@@ -252,10 +257,7 @@ export const confirmReservation = async (req, res) => {
     }
 
     const lockKey = `${metadata.salon_profile_id}-${metadata.start_time}-${metadata.end_time}`
-    const lockHash = parseInt(
-      require('crypto').createHash('md5').update(lockKey).digest('hex').substring(0, 8),
-      16
-    )
+    const lockHash = parseInt(createHash('md5').update(lockKey).digest('hex').substring(0, 8), 16)
 
     await client.query('SELECT pg_advisory_xact_lock($1)', [lockHash])
 
@@ -326,6 +328,13 @@ export const confirmReservation = async (req, res) => {
       await scheduleReminder(finalReservation)
     } catch (error) {
       console.error('Error scheduling reminder:', error)
+    }
+
+    // Enviar notificaciones de confirmación
+    try {
+      await notifyReservationConfirmed(finalReservation)
+    } catch (error) {
+      console.error('Error sending confirmation notifications:', error)
     }
 
     return res.status(200).json({

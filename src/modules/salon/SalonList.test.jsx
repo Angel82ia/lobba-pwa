@@ -78,8 +78,8 @@ describe('SalonList', () => {
       expect(screen.getByText('Beauty Center')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('Madrid')).toBeInTheDocument()
-    expect(screen.getByText('Barcelona')).toBeInTheDocument()
+    expect(screen.getByText(/Madrid/)).toBeInTheDocument()
+    expect(screen.getByText(/Barcelona/)).toBeInTheDocument()
   })
 
   it('should display error message on fetch failure', async () => {

@@ -9,6 +9,7 @@ import {
   setupWebhook,
   handleWebhook,
   disconnect,
+  forceRenewal,
 } from '../controllers/googleCalendarController.js'
 
 const router = express.Router()
@@ -24,6 +25,8 @@ router.post('/set-calendar/:salonId', requireAuth, setCalendar)
 router.post('/sync/:salonId', requireAuth, syncNow)
 
 router.post('/webhook/setup/:salonId', requireAuth, setupWebhook)
+
+router.post('/webhook/renew/:salonId', requireAuth, forceRenewal)
 
 router.post('/webhook', handleWebhook)
 

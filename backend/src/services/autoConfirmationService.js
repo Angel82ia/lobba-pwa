@@ -6,13 +6,8 @@ import { getSalonSettings } from '../models/SalonSettings.js'
  * @param {Object} reservationData - Datos de la reserva
  * @returns {Object} { shouldAutoConfirm: boolean, reason: string, checks: Object }
  */
-export const shouldAutoConfirm = async (reservationData) => {
-  const {
-    salonProfileId,
-    userId,
-    serviceId,
-    startTime
-  } = reservationData
+export const shouldAutoConfirm = async reservationData => {
+  const { salonProfileId, userId, serviceId, startTime } = reservationData
 
   const checks = {
     check1_salon_auto_enabled: false,
@@ -23,7 +18,7 @@ export const shouldAutoConfirm = async (reservationData) => {
     check6_user_has_completed: false,
     check7_within_daily_limit: false,
     check8_availability_confirmed: false,
-    check9_calendar_sync_ok: false
+    check9_calendar_sync_ok: false,
   }
 
   try {
@@ -34,7 +29,7 @@ export const shouldAutoConfirm = async (reservationData) => {
       return {
         shouldAutoConfirm: false,
         reason: 'Salon has auto-confirmation disabled',
-        checks
+        checks,
       }
     }
 
@@ -48,7 +43,7 @@ export const shouldAutoConfirm = async (reservationData) => {
       return {
         shouldAutoConfirm: false,
         reason: `Booking must be at least ${minHours} hours in advance`,
-        checks
+        checks,
       }
     }
 
@@ -67,7 +62,7 @@ export const shouldAutoConfirm = async (reservationData) => {
         return {
           shouldAutoConfirm: false,
           reason: 'First booking requires manual approval',
-          checks
+          checks,
         }
       }
     } else {
@@ -81,7 +76,7 @@ export const shouldAutoConfirm = async (reservationData) => {
       return {
         shouldAutoConfirm: false,
         reason: 'Service requires manual approval',
-        checks
+        checks,
       }
     }
 
@@ -96,6 +91,9 @@ export const shouldAutoConfirm = async (reservationData) => {
 
     const totalCompleted = parseInt(userStats.rows[0].total) || 0
     const noShows = parseInt(userStats.rows[0].no_shows) || 0
+
+    // CHECK 5: Verificar no-show rate
+    // Si no tiene bookings completados, el rate es 0% (pasa este check)
     const noShowRate = totalCompleted > 0 ? (noShows / totalCompleted) * 100 : 0
     checks.check5_user_low_no_show = noShowRate < 20
 
@@ -103,23 +101,24 @@ export const shouldAutoConfirm = async (reservationData) => {
       return {
         shouldAutoConfirm: false,
         reason: `User has high no-show rate (${noShowRate.toFixed(1)}%)`,
-        checks
+        checks,
       }
     }
 
+    // CHECK 6: Verificar que tiene al menos 1 booking completado
     checks.check6_user_has_completed = totalCompleted >= 1
 
     if (!checks.check6_user_has_completed) {
       return {
         shouldAutoConfirm: false,
         reason: 'User has no completed bookings',
-        checks
+        checks,
       }
     }
 
     const dailyLimit = 10
     const bookingDateStr = bookingDate.toISOString().split('T')[0]
-    
+
     const todayBookings = await pool.query(
       `SELECT COUNT(*) as count
        FROM reservations
@@ -136,7 +135,7 @@ export const shouldAutoConfirm = async (reservationData) => {
       return {
         shouldAutoConfirm: false,
         reason: `User exceeded daily booking limit (${dailyLimit})`,
-        checks
+        checks,
       }
     }
 
@@ -147,15 +146,14 @@ export const shouldAutoConfirm = async (reservationData) => {
     return {
       shouldAutoConfirm: true,
       reason: 'All auto-confirmation checks passed',
-      checks
+      checks,
     }
-
   } catch (error) {
     console.error('Error in shouldAutoConfirm:', error)
     return {
       shouldAutoConfirm: false,
       reason: `Error: ${error.message}`,
-      checks
+      checks,
     }
   }
 }
@@ -163,12 +161,11 @@ export const shouldAutoConfirm = async (reservationData) => {
 /**
  * Aplicar autoconfirmación a una reserva existente
  */
-export const applyAutoConfirmation = async (reservationId) => {
+export const applyAutoConfirmation = async reservationId => {
   try {
-    const reservationResult = await pool.query(
-      `SELECT * FROM reservations WHERE id = $1`,
-      [reservationId]
-    )
+    const reservationResult = await pool.query(`SELECT * FROM reservations WHERE id = $1`, [
+      reservationId,
+    ])
 
     if (reservationResult.rows.length === 0) {
       throw new Error('Reservation not found')
@@ -180,7 +177,7 @@ export const applyAutoConfirmation = async (reservationId) => {
       salonProfileId: reservation.salon_profile_id,
       userId: reservation.user_id,
       serviceId: reservation.service_id,
-      startTime: reservation.start_time
+      startTime: reservation.start_time,
     })
 
     if (decision.shouldAutoConfirm) {
@@ -198,19 +195,20 @@ export const applyAutoConfirmation = async (reservationId) => {
       return {
         success: true,
         autoConfirmed: true,
-        checks: decision.checks
+        checks: decision.checks,
       }
     } else {
-      console.log(`[AutoConfirm] Reservation ${reservationId} requires manual approval: ${decision.reason}`)
+      console.log(
+        `[AutoConfirm] Reservation ${reservationId} requires manual approval: ${decision.reason}`
+      )
 
       return {
         success: true,
         autoConfirmed: false,
         reason: decision.reason,
-        checks: decision.checks
+        checks: decision.checks,
       }
     }
-
   } catch (error) {
     console.error('Error applying auto-confirmation:', error)
     throw error

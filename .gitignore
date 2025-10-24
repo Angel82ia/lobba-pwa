@@ -63,6 +63,11 @@ secrets/
 # PWA
 sw.js
 workbox-*.js
+dev-dist/
 
 # Vercel
 .vercel
+
+# Ignorar lockfiles de pnpm en todo el proyecto
+**/pnpm-lock.yaml
+pnpm-lock.yaml

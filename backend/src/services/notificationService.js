@@ -1,6 +1,37 @@
 import pool from '../config/database.js'
 import nodemailer from 'nodemailer'
 
+/**
+ * Sanitizar texto para prevenir XSS
+ * Remueve tags HTML y caracteres peligrosos
+ */
+const sanitizeText = text => {
+  if (!text) return ''
+
+  // Convertir a string
+  let sanitized = String(text)
+
+  // Remover tags HTML completos
+  sanitized = sanitized.replace(/<[^>]*>/g, '')
+
+  // Remover scripts y eventos
+  sanitized = sanitized.replace(/javascript:/gi, '')
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '')
+
+  // Escapar caracteres HTML especiales
+  const htmlEntities = {
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+  }
+
+  sanitized = sanitized.replace(/[<>"'/]/g, char => htmlEntities[char])
+
+  return sanitized
+}
+
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@lobba.com'
 const SMTP_HOST = process.env.SMTP_HOST
 const SMTP_PORT = process.env.SMTP_PORT || 587
@@ -27,18 +58,77 @@ export const getTemplate = async templateKey => {
     [templateKey]
   )
 
+  if (result.rows.length === 0) {
+    throw new Error(`Template not found: ${templateKey}`)
+  }
+
   return result.rows[0]
 }
 
 /**
  * Renderizar template con variables
+ * @param {string} template - Template con placeholders {{variable}}
+ * @param {Object} variables - Variables a reemplazar
+ * @param {boolean} escapeHtml - Si debe sanitizar HTML (default: true)
+ * @returns {string} Template renderizado y sanitizado
  */
-export const renderTemplate = (template, variables) => {
+export const renderTemplate = (template, variables, escapeHtml = true) => {
+  // Extraer variables requeridas del template
+  const requiredVars = new Set()
+  const varRegex = /\{\{([a-zA-Z0-9_]+)\}\}/g
+  let match
+
+  while ((match = varRegex.exec(template)) !== null) {
+    requiredVars.add(match[1])
+  }
+
+  // Validar que todas las variables requeridas están presentes
+  const missingVars = []
+  const providedVariables = { ...variables }
+
+  for (const varName of requiredVars) {
+    if (
+      !(varName in providedVariables) ||
+      providedVariables[varName] === null ||
+      providedVariables[varName] === undefined
+    ) {
+      missingVars.push(varName)
+      // Usar placeholder visible en lugar de valor vacío
+      providedVariables[varName] = `[${varName}]`
+    }
+  }
+
+  if (missingVars.length > 0) {
+    console.warn('Template missing variables:', {
+      template: template.substring(0, 100),
+      missingVars,
+    })
+  }
+
+  // Renderizar template con sanitización
   let rendered = template
 
-  for (const [key, value] of Object.entries(variables)) {
+  for (const [key, value] of Object.entries(providedVariables)) {
     const regex = new RegExp(`{{${key}}}`, 'g')
-    rendered = rendered.replace(regex, value || '')
+
+    // Convertir a string y sanitizar si es HTML
+    let sanitizedValue = String(value || '')
+
+    if (escapeHtml) {
+      // Sanitizar XSS attacks
+      sanitizedValue = sanitizeText(sanitizedValue)
+    }
+
+    rendered = rendered.replace(regex, sanitizedValue)
+  }
+
+  // Verificar que no quedan variables sin reemplazar
+  const unreplacedVars = rendered.match(/\{\{[a-zA-Z0-9_]+\}\}/g)
+  if (unreplacedVars) {
+    console.error('Unresolved variables in template:', {
+      template: template.substring(0, 100),
+      unreplacedVars,
+    })
   }
 
   return rendered

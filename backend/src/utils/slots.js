@@ -88,21 +88,29 @@ export const getAvailableSlots = async ({ salonProfileId, serviceId, date }) => 
 
   const serviceDuration = serviceResult.rows[0].duration_minutes
 
+  // Convertir a zona horaria Europe/Madrid para comparar correctamente con slots locales
   const reservationsResult = await pool.query(
-    `SELECT start_time, end_time, buffer_minutes
+    `SELECT 
+       start_time AT TIME ZONE 'Europe/Madrid' as start_time,
+       end_time AT TIME ZONE 'Europe/Madrid' as end_time,
+       buffer_minutes
      FROM reservations
      WHERE salon_profile_id = $1
-       AND DATE(start_time AT TIME ZONE 'UTC') = $2
+       AND DATE(start_time AT TIME ZONE 'Europe/Madrid') = $2
        AND status IN ('confirmed', 'pending')`,
     [salonProfileId, date]
   )
 
   // Obtener también los bloqueos de disponibilidad (ej: desde Google Calendar)
+  // Convertir a zona horaria Europe/Madrid para comparar correctamente
   const blocksResult = await pool.query(
-    `SELECT start_time, end_time, 0 as buffer_minutes
+    `SELECT 
+       start_time AT TIME ZONE 'Europe/Madrid' as start_time,
+       end_time AT TIME ZONE 'Europe/Madrid' as end_time,
+       0 as buffer_minutes
      FROM availability_blocks
      WHERE salon_profile_id = $1
-       AND DATE(start_time AT TIME ZONE 'UTC') = $2
+       AND DATE(start_time AT TIME ZONE 'Europe/Madrid') = $2
        AND is_active = true`,
     [salonProfileId, date]
   )

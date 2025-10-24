@@ -13,6 +13,7 @@ import AdminDashboard from './modules/admin/AdminDashboard'
 import DeviceRegistration from './modules/devices/DeviceRegistration'
 import ReservationList from './modules/reservations/ReservationList'
 import ReservationCalendar from './modules/reservations/ReservationCalendar'
+import ReservationCheckout from './pages/ReservationCheckout'
 import ChatWindow from './modules/messaging/ChatWindow'
 import ProductGrid from './modules/ecommerce/ProductGrid'
 import ProductDetail from './modules/ecommerce/ProductDetail'
@@ -46,12 +47,19 @@ import ReferralDashboard from './modules/referral/ReferralDashboard'
 import LoginSuccess from './pages/LoginSuccess'
 import UploadAnimation from './pages/UploadAnimation'
 import SalonSettings from './pages/SalonSettings'
+import SalonConnectReturn from './pages/SalonConnectReturn'
+import SalonConnectRefresh from './pages/SalonConnectRefresh'
+import Maintenance from './pages/Maintenance'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
+        {/* Maintenance Page - Standalone without Layout */}
+        <Route path="*" element={<Maintenance />} />
+        
+        
+        {/* <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -154,6 +162,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <ReservationCalendar />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="reservation-checkout"
+            element={
+              <ProtectedRoute>
+                <ReservationCheckout />
               </ProtectedRoute>
             }
           />
@@ -348,7 +365,6 @@ function App() {
 
           <Route path="kiosk" element={<KioskMode />} />
 
-          {/* Membership Routes */}
           <Route path="membership/plans" element={<MembershipPlans />} />
           
           <Route
@@ -378,7 +394,6 @@ function App() {
             }
           />
 
-          {/* Referral Routes */}
           <Route
             path="referidos"
             element={
@@ -387,7 +402,16 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Route>
+
+          <Route
+            path="salon/connect/return"
+            element={<SalonConnectReturn />}
+          />
+          <Route
+            path="salon/connect/refresh"
+            element={<SalonConnectRefresh />}
+          />
+        </Route> */}
       </Routes>
     </BrowserRouter>
   )

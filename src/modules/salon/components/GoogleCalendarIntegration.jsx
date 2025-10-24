@@ -20,22 +20,33 @@ function GoogleCalendarIntegration({ salonId }) {
     synced: false,
     calendarId: null,
     lastSync: null,
+    webhookActive: false,
+    webhookExpiration: null,
     loading: true,
   })
   
   const [calendars, setCalendars] = useState([])
   const [syncing, setSyncing] = useState(false)
+  const [activatingWebhook, setActivatingWebhook] = useState(false)
 
   const checkStatus = useCallback(async () => {
     try {
       const response = await api.get(`/salons/${salonId}`)
       const salon = response.data
       
+      const webhookActive = !!(
+        salon.google_webhook_channel_id && 
+        salon.google_webhook_expiration && 
+        new Date(salon.google_webhook_expiration) > new Date()
+      )
+      
       const newStatus = {
         connected: salon.google_calendar_enabled || false,
         synced: salon.google_sync_enabled || false,
         calendarId: salon.google_calendar_id || null,
         lastSync: salon.last_google_sync || null,
+        webhookActive,
+        webhookExpiration: salon.google_webhook_expiration || null,
         loading: false,
       }
       
@@ -144,7 +155,25 @@ function GoogleCalendarIntegration({ salonId }) {
     }
   }
 
-  // PASO 5: Desconectar
+  // PASO 5: Activar webhooks (sincronización automática)
+  const handleActivateWebhook = async () => {
+    setActivatingWebhook(true)
+    try {
+      await api.post(`/google-calendar/webhook/setup/${salonId}`)
+      
+      // Actualizar estado
+      await checkStatus()
+      
+      alert('✅ Sincronización automática activada\n\nLos cambios en Google Calendar ahora se reflejarán automáticamente en Lobba.')
+    } catch (error) {
+      // Error activating webhook
+      alert('❌ Error al activar sincronización automática\n\n' + (error.response?.data?.error || error.message))
+    } finally {
+      setActivatingWebhook(false)
+    }
+  }
+
+  // PASO 6: Desconectar
   const handleDisconnect = async () => {
     if (!confirm('¿Estás seguro de desconectar Google Calendar?')) return
     
@@ -285,6 +314,60 @@ function GoogleCalendarIntegration({ salonId }) {
             </div>
           </div>
 
+          {/* Estado de sincronización automática */}
+          {status.webhookActive ? (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="text-green-800 font-semibold">Sincronización automática activa</span>
+                </div>
+                {status.webhookExpiration && (
+                  <span className="text-xs text-green-600">
+                    Expira: {new Date(status.webhookExpiration).toLocaleDateString('es-ES')}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-green-700 mt-2">
+                Los cambios en Google Calendar se reflejan automáticamente en Lobba
+              </p>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                </svg>
+                <span className="text-yellow-800 font-semibold">Sincronización manual</span>
+              </div>
+              <p className="text-sm text-yellow-700 mb-3">
+                Debes sincronizar manualmente después de hacer cambios en Google Calendar
+              </p>
+              <button
+                onClick={handleActivateWebhook}
+                disabled={activatingWebhook}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+              >
+                {activatingWebhook ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Activando...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Activar sincronización automática
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Botones de acción */}
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -305,7 +388,7 @@ function GoogleCalendarIntegration({ salonId }) {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Sincronizar
+                  Sincronizar ahora
                 </>
               )}
             </button>
@@ -328,16 +411,16 @@ function GoogleCalendarIntegration({ salonId }) {
             </p>
             <ul className="space-y-2 text-sm text-blue-800">
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-0.5">→</span>
+                <span className="text-blue-600 mt-0.5">✓</span>
                 <span><strong>Lobba → Google:</strong> Las reservas confirmadas aparecen automáticamente en tu Google Calendar</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-0.5">→</span>
-                <span><strong>Google → Lobba:</strong> Tus eventos de Google Calendar bloquean horarios en Lobba (evita doble reservas)</span>
+                <span className="text-blue-600 mt-0.5">{status.webhookActive ? '✓' : '○'}</span>
+                <span><strong>Google → Lobba:</strong> {status.webhookActive ? 'Tus eventos de Google Calendar bloquean automáticamente horarios en Lobba' : 'Sincroniza manualmente o activa la sincronización automática'}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 mt-0.5">💡</span>
-                <span>Sincroniza manualmente cuando crees eventos en Google Calendar</span>
+                <span>{status.webhookActive ? 'Los webhooks se renuevan automáticamente cada 7 días' : 'Con sincronización automática, los cambios se reflejan al instante'}</span>
               </li>
             </ul>
           </div>

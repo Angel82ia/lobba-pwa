@@ -1,8 +1,11 @@
 import * as Reservation from '../models/Reservation.js'
 import { getAvailableSlots } from '../utils/slots.js'
 import { createCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
-import { sendReservationConfirmation, sendReservationCancellation } from '../utils/whatsapp.js'
-import { notifyReservationCreated, notifyReservationConfirmed, notifyReservationCancelled } from '../services/notificationService.js'
+import {
+  notifyReservationCreated,
+  notifyReservationConfirmed,
+  notifyReservationCancelled,
+} from '../services/notificationService.js'
 import { validationResult } from 'express-validator'
 import logger from '../utils/logger.js'
 import pool from '../config/database.js'
@@ -36,7 +39,16 @@ export const createReservation = async (req, res) => {
 
   try {
     const userId = req.user.id
-    const { salonProfileId, serviceId, startTime, endTime, totalPrice, notes, clientPhone, clientEmail } = req.body
+    const {
+      salonProfileId,
+      serviceId,
+      startTime,
+      endTime,
+      totalPrice,
+      notes,
+      clientPhone,
+      clientEmail,
+    } = req.body
 
     const reservation = await Reservation.createReservation({
       userId,
@@ -121,7 +133,7 @@ export const getReservation = async (req, res) => {
 export const getUserReservations = async (req, res) => {
   try {
     const userId = req.params.userId || req.user.id
-    
+
     if (userId !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Unauthorized' })
     }
@@ -186,16 +198,6 @@ export const confirmReservation = async (req, res) => {
     })
 
     try {
-      await sendReservationConfirmation({
-        ...updated,
-        salon_profile: { business_name: reservation.business_name },
-        service: { name: reservation.service_name },
-      })
-    } catch (error) {
-      logger.error('WhatsApp error:', error)
-    }
-
-    try {
       await notifyReservationConfirmed(updated)
     } catch (error) {
       logger.error('Notification error:', error)
@@ -236,16 +238,6 @@ export const cancelReservation = async (req, res) => {
     }
 
     const cancelled = await Reservation.cancelReservation(id, reason || 'Cancelled by user')
-
-    try {
-      await sendReservationCancellation({
-        ...cancelled,
-        salon_profile: { business_name: reservation.business_name },
-        cancellation_reason: reason,
-      })
-    } catch (error) {
-      logger.error('WhatsApp error:', error)
-    }
 
     try {
       await notifyReservationCancelled(cancelled, reason)

@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#FF1493"/>
+  
+  <!-- Letter L -->
+  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="280" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central">L</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="420" cy="92" r="20" fill="white" opacity="0.8"/>
+  <circle cx="92" cy="420" r="15" fill="white" opacity="0.6"/>
+</svg>
+
