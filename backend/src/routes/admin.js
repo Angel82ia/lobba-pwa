@@ -1,5 +1,5 @@
 import express from 'express'
-import { authenticate } from '../middleware/auth.js'
+import { authenticate, requireRole } from '../middleware/auth.js'
 import {
   getAllUsers,
   getUserById,
@@ -10,8 +10,9 @@ import {
 
 const router = express.Router()
 
-// Todas las rutas de admin requieren autenticación
+// Todas las rutas de admin requieren autenticación Y rol de admin
 router.use(authenticate)
+router.use(requireRole('admin'))
 
 // Obtener todos los usuarios
 router.get('/users', getAllUsers)

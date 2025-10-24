@@ -1,4 +1,5 @@
 import * as Reservation from '../models/Reservation.js'
+import * as SalonProfile from '../models/SalonProfile.js'
 import { getAvailableSlots } from '../utils/slots.js'
 import { createCalendarEvent, deleteCalendarEvent } from '../utils/googleCalendar.js'
 import {
@@ -120,6 +121,16 @@ export const getSalonReservations = async (req, res) => {
   try {
     const { salonId } = req.params
     const { status, startDate, endDate } = req.query
+
+    const salon = await SalonProfile.findSalonProfileById(salonId)
+    
+    if (!salon) {
+      return res.status(404).json({ error: 'Salon not found' })
+    }
+
+    if (salon.user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Unauthorized - You can only view reservations for your own salon' })
+    }
 
     const reservations = await Reservation.findReservationsBySalonId(salonId, {
       status,

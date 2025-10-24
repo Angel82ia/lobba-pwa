@@ -1,4 +1,5 @@
 import express from 'express'
+import Stripe from 'stripe'
 import pool from '../config/database.js'
 import { requireAuth } from '../middleware/auth.js'
 import {
@@ -7,6 +8,7 @@ import {
   updateAccountStatus,
 } from '../services/stripeConnectService.js'
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const router = express.Router()
 
 /**
@@ -165,10 +167,25 @@ router.get('/status/:salonProfileId', requireAuth, async (req, res) => {
  * Webhook handler para actualizaciones de Stripe Connect
  * POST /api/stripe-connect/webhook
  */
-router.post('/webhook', async (req, res) => {
-  try {
-    const event = req.body
+router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature']
+  const endpointSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET
 
+  if (!endpointSecret) {
+    console.error('[Stripe Connect Webhook] STRIPE_CONNECT_WEBHOOK_SECRET not configured')
+    return res.status(500).json({ error: 'Webhook secret not configured' })
+  }
+
+  let event
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret)
+  } catch (err) {
+    console.error('[Stripe Connect Webhook] Signature verification failed:', err.message)
+    return res.status(400).json({ error: `Webhook signature verification failed: ${err.message}` })
+  }
+
+  try {
     if (event.type === 'account.updated') {
       const accountId = event.data.object.id
 
@@ -184,7 +201,7 @@ router.post('/webhook', async (req, res) => {
 
     return res.status(200).json({ received: true })
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    console.error('[Stripe Connect Webhook] Error processing:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 })
