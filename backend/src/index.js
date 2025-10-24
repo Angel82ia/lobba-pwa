@@ -19,6 +19,7 @@ import checkoutRoutes from './routes/checkout.js'
 import wishlistRoutes from './routes/wishlist.js'
 import webhookRoutes from './routes/webhook.js'
 import notificationRoutes from './routes/notification.js'
+import notificationAdminRoutes from './routes/notificationAdmin.js'
 import chatbotRoutes from './routes/chatbot.js'
 import bannerRoutes from './routes/banner.js'
 import aiRoutes from './routes/ai.js'
@@ -50,6 +51,11 @@ import { initialize as initializeGoogleSheets } from './services/googleSheetsSer
 import { startReminderCron } from './services/reminderService.js'
 import { initTimeoutService } from './services/reservationTimeoutService.js'
 import { connectRedis, checkRedisHealth } from './config/redis.js'
+import { TwilioNotificationService } from './services/twilioNotificationService.js'
+import { EmailService } from './services/emailService.js'
+import { VerifyService } from './services/verifyService.js'
+import { NotificationOrchestrator } from './services/notificationOrchestrator.js'
+import { startAppointmentReminderCron } from './services/appointmentReminderCron.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -160,6 +166,7 @@ app.use('/api/orders', orderRoutes)
 app.use('/api/checkout', checkoutRoutes)
 app.use('/api/wishlist', wishlistRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/notification-admin', notificationAdminRoutes)
 app.use('/api/chatbot', chatbotRoutes)
 app.use('/api/banners', bannerRoutes)
 app.use('/api/ai', aiRoutes)
@@ -207,6 +214,26 @@ if (process.env.NODE_ENV !== 'test') {
     
     await initializeStorage()
     await initializeGoogleSheets()
+    
+    const twilioService = new TwilioNotificationService()
+    const emailService = new EmailService()
+    const verifyService = new VerifyService()
+    const notificationOrchestrator = new NotificationOrchestrator(twilioService, emailService)
+    
+    app.set('twilioService', twilioService)
+    app.set('emailService', emailService)
+    app.set('verifyService', verifyService)
+    app.set('notificationOrchestrator', notificationOrchestrator)
+    
+    console.log('✅ Servicios de notificación inicializados')
+    console.log(`  - Twilio WhatsApp: ${twilioService.isConfigured() ? 'Activo' : 'Deshabilitado'}`)
+    console.log(`  - SendGrid Email: ${emailService.isConfigured() ? 'Activo' : 'Deshabilitado'}`)
+    console.log(`  - Twilio Verify: ${verifyService.isConfigured() ? 'Activo' : 'Deshabilitado'}`)
+    console.log(`  - Notification Orchestrator: Activo`)
+    
+    startAppointmentReminderCron(notificationOrchestrator)
+    console.log('✅ Appointment reminder cron initialized')
+    
     startReminderCron()
     initTimeoutService(1)
     console.log('Reservation timeout service initialized')

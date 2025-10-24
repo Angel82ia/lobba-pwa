@@ -66,6 +66,12 @@ class VerifyService {
     return this.initialized;
   }
 
+  isConfigured() {
+    return !!process.env.TWILIO_ACCOUNT_SID && 
+           !!process.env.TWILIO_AUTH_TOKEN && 
+           !!process.env.TWILIO_VERIFY_SERVICE_SID;
+  }
+
   async sendVerificationCode(phoneOrEmail, channel = 'sms', options = {}) {
     if (!this.isInitialized()) {
       logger.warn('Verify service not initialized - skipping verification code');
@@ -254,6 +260,7 @@ class VerifyService {
   }
 }
 
-const verifyService = new VerifyService();
+export { VerifyService };
 
+const verifyService = new VerifyService();
 export default verifyService;

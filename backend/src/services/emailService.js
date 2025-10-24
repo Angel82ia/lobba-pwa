@@ -44,6 +44,11 @@ class EmailService {
     return this.initialized;
   }
 
+  isConfigured() {
+    return !!process.env.SENDGRID_API_KEY && 
+           !!process.env.SENDGRID_FROM_EMAIL;
+  }
+
   async sendAppointmentConfirmation(appointment, userEmail) {
     if (!this.isInitialized()) {
       logger.warn('Email service not initialized - skipping appointment confirmation email');
@@ -386,6 +391,7 @@ class EmailService {
   };
 }
 
-const emailService = new EmailService();
+export { EmailService };
 
+const emailService = new EmailService();
 export default emailService;

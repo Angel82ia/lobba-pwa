@@ -3,8 +3,8 @@ import * as webhookController from '../controllers/webhookController.js'
 
 const router = express.Router()
 
-router.use(express.raw({ type: 'application/json' }))
+router.post('/stripe', express.raw({ type: 'application/json' }), webhookController.handleStripeWebhook)
 
-router.post('/stripe', webhookController.handleStripeWebhook)
+router.post('/twilio/status', express.urlencoded({ extended: false }), webhookController.handleTwilioStatusCallback)
 
 export default router

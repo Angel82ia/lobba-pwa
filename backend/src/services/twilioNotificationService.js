@@ -10,7 +10,7 @@
  */
 
 import twilio from 'twilio';
-import { db } from '../config/database.js';
+import pool from '../config/database.js';
 import logger from '../utils/logger.js';
 
 class TwilioNotificationService {
@@ -48,6 +48,12 @@ class TwilioNotificationService {
 
   isInitialized() {
     return this.initialized;
+  }
+
+  isConfigured() {
+    return !!process.env.TWILIO_ACCOUNT_SID && 
+           !!process.env.TWILIO_AUTH_TOKEN && 
+           !!process.env.TWILIO_WHATSAPP_FROM;
   }
 
   async sendAppointmentConfirmation(appointment) {
@@ -216,7 +222,7 @@ class TwilioNotificationService {
         data.content,
       ];
 
-      const result = await db.query(query, values);
+      const result = await pool.query(query, values);
       return result.rows[0];
     } catch (error) {
       logger.error('Error saving notification:', error);
@@ -233,7 +239,7 @@ class TwilioNotificationService {
         RETURNING *
       `;
       
-      const result = await db.query(query, [newStatus, messageSid]);
+      const result = await pool.query(query, [newStatus, messageSid]);
       return result.rows[0];
     } catch (error) {
       logger.error('Error updating notification status:', error);
@@ -311,6 +317,7 @@ _Mensaje automático de LOBBA_`;
   };
 }
 
-const twilioNotificationService = new TwilioNotificationService();
+export { TwilioNotificationService };
 
+const twilioNotificationService = new TwilioNotificationService();
 export default twilioNotificationService;
