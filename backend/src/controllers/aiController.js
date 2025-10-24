@@ -5,6 +5,7 @@ import * as SavedDesign from '../models/SavedDesign.js'
 import { generateNailDesign, generateHairstyleTryOn } from '../utils/aiService.js'
 import logger from '../utils/logger.js'
 import { uploadToCloudinary } from '../utils/cloudinary.js'
+import { consumeARCredits, getARCreditsInfo } from '../middleware/arCredits.js'
 
 export const generateNails = async (req, res) => {
   try {
@@ -15,15 +16,6 @@ export const generateNails = async (req, res) => {
       return res.status(400).json({ message: 'Prompt es requerido' })
     }
 
-    const quotaCheck = await UserQuota.checkNailsQuota(userId)
-    if (!quotaCheck.hasQuota) {
-      return res.status(429).json({
-        message: `Has alcanzado el límite de ${quotaCheck.limit} diseños de uñas por mes`,
-        used: quotaCheck.used,
-        limit: quotaCheck.limit,
-        remaining: quotaCheck.remaining
-      })
-    }
 
     const result = await generateNailDesign(prompt)
 
@@ -52,7 +44,11 @@ export const generateNails = async (req, res) => {
       generationTimeMs: result.generationTimeMs
     })
 
-    await UserQuota.incrementNailsQuota(userId)
+    const arResult = await consumeARCredits(req, {
+      prompt,
+      generation_id: generation.id,
+      provider: result.provider
+    })
 
     await SavedDesign.createSavedDesign({
       userId,
@@ -60,11 +56,11 @@ export const generateNails = async (req, res) => {
       title: prompt.substring(0, 100)
     })
 
-    const updatedQuota = await UserQuota.checkNailsQuota(userId)
+    const arCreditsInfo = await getARCreditsInfo(userId)
 
     res.json({
       generation,
-      quota: updatedQuota
+      ar_credits: arCreditsInfo
     })
   } catch (error) {
     logger.error('Generate nails error:', error)
@@ -79,16 +75,6 @@ export const generateHairstyle = async (req, res) => {
 
     if (!selfieBase64 || !styleId) {
       return res.status(400).json({ message: 'Selfie y estilo son requeridos' })
-    }
-
-    const quotaCheck = await UserQuota.checkHairstyleQuota(userId)
-    if (!quotaCheck.hasQuota) {
-      return res.status(429).json({
-        message: `Has alcanzado el límite de ${quotaCheck.limit} peinados por mes`,
-        used: quotaCheck.used,
-        limit: quotaCheck.limit,
-        remaining: quotaCheck.remaining
-      })
     }
 
     const result = await generateHairstyleTryOn(selfieBase64, styleId)
@@ -131,7 +117,11 @@ export const generateHairstyle = async (req, res) => {
       generationTimeMs: result.generationTimeMs
     })
 
-    await UserQuota.incrementHairstyleQuota(userId)
+    const arResult = await consumeARCredits(req, {
+      style_id: styleId,
+      generation_id: generation.id,
+      provider: result.provider
+    })
 
     await SavedDesign.createSavedDesign({
       userId,
@@ -139,14 +129,81 @@ export const generateHairstyle = async (req, res) => {
       title: `Peinado ${styleId}`
     })
 
-    const updatedQuota = await UserQuota.checkHairstyleQuota(userId)
+    const arCreditsInfo = await getARCreditsInfo(userId)
 
     res.json({
       generation,
-      quota: updatedQuota
+      ar_credits: arCreditsInfo
     })
   } catch (error) {
     logger.error('Generate hairstyle error:', error)
+    res.status(500).json({ message: error.message })
+  }
+}
+
+export const generateMakeup = async (req, res) => {
+  try {
+    const { selfieBase64, makeupPresetId, customization } = req.body
+    const userId = req.user.id
+
+    if (!selfieBase64 || !makeupPresetId) {
+      return res.status(400).json({ message: 'Selfie y preset de maquillaje son requeridos' })
+    }
+
+    const result = {
+      imageUrl: selfieBase64,
+      provider: 'banuba',
+      generationTimeMs: 1500
+    }
+
+    let savedInputUrl = selfieBase64
+    let savedOutputUrl = result.imageUrl
+    
+    if (selfieBase64.startsWith('data:image')) {
+      const inputBase64 = selfieBase64.replace(/^data:image\/\w+;base64,/, '')
+      const inputBuffer = Buffer.from(inputBase64, 'base64')
+      
+      const inputCloudinaryResult = await uploadToCloudinary(
+        { buffer: inputBuffer },
+        'lobba/ai-generations/makeup-inputs'
+      )
+      
+      savedInputUrl = inputCloudinaryResult.secure_url
+      savedOutputUrl = inputCloudinaryResult.secure_url
+    }
+
+    const generation = await AIGeneration.createGeneration({
+      userId,
+      type: 'makeup',
+      prompt: null,
+      inputImageUrl: savedInputUrl,
+      outputImageUrl: savedOutputUrl,
+      styleId: makeupPresetId,
+      aiProvider: result.provider,
+      generationTimeMs: result.generationTimeMs
+    })
+
+    const arResult = await consumeARCredits(req, {
+      makeup_preset_id: makeupPresetId,
+      customization: customization || {},
+      generation_id: generation.id,
+      provider: result.provider
+    })
+
+    await SavedDesign.createSavedDesign({
+      userId,
+      generationId: generation.id,
+      title: `Maquillaje ${makeupPresetId}`
+    })
+
+    const arCreditsInfo = await getARCreditsInfo(userId)
+
+    res.json({
+      generation,
+      ar_credits: arCreditsInfo
+    })
+  } catch (error) {
+    logger.error('Generate makeup error:', error)
     res.status(500).json({ message: error.message })
   }
 }
@@ -222,15 +279,12 @@ export const toggleFavoriteDesign = async (req, res) => {
 export const getQuota = async (req, res) => {
   try {
     const userId = req.user.id
-    const quota = await UserQuota.getOrCreateQuota(userId)
-
-    const nailsCheck = await UserQuota.checkNailsQuota(userId)
-    const hairstyleCheck = await UserQuota.checkHairstyleQuota(userId)
+    
+    const arCreditsInfo = await getARCreditsInfo(userId)
 
     res.json({
-      ...quota,
-      nails: nailsCheck,
-      hairstyle: hairstyleCheck
+      ar_credits: arCreditsInfo,
+      legacy_note: 'Sistema actualizado a créditos AR unificados (50/mes para uñas, peinados y maquillaje)'
     })
   } catch (error) {
     logger.error('Get quota error:', error)
