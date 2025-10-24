@@ -13,6 +13,7 @@
 
 import pool from '../config/database.js'
 import logger from '../utils/logger.js'
+import salonTemplates from '../templates/salonNotifications.js'
 
 export class NotificationOrchestrator {
   constructor(twilioService, emailService) {
@@ -70,13 +71,15 @@ export class NotificationOrchestrator {
    * Enviar confirmación de cita creada
    * - WhatsApp a la socia (número LOBBA)
    * - Email a la socia
-   * - Notificación al salón (su sistema existente)
+   * - WhatsApp al salón (número LOBBA) ← NUEVO
+   * - Email al salón
    */
   async sendAppointmentConfirmation(appointment, salonData) {
     const results = {
       whatsapp: null,
       email: null,
-      salonNotified: false,
+      salonWhatsapp: null,
+      salonEmail: false,
     }
 
     try {
@@ -102,9 +105,9 @@ export class NotificationOrchestrator {
             content: whatsappResult.body,
           })
 
-          logger.info(`✅ WhatsApp enviado a ${appointment.client_phone}`)
+          logger.info(`✅ WhatsApp enviado a socia ${appointment.client_phone}`)
         } catch (error) {
-          logger.error('WhatsApp send error:', error)
+          logger.error('WhatsApp send error (client):', error)
           results.whatsapp = { error: error.message }
 
           await this.logNotification({
@@ -141,9 +144,9 @@ export class NotificationOrchestrator {
             content: `Email confirmation sent`,
           })
 
-          logger.info(`✅ Email enviado a ${appointment.client_email}`)
+          logger.info(`✅ Email enviado a socia ${appointment.client_email}`)
         } catch (error) {
-          logger.error('Email send error:', error)
+          logger.error('Email send error (client):', error)
           results.email = { error: error.message }
 
           await this.logNotification({
@@ -156,13 +159,56 @@ export class NotificationOrchestrator {
         }
       }
 
+      if (this.twilioService.isConfigured() && salonData.contact_phone) {
+        try {
+          const salonWhatsappMessage = salonTemplates.appointmentCreated({
+            client_name: appointment.client_name,
+            client_phone: appointment.client_phone || 'No proporcionado',
+            appointment_date: appointment.appointment_date,
+            appointment_time: appointment.appointment_time,
+            service_type: appointment.service_type || 'Servicio general',
+            price: appointment.price || '0',
+            appointment_id: appointment.id,
+          })
+
+          const salonWhatsappResult = await this.twilioService.sendWhatsApp({
+            to: salonData.contact_phone,
+            body: salonWhatsappMessage,
+          })
+
+          results.salonWhatsapp = salonWhatsappResult
+
+          await this.logNotification({
+            type: 'appointment_confirmation_salon',
+            appointmentId: appointment.id,
+            toPhone: salonData.contact_phone,
+            messageSid: salonWhatsappResult.sid,
+            status: 'sent',
+            content: salonWhatsappMessage,
+          })
+
+          logger.info(`✅ WhatsApp enviado a salón ${salonData.business_name} (${salonData.contact_phone})`)
+        } catch (error) {
+          logger.error('WhatsApp send error (salon):', error)
+          results.salonWhatsapp = { error: error.message }
+
+          await this.logNotification({
+            type: 'appointment_confirmation_salon',
+            appointmentId: appointment.id,
+            toPhone: salonData.contact_phone,
+            status: 'failed',
+            content: error.message,
+          })
+        }
+      }
+
       if (salonData.owner_email) {
         try {
           await this.notifySalonNewAppointment(appointment, salonData)
-          results.salonNotified = true
-          logger.info(`✅ Salón notificado: ${salonData.business_name}`)
+          results.salonEmail = true
+          logger.info(`✅ Email enviado a salón ${salonData.business_name}`)
         } catch (error) {
-          logger.error('Salon notification error:', error)
+          logger.error('Salon email notification error:', error)
         }
       }
     } catch (error) {
@@ -176,11 +222,13 @@ export class NotificationOrchestrator {
    * Enviar recordatorio 24h antes
    * - WhatsApp a la socia (número LOBBA)
    * - Email a la socia
+   * - WhatsApp al salón (número LOBBA)
    */
   async sendAppointmentReminder(appointment, salonData) {
     const results = {
       whatsapp: null,
       email: null,
+      salonWhatsapp: null,
     }
 
     try {
@@ -211,9 +259,9 @@ export class NotificationOrchestrator {
             [appointment.id]
           )
 
-          logger.info(`✅ Recordatorio WhatsApp enviado a ${appointment.client_phone}`)
+          logger.info(`✅ Recordatorio WhatsApp enviado a socia ${appointment.client_phone}`)
         } catch (error) {
-          logger.error('WhatsApp reminder error:', error)
+          logger.error('WhatsApp reminder error (client):', error)
           results.whatsapp = { error: error.message }
         }
       }
@@ -232,10 +280,52 @@ export class NotificationOrchestrator {
           )
 
           results.email = emailResult
-          logger.info(`✅ Recordatorio Email enviado a ${appointment.client_email}`)
+          logger.info(`✅ Recordatorio Email enviado a socia ${appointment.client_email}`)
         } catch (error) {
-          logger.error('Email reminder error:', error)
+          logger.error('Email reminder error (client):', error)
           results.email = { error: error.message }
+        }
+      }
+
+      if (this.twilioService.isConfigured() && salonData.contact_phone) {
+        try {
+          const salonWhatsappMessage = salonTemplates.appointmentReminder({
+            client_name: appointment.client_name,
+            client_phone: appointment.client_phone || 'No proporcionado',
+            appointment_date: appointment.appointment_date,
+            appointment_time: appointment.appointment_time,
+            service_type: appointment.service_type || 'Servicio general',
+            appointment_id: appointment.id,
+          })
+
+          const salonWhatsappResult = await this.twilioService.sendWhatsApp({
+            to: salonData.contact_phone,
+            body: salonWhatsappMessage,
+          })
+
+          results.salonWhatsapp = salonWhatsappResult
+
+          await this.logNotification({
+            type: 'appointment_reminder_salon',
+            appointmentId: appointment.id,
+            toPhone: salonData.contact_phone,
+            messageSid: salonWhatsappResult.sid,
+            status: 'sent',
+            content: salonWhatsappMessage,
+          })
+
+          logger.info(`✅ Recordatorio WhatsApp enviado a salón ${salonData.business_name} (${salonData.contact_phone})`)
+        } catch (error) {
+          logger.error('WhatsApp reminder error (salon):', error)
+          results.salonWhatsapp = { error: error.message }
+
+          await this.logNotification({
+            type: 'appointment_reminder_salon',
+            appointmentId: appointment.id,
+            toPhone: salonData.contact_phone,
+            status: 'failed',
+            content: error.message,
+          })
         }
       }
     } catch (error) {
@@ -249,13 +339,15 @@ export class NotificationOrchestrator {
    * Enviar cancelación de cita
    * - WhatsApp a la socia
    * - Email a la socia
-   * - Notificación al salón
+   * - WhatsApp al salón
+   * - Email al salón
    */
   async sendAppointmentCancellation(appointment, salonData, reason) {
     const results = {
       whatsapp: null,
       email: null,
-      salonNotified: false,
+      salonWhatsapp: null,
+      salonEmail: false,
     }
 
     try {
@@ -281,9 +373,9 @@ export class NotificationOrchestrator {
             content: whatsappResult.body,
           })
 
-          logger.info(`✅ Cancelación WhatsApp enviada a ${appointment.client_phone}`)
+          logger.info(`✅ Cancelación WhatsApp enviada a socia ${appointment.client_phone}`)
         } catch (error) {
-          logger.error('WhatsApp cancellation error:', error)
+          logger.error('WhatsApp cancellation error (client):', error)
           results.whatsapp = { error: error.message }
         }
       }
@@ -302,20 +394,65 @@ export class NotificationOrchestrator {
           )
 
           results.email = emailResult
-          logger.info(`✅ Cancelación Email enviada a ${appointment.client_email}`)
+          logger.info(`✅ Cancelación Email enviada a socia ${appointment.client_email}`)
         } catch (error) {
-          logger.error('Email cancellation error:', error)
+          logger.error('Email cancellation error (client):', error)
           results.email = { error: error.message }
+        }
+      }
+
+      if (this.twilioService.isConfigured() && salonData.contact_phone) {
+        try {
+          const cancelledBy = reason?.includes('cliente') ? 'client' : 'system'
+          
+          const salonWhatsappMessage = salonTemplates.appointmentCancelled({
+            client_name: appointment.client_name,
+            client_phone: appointment.client_phone || 'No proporcionado',
+            appointment_date: appointment.appointment_date,
+            appointment_time: appointment.appointment_time,
+            service_type: appointment.service_type || 'Servicio general',
+            appointment_id: appointment.id,
+            cancelled_by: cancelledBy,
+          })
+
+          const salonWhatsappResult = await this.twilioService.sendWhatsApp({
+            to: salonData.contact_phone,
+            body: salonWhatsappMessage,
+          })
+
+          results.salonWhatsapp = salonWhatsappResult
+
+          await this.logNotification({
+            type: 'appointment_cancellation_salon',
+            appointmentId: appointment.id,
+            toPhone: salonData.contact_phone,
+            messageSid: salonWhatsappResult.sid,
+            status: 'sent',
+            content: salonWhatsappMessage,
+          })
+
+          logger.info(`✅ Cancelación WhatsApp enviada a salón ${salonData.business_name} (${salonData.contact_phone})`)
+        } catch (error) {
+          logger.error('WhatsApp cancellation error (salon):', error)
+          results.salonWhatsapp = { error: error.message }
+
+          await this.logNotification({
+            type: 'appointment_cancellation_salon',
+            appointmentId: appointment.id,
+            toPhone: salonData.contact_phone,
+            status: 'failed',
+            content: error.message,
+          })
         }
       }
 
       if (salonData.owner_email) {
         try {
           await this.notifySalonCancellation(appointment, salonData, reason)
-          results.salonNotified = true
-          logger.info(`✅ Salón notificado de cancelación: ${salonData.business_name}`)
+          results.salonEmail = true
+          logger.info(`✅ Email de cancelación enviado a salón ${salonData.business_name}`)
         } catch (error) {
-          logger.error('Salon cancellation notification error:', error)
+          logger.error('Salon cancellation email error:', error)
         }
       }
     } catch (error) {
