@@ -22,7 +22,7 @@ export const sendMessage = async (req, res) => {
 
     const history = await ChatbotMessage.findRecentMessages(conversation.id, 10)
 
-    const aiResult = await generateChatbotResponse(message, history)
+    const aiResult = await generateChatbotResponse(message, history, userId)
 
     const botMessage = await ChatbotMessage.createMessage({
       conversationId: conversation.id,
