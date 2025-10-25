@@ -81,7 +81,14 @@ export const generateHairstyleTryOn = async (selfieBase64, styleId) => {
   throw new Error(`Hairstyle try-on not supported for provider: ${provider}`)
 }
 
-export const generateChatbotResponse = async (userMessage, conversationHistory = []) => {
+export const generateChatbotResponse = async (userMessage, conversationHistory = [], userId = null) => {
+  const googleAIKey = process.env.GOOGLE_AI_API_KEY
+  
+  if (googleAIKey) {
+    const { generateOliviaResponse } = await import('../services/oliviaService.js')
+    return await generateOliviaResponse(userMessage, conversationHistory, userId)
+  }
+  
   const provider = initializeAIProvider()
   
   if (provider === PROVIDERS.MOCK) {
